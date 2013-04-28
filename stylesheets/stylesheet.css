@@ -1,3 +1,5 @@
+@import 'eigengo.css';
+
 /* http://meyerweb.com/eric/tools/css/reset/ 
    v2.0 | 20110126
    License: none (public domain)
@@ -90,7 +92,7 @@ header h2 {
 }
 
 .inner {
-  width: 620px;
+  width: 1000px;
   margin: 0 auto;
 }
 
