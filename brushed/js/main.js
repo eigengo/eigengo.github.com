@@ -77,10 +77,10 @@ BRUSHED.slider = function(){
 		thumb_links				:	0,			// Individual thumb links for each slide
 		thumbnail_navigation    :   0,			// Thumbnail navigation
 		slides 					:  	[			// Slideshow Images
-											{image : '_brushed/img/slider-images/image01.jpg', title : '<div class="slide-content">Open Source</div>', thumb : '', url : '#opensource'},
-											{image : '_brushed/img/slider-images/image02.jpg', title : '<div class="slide-content">Conferences</div>', thumb : '', url : '#conferences'},
-											{image : '_brushed/img/slider-images/image03.jpg', title : '<div class="slide-content">Hardware</div>', thumb : '', url : '#hardware'},
-											{image : '_brushed/img/slider-images/image04.jpg', title : '<div class="slide-content">The good life</div>', thumb : '', url : '#contact'}
+											{image : 'brushed/img/slider-images/image01.jpg', title : '<div class="slide-content">Open Source</div>', thumb : '', url : '#opensource'},
+											{image : 'brushed/img/slider-images/image02.jpg', title : '<div class="slide-content">Conferences</div>', thumb : '', url : '#conferences'},
+											{image : 'brushed/img/slider-images/image03.jpg', title : '<div class="slide-content">Hardware</div>', thumb : '', url : '#hardware'},
+											{image : 'brushed/img/slider-images/image04.jpg', title : '<div class="slide-content">The good life</div>', thumb : '', url : '#contact'}
 									],
 									
 		// Theme Options			   
