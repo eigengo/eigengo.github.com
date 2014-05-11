@@ -79,7 +79,7 @@ BRUSHED.slider = function(){
 		slides 					:  	[			// Slideshow Images
 											{image : 'brushed/img/slider-images/image01.jpg', title : '<div class="slide-content">Open Source</div>', thumb : '', url : '#opensource'},
 											{image : 'brushed/img/slider-images/image02.jpg', title : '<div class="slide-content">Conferences</div>', thumb : '', url : '#conferences'},
-											{image : 'brushed/img/slider-images/image03.jpg', title : '<div class="slide-content">Hardware</div>', thumb : '', url : '#hardware'},
+											{image : 'brushed/img/slider-images/image03.jpg', title : '<div class="slide-content">Embedded software</div>', thumb : '', url : '#embedded'},
 											{image : 'brushed/img/slider-images/image04.jpg', title : '<div class="slide-content">The good life</div>', thumb : '', url : '#contact'}
 									],
 									
