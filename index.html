@@ -1,88 +1,517 @@
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<!--[if lt IE 7]><html class="no-js lt-ie9 lt-ie8 lt-ie7" lang="en"> <![endif]-->
+<!--[if (IE 7)&!(IEMobile)]><html class="no-js lt-ie9 lt-ie8" lang="en"><![endif]-->
+<!--[if (IE 8)&!(IEMobile)]><html class="no-js lt-ie9" lang="en"><![endif]-->
+<!--[if (IE 9)]><   html class="no-js ie9" lang="en"><![endif]-->
+<!--[if gt IE 8]><!--> <html lang="en-US"> <!--<![endif]-->
+<head>
 
-  <head>
-    <meta charset="utf-8">
-    <title>Eigengo</title>
-    <meta name="description" content="Eigengo">
-    <meta name="author" content="Eigengo">
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<!-- Meta Tags -->
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 
-    <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Ubuntu Mono:regular,bold&subset=Latin">
-    <link rel="stylesheet" href="reveal.js/css/reveal.css">
-    <link rel="stylesheet" href="reveal.js/css/theme/default.css" id="theme">
+<title>Eigengo</title>   
 
-    <!-- For syntax highlighting -->
-    <link rel="stylesheet" href="reveal.js/lib/css/zenburn.css">
+<meta name="description" content="Proper engineering, ideas, talks, and more!" /> 
 
-    <!-- If the query includes 'print-pdf', include the PDF print sheet -->
-    <script>
-      if( window.location.search.match( /print-pdf/gi ) ) {
-        var link = document.createElement( 'link' );
-        link.rel = 'stylesheet';
-        link.type = 'text/css';
-        link.href = '../reveal.js/css/print/pdf.css';
-        document.getElementsByTagName( 'head' )[0].appendChild( link );
-      }
-    </script>
+<!-- Mobile Specifics -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="HandheldFriendly" content="true"/>
+<meta name="MobileOptimized" content="320"/>   
 
-    <!--[if lt IE 9]>
-    <script src="lib/js/html5shiv.js"></script>
-    <![endif]-->
-  </head>
+<!-- Mobile Internet Explorer ClearType Technology -->
+<!--[if IEMobile]>  <meta http-equiv="cleartype" content="on">  <![endif]-->
 
-  <body>
+<!-- Bootstrap -->
+<link href="_brushed/css/bootstrap.min.css" rel="stylesheet">
 
-    <div class="reveal">
-        <div class="slides">
-            <section>
-                <h1>Talks</h1>
-                <ul>
-                    <li><p><a href="reactive-apis-spray/index.html">Reactive APIs in Spray</a></p>
-                      <p><small>April 2014 @ Philly ETE</small></p></li>
-                    <li><p><a href="#">Introduction to Reactive Streams</a></p>
-              		    <p><small>May 2014 @ Manchester Lambda Lounge</small></p></li>
-		                <li><p><a href="#">Monitoring Akka</a></p>
-		                  <p><small>June 2014 @ Scala Days</small></p></li>
-                </ul>
-                <h1>Blog</h1>
-                <p><a href="http://blog.eigengo.com">http://blog.eigengo.com</a></p>
-            </section>
+<!-- Main Style -->
+<link href="_brushed/css/main.css" rel="stylesheet">
+
+<!-- Supersized -->
+<link href="_brushed/css/supersized.css" rel="stylesheet">
+<link href="_brushed/css/supersized.shutter.css" rel="stylesheet">
+
+<!-- FancyBox -->
+<link href="_brushed/css/fancybox/jquery.fancybox.css" rel="stylesheet">
+
+<!-- Font Icons -->
+<link href="_brushed/css/fonts.css" rel="stylesheet">
+
+<!-- Shortcodes -->
+<link href="_brushed/css/shortcodes.css" rel="stylesheet">
+
+<!-- Responsive -->
+<link href="_brushed/css/bootstrap-responsive.min.css" rel="stylesheet">
+<link href="_brushed/css/responsive.css" rel="stylesheet">
+
+<!-- Supersized -->
+<link href="_brushed/css/supersized.css" rel="stylesheet">
+<link href="_brushed/css/supersized.shutter.css" rel="stylesheet">
+
+<!-- Google Font -->
+<link href='http://fonts.googleapis.com/css?family=Titillium+Web:400,200,200italic,300,300italic,400italic,600,600italic,700,700italic,900' rel='stylesheet' type='text/css'>
+
+<!-- Fav Icon -->
+<link rel="shortcut icon" href="#">
+
+<link rel="apple-touch-icon" href="#">
+<link rel="apple-touch-icon" sizes="114x114" href="#">
+<link rel="apple-touch-icon" sizes="72x72" href="#">
+<link rel="apple-touch-icon" sizes="144x144" href="#">
+
+<!-- Modernizr -->
+<script src="_brushed/js/modernizr.js"></script>
+
+</head>
+
+
+<body>
+
+<!-- This section is for Splash Screen -->
+<div class="ole">
+<section id="jSplash">
+    <div id="circle"></div>
+</section>
+</div>
+<!-- End of Splash Screen -->
+
+<!-- Homepage Slider -->
+<div id="home-slider">  
+    <div class="overlay"></div>
+
+    <div class="slider-text">
+        <div id="slidecaption"></div>
+    </div>   
+    
+    <div class="control-nav">
+        <a id="prevslide" class="load-item"><i class="font-icon-arrow-simple-left"></i></a>
+        <a id="nextslide" class="load-item"><i class="font-icon-arrow-simple-right"></i></a>
+        <ul id="slide-list"></ul>
+        
+        <a id="nextsection" href="#opensource"><i class="font-icon-arrow-simple-down"></i></a>
+    </div>
+</div>
+<!-- End Homepage Slider -->
+
+<!-- Header -->
+<header>
+    <div class="sticky-nav">
+        <a id="mobile-nav" class="menu-nav" href="#menu-nav"></a>
+        
+        <div id="logo">
+            <a id="goUp" href="#home-slider" title="Eigengo | Code &amp; more">Eigengo</a>
+        </div>
+        
+        <nav id="menu">
+            <ul id="menu-nav">
+                <li class="current"><a href="#home-slider">Home</a></li>
+                <li><a href="#opensource">Open Source</a></li>
+                <li><a href="#conferences">Conferences</a></li>
+                <!-- <li><a href="#hardware">Hardware</a></li>-->
+                <li><a href="#contact">How we roll</a></li>
+            </ul>
+        </nav>
+        
+    </div>
+</header>
+<!-- End Header -->
+
+<!-- About Section -->
+<div id="opensource" class="page-alternate">
+<div class="container">
+    <!-- Title Page -->
+    <div class="row">
+        <div class="span12">
+            <div class="title-page">
+                <h2 class="title">Open Source</h2>
+                <h3 class="title-description">Check Out Our Projects on <a href="https://github.com/eigengo">Github</a>.</h3>
+            </div>
         </div>
     </div>
+    <!-- End Title Page -->
+    
+    <!-- Main projects -->
+    <div class="row">        
+        <!-- Start Profile -->
+        <div class="span4 profile">
+            <div class="image-wrap">
+                <div class="hover-wrap">
+                    <span class="overlay-img"></span>
+                    <span class="overlay-text-thumb">Instrument Akka &amp; Play applications</span>
+                </div>
+                <img src="_brushed/img/profile/reactivemonitor.jpg" alt="Reactive Monitor">
+            </div>
+            <h3 class="profile-name">Reactive Monitor</h3>
+            <p class="profile-description">
+                Use our monitor to keep an eye on a debugged, tuned Akka system that is running in production. In production, you may want to monitor the actors' queues, the number of messages they process, the performance of the <code>receive</code> function and error rates. The <em>Reactive Monitor</em> does just that without any code change to your application.
+            </p>
+            <div class="links">
+                <ul class="social-icons">
+                    <li><a href="https://github.com/eigengo/monitor"><i class="font-icon-social-github">Source code</i></a></li>
+                    <li><a href="http://blog.eigengo.com"><i class="font-icon-social-wordpress">Blog</i></a></li>
+                </ul>
+            </div>
+        </div>
+        <!-- End Profile -->
+        
+        <!-- Start Profile -->
+        <div class="span4 profile">
+            <div class="image-wrap">
+                <div class="hover-wrap">
+                    <span class="overlay-img"></span>
+                    <span class="overlay-text-thumb">NoSQL data access</span>
+                </div>
+                <img src="_brushed/img/profile/scalad.png" alt="Scalad">
+            </div>
+            <h3 class="profile-name">Scalad</h3>
+            <p class="profile-description">Scalad sets out to simplify data access code in Scala. It fits particularly well into Spray and Akka
+            applications: it re-uses existing JSON marshallers and unmarshallers. It provides powerful strongly-typed functional data access
+            design patterns, yet remains easy to use.</p>
+                
+            <div class="links">
+                <ul class="social-icons">
+                    <li><a href="https://github.com/eigengo/scalad"><i class="font-icon-social-github">Source code</i></a></li>
+                    <li><a href="http://blog.eigengo.com"><i class="font-icon-social-wordpress">Blog</i></a></li>
+                </ul>
+            </div>
+        </div>
+        <!-- End Profile -->
+        
+        <!-- Start Profile -->
+        <div class="span4 profile">
+            <div class="image-wrap">
+                <div class="hover-wrap">
+                    <span class="overlay-img"></span>
+                    <span class="overlay-text-thumb">BDD testing for Spring Framework</span>
+                </div>
+                <img src="_brushed/img/profile/specs2spring.png" alt="Specs2 Spring">
+            </div>
+            <h3 class="profile-name">Specs2 Spring</h3>
+            <p class="profile-description">Specs2 Extension to simplify integration testing with Spring. It brings BDD-style tests to
+            typical Spring applications, including setting up of Java EE environment for the tests.</p>
+                
+            <div class="links">
+                <ul class="social-icons">
+                    <li><a href="https://github.com/eigengo/specs2-spring"><i class="font-icon-social-github">Source code</i></a></li>
+                    <li><a href="http://blog.eigengo.com"><i class="font-icon-social-wordpress">Blog</i></a></li>
+                </ul>
+            </div>
+        </div>
+        <!-- End Profile -->
+        
+    </div>
+    <!-- End Main projects -->
 
-    <script src="reveal.js/lib/js/head.min.js"></script>
-    <script src="reveal.js/js/reveal.min.js"></script>
+    <hr/>
 
-    <script>
+    <!-- Activators -->
+    <div class="row">        
+        <!-- Start Profile -->
+        <div class="span2 profile">
+            <div class="image-wrap">
+                <div class="hover-wrap">
+                    <span class="overlay-img"></span>
+                    <span class="overlay-text-thumb">Spray &amp; Akka</span>
+                </div>
+                <img src="_brushed/img/profile/activator.png" alt="Spray &amp; Akka">
+            </div>
+            <h3 class="profile-name">Spray &amp; Akka</h3>
+            <p class="profile-description">
+                Spray &amp; Akka server-side code and AngularJS browser application.
+            </p>
+            <div class="links">
+                <ul class="social-icons">
+                    <li><a href="https://github.com/eigengo/activator-akka-spray"><i class="font-icon-social-github">Source code</i></a></li>
+                </ul>
+            </div>
+        </div>
+        <!-- End Profile -->
+        
+        <!-- Start Profile -->
+        <div class="span2 profile">
+            <div class="image-wrap">
+                <div class="hover-wrap">
+                    <span class="overlay-img"></span>
+                    <span class="overlay-text-thumb">Spray Client</span>
+                </div>
+                <img src="_brushed/img/profile/activator.png" alt="Spray Client">
+            </div>
+            <h3 class="profile-name">Spray Client</h3>
+            <p class="profile-description">
+                Twitter streaming, including OAuth, using Spray Client and Akka.
+            </p>
+            <div class="links">
+                <ul class="social-icons">
+                    <li><a href="https://github.com/eigengo/activator-spray-twitter"><i class="font-icon-social-github">Source code</i></a></li>
+                </ul>
+            </div>
+        </div>
+        <!-- End Profile -->
+        
+        <!-- Start Profile -->
+        <div class="span2 profile">
+            <div class="image-wrap">
+                <div class="hover-wrap">
+                    <span class="overlay-img"></span>
+                    <span class="overlay-text-thumb">Akka Cassandra</span>
+                </div>
+                <img src="_brushed/img/profile/activator.png" alt="Akka Cassandra">
+            </div>
+            <h3 class="profile-name">Akka Cassandra</h3>
+            <p class="profile-description">Non-blocking data access to Cassandra in Scala &amp; Akka.</p>
+            <div class="links">
+                <ul class="social-icons">
+                    <li><a href="https://github.com/eigengo/activator-akka-cassandra"><i class="font-icon-social-github">Source code</i></a></li>
+                </ul>
+            </div>
+        </div>
+        <!-- End Profile -->
 
-      Reveal.initialize({
-        controls: false,
-        progress: true,
-        history: false,
-        center: false,
+        <!-- Start Profile -->
+        <div class="span2 profile">
+            <div class="image-wrap">
+                <div class="hover-wrap">
+                    <span class="overlay-img"></span>
+                    <span class="overlay-text-thumb">Play Monitor</span>
+                </div>
+                <img src="_brushed/img/profile/activator.png" alt="Play Monitor">
+            </div>
+            <h3 class="profile-name">Play Monitor (Scala)</h3>
+            <p class="profile-description">Example Scala-based Play Framework application with <em>Reactive Monitor</em> plugged in.</p>
+            <div class="links">
+                <ul class="social-icons">
+                    <li><a href="https://github.com/eigengo/activator-play-monitor"><i class="font-icon-social-github">Source code</i></a></li>
+                </ul>
+            </div>
+        </div>
+        <!-- End Profile -->
 
-        theme: Reveal.getQueryHash().theme, // available themes are in /css/theme
-        transition: Reveal.getQueryHash().transition || 'fade', // default/cube/page/concave/zoom/linear/fade/none
+        <!-- Start Profile -->
+        <div class="span2 profile">
+            <div class="image-wrap">
+                <div class="hover-wrap">
+                    <span class="overlay-img"></span>
+                    <span class="overlay-text-thumb">Play Monitor</span>
+                </div>
+                <img src="_brushed/img/profile/activator.png" alt="Play Monitor">
+            </div>
+            <h3 class="profile-name">Play Monitor (Java)</h3>
+            <p class="profile-description">Example Java-based Play Framework application with <em>Reactive Monitor</em> plugged in.</p>
+            <div class="links">
+                <ul class="social-icons">
+                    <li><a href="https://github.com/eigengo/activator-play-java-monitor"><i class="font-icon-social-github">Source code</i></a></li>
+                </ul>
+            </div>
+        </div>
+        <!-- End Profile -->
 
-        // Parallax scrolling
-        // parallaxBackgroundImage: 'https://s3.amazonaws.com/hakim-static/reveal-js/reveal-parallax-1.jpg',
-        // parallaxBackgroundSize: '2100px 900px',
+        <!-- Start Profile -->
+        <div class="span2 profile">
+            <div class="image-wrap">
+                <div class="hover-wrap">
+                    <span class="overlay-img"></span>
+                    <span class="overlay-text-thumb">Breeze Streams</span>
+                </div>
+                <img src="_brushed/img/profile/activator.png" alt="Breeze Streams">
+            </div>
+            <h3 class="profile-name">Breeze Streams</h3>
+            <p class="profile-description">Using Breeze and Akka Streams to implement efficient machine learning / processing application.</p>
+            <div class="links">
+                <ul class="social-icons">
+                    <li><a href="https://github.com/eigengo/activator-breeze-streams"><i class="font-icon-social-github">Source code</i></a></li>
+                </ul>
+            </div>
+        </div>
+        <!-- End Profile -->
+        
+    </div>
+    <!-- End Activators -->
 
-        // Optional libraries used to extend on reveal.js
-        dependencies: [
-          { src: 'reveal.js/lib/js/classList.js', condition: function() { return !document.body.classList; } },
-          { src: 'reveal.js/plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
-          { src: 'reveal.js/plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
-          { src: 'reveal.js/plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
-          { src: 'reveal.js/plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } },
-          { src: 'reveal.js/plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } }
-        ]
-      });
+</div>
+</div>
+<!-- End About Section -->
 
-    </script>
+<!-- Conferences -->
+<div id="conferences" class="page">
+    <div class="container">
+        <!-- Title Page -->
+        <div class="row">
+            <div class="span12">
+                <div class="title-page">
+                    <h2 class="title">Conferences</h2>
+                    <h3 class="title-description">Videos, slides and code from our conference circuit.</h3>
+                </div>
+            </div>
+        </div>
+        <!-- End Title Page -->
+        
+        <!-- Portfolio Projects -->
+        <div class="row">          
+            <div class="span12">
+                <h3>Most recent talks</h3>
+                <div class="row">
+                    <section id="projects">
+                        <ul id="thumbs">
+                            <!-- Item Project and Filter Name -->
+                            <li class="item-thumbs span3 scala">
+                                <!-- Fancybox - Gallery Enabled - Title - Full Image -->
+                                <a class="hover-wrap fancybox" data-fancybox-group="gallery" title="Reactive APIs in Spray @ Philly ETE 2014" href="_brushed/img/work/full/philly-ete-14.jpg">
+                                    <span class="overlay-img"></span>
+                                    <span class="overlay-img-thumb font-icon-plus"></span>
+                                </a>
+                                <!-- Thumb Image and Description -->                                
+                                <img src="_brushed/img/work/thumbs/philly-ete-14.jpg" alt="Jan will show how to serve &amp; consume REST APIs using Scala and Spray. The talk will explain the components in Spray, how they build on each other to offer convenient abstractions, and how you can easily combine the different abstraction levels in your code. | <a href='http://www.eigengo.com/reactive-apis-spray' target='_blank'>Slides</a>">
+                            </li>
+                            <!-- End Item Project -->
 
-  </body>
+                            <!-- Item Project and Filter Name -->
+                            <li class="item-thumbs span3 scala">
+                                <!-- Fancybox - Gallery Enabled - Title - Full Image -->
+                                <a class="hover-wrap fancybox" data-fancybox-group="gallery" title="Akka in heterogeneous environments @ Lambdadays 2014" href="_brushed/img/work/full/lambdadays-14.png">
+                                    <span class="overlay-img"></span>
+                                    <span class="overlay-img-thumb font-icon-plus"></span>
+                                </a>
+                                <!-- Thumb Image and Description -->                                
+                                <img src="_brushed/img/work/thumbs/lambdadays-14.png" alt="Jan will show how to use RabbitMQ to connect components on different platforms. After a few introductory slides explaining the main concepts, the rest of the talk will be live code to implement computer vision application | <a href='https://github.com/janm399/lambdadays2014' target='_blank'>Soure code</a>">
+                            </li>
+                            <!-- End Item Project -->
+                            
+                            <!-- Item Project and Filter Name -->
+                            <li class="item-thumbs span3 fp">
+                                <!-- Fancybox - Gallery Enabled - Title - Full Image -->
+                                <a class="hover-wrap fancybox" data-fancybox-group="gallery" title="Strongly-typed FP @ Lambda Lounge 2014" href="_brushed/img/work/full/lambdalounge-14.jpg">
+                                    <span class="overlay-img"></span>
+                                    <span class="overlay-img-thumb font-icon-plus"></span>
+                                </a>
+                                <!-- Thumb Image and Description -->
+                                <img src="_brushed/img/work/thumbs/lambdalounge-14.png" alt="Introduction to the principles of functional programming using Scala and Haskell. Jan explores how to use the principles of FP, particularly when applied to lists. Then he shifts the focus to purity and explains how even pure languages deal with the necessary I/O. | <a href='https://github.com/eigengo/st-workshop' target='_blank'>Source code</a>">
+                            </li>
+                            <!-- End Item Project -->                            
+                        </ul>
+                    </section>
+                    
+                </div>
+            </div>
+        </div>
+        <!-- End Portfolio Projects -->
+        <hr/>
+        <!-- Portfolio Projects -->
+        <div class="row">          
+            <div class="span12">
+                <h3>Upcoming talks</h3>
+                <div class="row">
+                    <section id="projects">
+                        <ul id="thumbs">
+                            <!-- Item Project and Filter Name -->
+                            <li class="item-thumbs span3 fp">
+                                <!-- Fancybox - Gallery Enabled - Title - Full Image -->
+                                <a class="hover-wrap fancybox" data-fancybox-group="gallery" title="Reactive Streams @ Lambda Lounge 2014" href="_brushed/img/work/full/lambdalounge-14.jpg">
+                                    <span class="overlay-img"></span>
+                                    <span class="overlay-img-thumb font-icon-plus"></span>
+                                </a>
+                                <!-- Thumb Image and Description -->
+                                <img src="_brushed/img/work/thumbs/lambdalounge-14.png" alt="Jan will explore how Reactive Streams address the challenges of systems that process flows of live data. Learn about the core principles (asynchrony &amp; non-blocking, stream passing over asynchronous boundaries, back pressure) without worrying about any particular language or framework. For clarity &amp; brevity, Jan will be using Akka Streams implementation of Reactive Streams in the code samples. | <a href='#' target='_blank'>Slides</a>">
+                            </li>
+                            <!-- End Item Project -->
+
+                            <!-- Item Project and Filter Name -->
+                            <li class="item-thumbs span3 scala">
+                                <!-- Fancybox - Gallery Enabled - Title - Full Image -->
+                                <a class="hover-wrap fancybox" data-fancybox-group="gallery" title="Akka in heterogeneous environments @ Lambdadays 2014" href="_brushed/img/work/full/scaladays-14.png">
+                                    <span class="overlay-img"></span>
+                                    <span class="overlay-img-thumb font-icon-plus"></span>
+                                </a>
+                                <!-- Thumb Image and Description -->                                
+                                <img src="_brushed/img/work/thumbs/scaladays-14.png" alt="Jan will show how the Reactive Monitor helped a major financial services organisation to provide monitoring of their Akka system. The talk will explore the challenges of monitoring mission-critical systems, especially under heavy load. Jan will show the implementation details of the Reactive Monitor, pointing out the benefits of the Akka IO layer to implement non-blocking and resilient transport layer. The talk will close by going back to the large-scale system and show how we used the information from the monitoring to tune the Akka system. | <a href='#' target='_blank'>Slides</a>">
+                            </li>
+                            <!-- End Item Project -->
+                            
+                            <!-- Item Project and Filter Name -->
+                            <li class="item-thumbs span3 scala">
+                                <!-- Fancybox - Gallery Enabled - Title - Full Image -->
+                                <a class="hover-wrap fancybox" data-fancybox-group="gallery" title="Your event" href="_brushed/img/work/full/yourevent.png">
+                                    <span class="overlay-img"></span>
+                                    <span class="overlay-img-thumb font-icon-plus"></span>
+                                </a>
+                                <!-- Thumb Image and Description -->
+                                <img src="_brushed/img/work/thumbs/yourevent.png" alt="Contact us if you are organising a conference and are looking for speakers; particularly on functional programming, reactive system implementation and design &amp; more!">
+                            </li>
+                            <!-- End Item Project -->                            
+                        </ul>
+                    </section>
+                    
+                </div>
+            </div>
+        </div>
+        <!-- End Portfolio Projects -->
+    </div>
+</div>
+<!-- End Our Work Section -->
+
+<!-- Contact Section -->
+<div id="contact" class="page">
+<div class="container">
+    <!-- Title Page -->
+    <div class="row">
+        <div class="span12">
+            <div class="title-page">
+                <h2 class="title">How we roll</h2>
+                <h3 class="title-description">We love programming &amp; all other good things in life.</h3>
+                <p>For actual work, head over to our friends <a href="http://www.cakesolutions.net" target="_blank">Cake Solutions</a>.</p>
+            </div>
+        </div>
+    </div>
+    <!-- End Title Page -->
+    
+</div>
+</div>
+<!-- End Contact Section -->
+
+<!-- Socialize -->
+<div id="social-area" class="page">
+    <div class="container">
+        <div class="row">
+            <div class="span12">
+                <nav id="social">
+                    <ul>
+                        <li><a href="https://twitter.com/honzam399" title="Follow Me on Twitter" target="_blank"><span class="font-icon-social-twitter"></span></a></li>
+                        <li><a href="https://plus.google.com/100777025297013952988" title="Follow Me on Google Plus" target="_blank"><span class="font-icon-social-google-plus"></span></a></li>
+                        <li><a href="https://www.linkedin.com/in/janm399" title="Follow Me on LinkedIn" target="_blank"><span class="font-icon-social-linkedin"></span></a></li>
+                        <li><a href="https://github.com/eigengo" title="See us on Github" target="_blank"><span class="font-icon-social-github"></span></a></li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- End Socialize -->
+
+<!-- Footer -->
+<footer>
+    <p class="credits">&copy;2013, 2014 Eigengo.</p>
+</footer>
+<!-- End Footer -->
+
+<!-- Back To Top -->
+<a id="back-to-top" href="#">
+    <i class="font-icon-arrow-simple-up"></i>
+</a>
+<!-- End Back to Top -->
+
+
+<!-- Js -->
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script> <!-- jQuery Core -->
+<script src="_brushed/js/bootstrap.min.js"></script> <!-- Bootstrap -->
+<script src="_brushed/js/supersized.3.2.7.min.js"></script> <!-- Slider -->
+<script src="_brushed/js/waypoints.js"></script> <!-- WayPoints -->
+<script src="_brushed/js/waypoints-sticky.js"></script> <!-- Waypoints for Header -->
+<script src="_brushed/js/jquery.isotope.js"></script> <!-- Isotope Filter -->
+<script src="_brushed/js/jquery.fancybox.pack.js"></script> <!-- Fancybox -->
+<script src="_brushed/js/jquery.fancybox-media.js"></script> <!-- Fancybox for Media -->
+<script src="_brushed/js/jquery.tweet.js"></script> <!-- Tweet -->
+<script src="_brushed/js/plugins.js"></script> <!-- Contains: jPreloader, jQuery Easing, jQuery ScrollTo, jQuery One Page Navi -->
+<script src="_brushed/js/main.js"></script> <!-- Default JS -->
+<!-- End Js -->
+
+</body>
 </html>
