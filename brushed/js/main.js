@@ -57,7 +57,7 @@ BRUSHED.slider = function(){
 		slide_interval          :   12000,		// Length between transitions
 		transition              :   1, 			// 0-None, 1-Fade, 2-Slide Top, 3-Slide Right, 4-Slide Bottom, 5-Slide Left, 6-Carousel Right, 7-Carousel Left
 		transition_speed		:	300,		// Speed of transition
-		new_window				:	1,			// Image links open in new window/tab
+		new_window				:	0,			// Image links open in new window/tab
 		pause_hover             :   0,			// Pause slideshow on hover
 		keyboard_nav            :   1,			// Keyboard navigation on/off
 		performance				:	1,			// 0-Normal, 1-Hybrid speed/quality, 2-Optimizes image quality, 3-Optimizes transition speed // (Only works for Firefox/IE, not Webkit)
@@ -74,18 +74,18 @@ BRUSHED.slider = function(){
 												   
 		// Components							
 		slide_links				:	'blank',	// Individual links for each slide (Options: false, 'num', 'name', 'blank')
-		thumb_links				:	0,			// Individual thumb links for each slide
+		thumb_links				:	1,			// Individual thumb links for each slide
 		thumbnail_navigation    :   0,			// Thumbnail navigation
 		slides 					:  	[			// Slideshow Images
-											{image : 'brushed/img/slider-images/image01.jpg', title : '<div class="slide-content">Open Source</div>', thumb : '', url : '#opensource'},
-											{image : 'brushed/img/slider-images/image02.jpg', title : '<div class="slide-content">Conferences</div>', thumb : '', url : '#conferences'},
-											{image : 'brushed/img/slider-images/image03.jpg', title : '<div class="slide-content">Embedded software</div>', thumb : '', url : '#embedded'},
-											{image : 'brushed/img/slider-images/image04.jpg', title : '<div class="slide-content">The good life</div>', thumb : '', url : '#contact'}
+											{image : 'brushed/img/slider-images/opensource.jpg', title : '<div class="slide-content">Open Source</div>', thumb : '', url : '#opensource'},
+											{image : 'brushed/img/slider-images/conferences.jpg', title : '<div class="slide-content">Conferences</div>', thumb : '', url : '#conferences'},
+											{image : 'brushed/img/slider-images/embedded.jpg', title : '<div class="slide-content">Embedded software</div>', thumb : '', url : '#embedded'},
+											{image : 'brushed/img/slider-images/mobilewearable.jpg', title : '<div class="slide-content">Mobile &amp; wearables</div>', thumb : '', url : '#mobilewearable'},
+											{image : 'brushed/img/slider-images/goodlife.jpg', title : '<div class="slide-content">The good life</div>', thumb : '', url : '#contact'}
 									],
-									
 		// Theme Options			   
 		progress_bar			:	0,			// Timer for each slide							
-		mouse_scrub				:	0
+		mouse_scrub				:	1
 		
 	});
 
@@ -182,35 +182,6 @@ BRUSHED.fancyBox = function(){
 	}
 }
 
-
-/* ==================================================
-   Contact Form
-================================================== */
-
-BRUSHED.contactForm = function(){
-	$("#contact-submit").on('click',function() {
-		$contact_form = $('#contact-form');
-		
-		var fields = $contact_form.serialize();
-		
-		$.ajax({
-			type: "POST",
-			url: "_include/php/contact.php",
-			data: fields,
-			dataType: 'json',
-			success: function(response) {
-				
-				if(response.status){
-					$('#contact-form input').val('');
-					$('#contact-form textarea').val('');
-				}
-				
-				$('#response').empty().html(response.html);
-			}
-		});
-		return false;
-	});
-}
 
 /* ==================================================
    Menu Highlight
@@ -371,7 +342,7 @@ $(document).ready(function(){
 	Modernizr.load([
 	{
 		test: Modernizr.placeholder,
-		nope: '_include/js/placeholder.js', 
+		nope: 'brushed/js/placeholder.js', 
 		complete : function() {
 				if (!Modernizr.placeholder) {
 						Placeholders.init({
