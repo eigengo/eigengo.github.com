@@ -77,11 +77,12 @@ BRUSHED.slider = function(){
 		thumb_links				:	1,			// Individual thumb links for each slide
 		thumbnail_navigation    :   0,			// Thumbnail navigation
 		slides 					:  	[			// Slideshow Images
-											{image : 'brushed/img/slider-images/opensource.jpg', title : '<div class="slide-content">Open Source</div>', thumb : '', url : '#opensource'},
-											{image : 'brushed/img/slider-images/conferences.jpg', title : '<div class="slide-content">Conferences</div>', thumb : '', url : '#conferences'},
-											{image : 'brushed/img/slider-images/embedded.jpg', title : '<div class="slide-content">Embedded software</div>', thumb : '', url : '#embedded'},
+											{image : 'brushed/img/slider-images/opensource.jpg', title : '<div class="slide-content"><a href="#opensource">Open Source</a></div>', thumb : '', url : '#opensource'},
+											//{image : 'brushed/img/slider-images/embedded.jpg', title : '<div class="slide-content">Embedded software</div>', thumb : '', url : '#embedded'},
+											{image : 'brushed/img/slider-images/tir.jpg', title : '<div class="slide-content"><a href="http://blog.eigengo.com/category/reactive-weekly/" target="_blank">Reactive weekly</a></div>', thumb : '', url : 'http://blog.eigengo.com/category/reactive-weekly/'},
+											{image : 'brushed/img/slider-images/conferences.jpg', title : '<div class="slide-content"><a href="#conferences">Conferences</a></div>', thumb : '', url : '#conferences'},
 											{image : 'brushed/img/slider-images/mobilewearable.jpg', title : '<div class="slide-content">Mobile &amp; wearables</div>', thumb : '', url : '#mobilewearable'},
-											{image : 'brushed/img/slider-images/goodlife.jpg', title : '<div class="slide-content">The good life</div>', thumb : '', url : '#contact'}
+											{image : 'brushed/img/slider-images/goodlife.jpg', title : '<div class="slide-content"><a href="#contact">The good life</a></div>', thumb : '', url : '#contact'}
 									],
 		// Theme Options			   
 		progress_bar			:	0,			// Timer for each slide							
