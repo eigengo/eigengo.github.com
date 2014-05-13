@@ -58,258 +58,60 @@
         </section>
 
         <section data-background="images/mumlava2.jpeg">
-          <h2>Why?</h2>
+          <h2>We need to be</h2>
           <ul>
-            <li></li>
+            <li><p>Responsive</p><p><small>Provide timely response, particularly in face of failures</small></p></li>
+            <li><p>Resilient<p><small>To be stable—to reset to a working state after encountering a failure. Responsiveness to failures.</small></p></li>
+            <li><p>Event-driven<p><small>Drive the application's behaviour as set of discrete events</small></p></li>
+            <li><p>Scalable<p><small>To be able to handle spikes of usage and to be able to grow the application</small></p></li>
           </ul>
         </section>
 
         <section>
-          <h2>Spray's approach</h2>
-          <p>A <em>service</em> is an <code>Actor</code> implementation that handles the incoming <code>HttpRequest</code>s, 
-          and replies with appropriate <code>HttpResponse</code>s.</p>
-          <pre><code data-trim class="scala">
-def receive = {
-  case request: HttpRequest =>
-    val response = HttpResponse(...)
-    sender ! response
-}
-          </code></pre>
+          <h2>Reactive Streams</h2>
+          <p>The items from the manifesto</p>
         </section>
 
         <section>
-          <h2>The real deal</h2>
-          <pre><code data-trim class="scala">
-class HelloWorldService extends Actor {
-
-  def receive: Receive = {
-    case request: HttpRequest =>
-      val response = HttpResponse(...)
-      sender ! response
-  }
-
-}
-          </code></pre>
+          <h2>Asynchrony</h2>
+          <p>Resilience demands that we acknowledge (and make the most of asynchronous behaviour). If we are to grow our application,
+          we must build the foundations of resilience: encapsulation, isolation; and scalability: distribution across cores, nodes, regions, ...</p>
+          <p>We don't want to closely couple our application: we break it into components that use events to talk amongst each other. The components do not know about each other. This gives us grounding for being able to distribute application. </p>
         </section>
 
         <section>
-          <h2>Testing the services</h2>
-          <p>Because the service is a plain <code>Actor</code>, one can test it using <a href="http://doc.akka.io/docs/akka/snapshot/scala/testing.html">TestKit</a>.</p>
-          <pre><code data-trim class="scala">
-class HelloWorldServiceSpec 
-  extends TestKit(ActorSystem())
-  with SpecificationLike with ImplicitSender {
-  val service = TestActorRef[HelloWorldService]
-
-  "Any request" should {
-    "Reply with Hello, world" in {
-      service ! HttpRequest()
-      expectMsgType[HttpResponse].entity 
-        mustEqual HttpEntity("Hello, world")
-    }
-  }
-}
-          </code></pre>
-        </section>
-
-        <section>
-          <h2>Hosting the services</h2>
-          <p>Use <code>spray-can</code> HTTP server. We <em>bind</em> the services to it.</p>
-          <pre><code data-trim class="scala">
-object HelloWorld extends App {
-  val system = ActorSystem()
-  val service = 
-    system.actorOf(Props[HelloWorldService])
-
-  IO(Http)(system) ! Http.Bind(
-    service, "0.0.0.0", port = 8080)
-
-  Console.readLine()
-  system.shutdown()
-}          
-
-class HelloWorldService extends Actor { ... }
-          </code></pre>
-        </section>
-
-        <section data-background="images/sad-pug.jpg">
-          <h2>Let's see now...</h2>
-          <pre class="fragment fade-in"><code data-trim class="scala">
-[INFO] (...) Bound to /0.0.0.0:8080
-[WARN] (...) Configured registration timeout of 1 
-             second expired, stopping
-          </code></pre>
-
-          <img src="images/nodatareceived.png" class="fragment fade-in"/>
-        </section>
-
-        <section data-background="images/blueprint.jpg">
-          <img src="images/flow.png"/>
-        </section>
-
-        <section>
-          <h2>The real deal</h2>
-          <pre><code data-trim class="scala">
-class HelloWorldService extends Actor {
-
-  def receive: Receive = {
-    case request: HttpRequest =>
-      val response = HttpResponse(...)
-      sender ! response
-    case _: Http.Connected =>
-      sender ! Http.Register(self)
-  }
-
-}
-          </code></pre>
-        </section>
-
-        <section data-background="images/angrymob.jpg">
-          <h1>Demo</h1>
-        </section>
-
-        <section>
-          <h2>Convenient DSL</h2>
+          <h2>Asynchronous boundaries</h2>
           <ul>
-            <li>It is tedious to build a complex API by handling the <code>HttpRequest</code>s.</li>
-            <li>Construct Spray <code>Route</code>s using convenient DSL, and then turn these routes to the <code>Receive</code> partial function.</li>
-            <li>Use similar DSL to unit-test the routes</li>
+            <li>Between different applications. One does not simply call a method in another app!</li>
+            <li>Between network regions and network nodes. Network is fundamentally asynchronous</li>
+            <li>Between CPU sockets (cores). The link between sockets is remarkably similar to network</li>
+            <li>Between threads</li>
+            <li>Between actors (nota bene that actors can share threads, so they are a little smaller)</li>
           </ul>
         </section>
 
         <section>
-          <h2>Routed Hello, world</h2>
-          <p>First, the <code>Route</code> itself:</p>
-          <pre><code data-trim class="scala">
-trait DemoRoute extends Directives {
-
-  val demoRoute: Route =
-    get {
-      complete {
-        "Hello, world"
-      }
-    }
-}
-          </code></pre>
+          <h2>Data over the asynchronous boundary</h2>
+          <p>Blocking calls. (BlockingQueue with—say—two threads.) The sender can get blocked when the receiver is too slow. But cannot react to cancel requests, cannot easily implement priorities. But also bad for CPUs: context switches, low-power states. After waking-up, everything is far more expensive. :((</p>
+          <p>Push. Sender can always shove the data over, but the recepient can be overwhelmed. It can either buffer or drop =&gt; lossy or dangerous. :(</p>
+          <p>Reactive. Non-blocking, non-dropping and bounded. :)</p>
         </section>
 
         <section>
-          <h2>Routed Hello, world</h2>
-          <p>Next up, expressing the <code>Receive</code> PF using the route:</p>
-          <pre><code data-trim class="scala">
-class MainService(route: Route) 
-  extends HttpServiceActor {
-
-  def receive: Receive = runRoute(route)
-
-}
-          </code></pre>
+          <h2>How to do that?</h2>
+          <p>Lear from TCP. Match the rate of sending and receiving. Publisher (sender) sends the data, but the subscriber (receiver) signals back the rate it is expecting.</p>
+          <p>Push when subscriber is faster</p>
+          <p>Pull when ...</p>
+          <p>Automatic switching between the modes</p>
+          <p>Provisioning for batching. CPUs are good at repeating the same thing.</p>
         </section>
 
         <section>
-          <h2>Testing our route</h2>
-          <p>Spray's DSL extends to testing, too!</p>
-          <pre><code data-trim class="scala">
-class DemoRouteSpec extends Specification 
-  with Specs2RouteTest with DemoRoute {
-
-  "Any request" should {
-    "Reply with Hello, World" in {
-      Get() ~> demoRoute ~> check {
-        responseAs[String] mustEqual "Hello, world"
-      }
-    }
-  }
-
-}
-          </code></pre>
+          <h2>Data flows</h2>
+          <p>Explicit definition of demand and supply streams.</p>
+          <p>You can now have interesting components: say splitter and merger examples.</p>
         </section>
 
-        <section data-background="images/angrymob.jpg">
-          <h1>Demo</h1>
-        </section>
-
-        <section>
-          <h2>More DSL examples</h2>
-          <ul>
-            <li>We can match—amongst others—on:</li>
-          	<ul>
-                <li>HTTP methods: <code>get</code>, <code>post</code>, <code>put</code>, ...,</li>
-                <li>Paths; including path-variables and query parameters:<br/>
-                <code>path("customer" / IntNumber)</code>, <code>parameter('id.as[Int])</code></li>
-                <li>HTTP headers: <code>headerValueByName("User-Agent")</code>,</li>
-                <li>Cookies: <code>cookie("spray")</code></li>
-            </ul>
-            <li>We combine parts of the DSL using <code>~</code></li>
-          </ul>
-        </section>
-
-        <section data-background="images/angrymob.jpg">
-          <h1>Demo</h1>
-        </section>
-
-        <section>
-          <h2>Completing</h2>
-          <p>To <em>complete</em> a route, we must provide <code>RequestContext => ()</code>. <code>complete</code> does just that, or we can do it ourselves.</p>
-          <pre><code data-trim class="scala">
-trait TweetAnalysisRoute extends Directives {
-
-  val tweetAnalysisRoute: Route =
-    post {
-      path("tweets" / Segment) ???
-    }
-}
-          </code></pre>
-        </section>
-
-        <section>
-          <h2>Completing</h2>
-          <p>To <em>complete</em> a route, we must provide <code>RequestContext => ()</code>. <code>complete</code> does just that, or we can do it ourselves.</p>
-          <pre><code data-trim class="scala">
-trait TweetAnalysisRoute extends Directives {
-
-  val tweetAnalysisRoute: Route =
-    post { 
-      path("tweets" / Segment)(sendTweetAnalysis) 
-    }
-
-  def sendTweetAnalysis(query: String)
-                       (ctx: RequestContext): Unit = {
-     ctx.receiver ! ChunkedMessageStart(...)
-  }
-  
-}
-          </code></pre>
-        </section>
-
-        <section>
-          <h1>A real app</h1>
-          <p>We want to stream results of a Twitter search, and show:
-          <ul>
-            <li>Counts of <em>positive</em> and <em>negative</em> tweets,</li>
-            <li>Counts of languages,</li>
-            <li>Counts of locations</li>
-          </ul>
-        </section>
-
-        <section>
-          <h1>A real app</h1>
-          <img src="images/uk.png"/>
-        </section>
-
-        <section data-background="images/angrymob.jpg">
-          <h1>Demo</h1>
-          <img src="images/tweetanalyser.png"/>
-        </section>
-
-        <section>
-          <h2>Thank you!</h2>
-          <ul>
-            <li>Source at <a href="https://github.com/eigengo/phillyete2014">github.com/eigengo/phillyete2014</a>,</li>
-            <li>Follow my on <a href="https://twitter.com/honzam399">@honzam399</a>,</li>
-            <li>Look out for blog post at <a href="http://www.cakesolutions.net">cakesolutions.net/teamblogs</a></li>
-          </ul>
-        </section>
 
       </div>
 
