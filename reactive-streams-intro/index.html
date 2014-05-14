@@ -112,6 +112,74 @@
           <p>You can now have interesting components: say splitter and merger examples.</p>
         </section>
 
+        <section>
+          <h2>Akka Streams DSL</h2>
+          <p>We attach <code>Consumer[A]</code> to <code>Producer[A]</code> using the <code>Flow</code> DSL. In the <code>Flow</code>,
+          we:</p>
+          <ul>
+            <li>Filter elements (<code>drop</code>, <code>filter</code>),</li>
+            <li>Transform elements (<code>map</code>, <code>mapConcat</code>, <code>fold</code>, <code>transform</code>),</li>
+            <li>Group (<code>grouped</code>, <code>groupBy</code>),</li>
+            <li>Append, zip and merge (<code>concat</code>, <code>zip</code>, <code>merge</code>),</li>
+            <li>Finally, <em>materialize</em> the flow (<code>onComplete</code>, <code>consume</code>)</li>
+          </ul>
+        </section>
+
+        <section>
+          <h2>Materializing streams</h2>
+          <p>Remember, the flow pipeline is not synchronous. Even though the code <em>feels</em> like it's chain of typesafe function calls, each step is responsive, resilient, event-driven and scalable, with back-presssure reporting.</p>
+          <p><em>Materializing</em> the <code>Flow</code> is a way to turn the steps in the flow into reactive components. In Akka, we call these <code>Actor</code>s, and Akka's <code>FlowMaterializer</code> creates and wires-up the <code>Actor</code>s for the flow.</p>
+        </section>
+
+        <section>
+          <h2>Code exmple</h2>
+          <pre><code data-trim class="scala">
+Flow(...).
+  filter(...).drop(...).
+  map(...).mapConcat(...).fold(...).transform(...).
+  grouped(...).groupBy(...).
+  concat(...).zip(...).merge(...).
+  
+  onComplete(...).
+  consume()
+          </code></pre>
+        </section>
+
+        <section>
+          <h2>Code exmple</h2>
+          <pre><code data-trim class="scala">
+implicit val system = ActorSystem("Sys")
+
+val source = Source.fromURI(...)
+Flow(source.getLines()).
+  foreach(println).
+  consume(FlowMaterializer(MaterializerSettings()))
+          </code></pre>
+        </section>
+
+        <section>
+          <h2>Code exmple</h2>
+          <pre><code data-trim class="scala">
+implicit val system = ActorSystem("Sys")
+
+val source = Source.fromURI(...)
+val materializer = FlowMaterializer(MaterializerSettings())
+Flow(source.getLines()).
+  filter(_.length > 10).
+  map(_.toUpperCase).
+  foreach(println).
+  consume(materializer)
+          </code></pre>
+        </section>
+
+        <section data-background="images/angrymob.jpg">
+          <h1>Demo</h1>
+        </section>
+
+        <section>
+          <h2>Grouping</h2>
+          <p>
+        </section>
 
       </div>
 
