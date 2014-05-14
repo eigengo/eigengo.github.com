@@ -149,7 +149,6 @@ Flow(...).
           <h2>Code exmple</h2>
           <pre><code data-trim class="scala">
 implicit val system = ActorSystem("Sys")
-
 val source = Source.fromURI(...)
 Flow(source.getLines()).
   foreach(println).
@@ -161,9 +160,9 @@ Flow(source.getLines()).
           <h2>Code exmple</h2>
           <pre><code data-trim class="scala">
 implicit val system = ActorSystem("Sys")
-
 val source = Source.fromURI(...)
-val materializer = FlowMaterializer(MaterializerSettings())
+val materializer = FlowMaterializer(
+                     MaterializerSettings())
 Flow(source.getLines()).
   filter(_.length > 10).
   map(_.toUpperCase).
@@ -172,13 +171,90 @@ Flow(source.getLines()).
           </code></pre>
         </section>
 
+        <section>
+          <h2>Code exmple</h2>
+          <pre><code data-trim class="scala">
+implicit val system = ActorSystem("Sys")
+val source = Source.fromURI(...)
+val materializer = FlowMaterializer(
+                     MaterializerSettings())
+Flow(source.getLines()).
+  filter(_.length > 10).
+  map(_.toUpperCase).
+  foreach(println).
+  onComplete(materializer) {
+    case Success(_) => system.shutdown()
+    case Failure(e) =>
+      println("Failure: " + e.getMessage)
+      system.shutdown()
+  }
+          </code></pre>
+        </section>
+
         <section data-background="images/angrymob.jpg">
           <h1>Demo</h1>
+          <p>Application that reads the file <code>/20news-text.txt</code>, parses the lines, and attempts to predict which
+          topic it apprears in, printing the prediction to standard output.</p>
+          <p>We are using <a href="http://www.scalanlp.org/" target="_blank">ScalaNLP</a> to do the hard work.</p>
         </section>
 
         <section>
           <h2>Grouping</h2>
-          <p>
+          <p>We'd like to report the total number of messages in each label. How many <code>alt.atheism</code>, how many <code>sci.space</code> and others.</p>
+          <p>The result of <code>groupBy</code> is a tuple containing
+          <ul>
+            <li>the key value produced by the function supplied to <code>groupBy</code>,</li>
+            <li>the <code>Producer[A]</code> of values with matching key</li>
+          </ul>
+          </p>
+        </section>
+
+        <section>
+          <h2>Grouping</h2>
+          <pre><code data-trim class="scala">
+Flow(source.getLines()).
+  mapConcat(l => List.fill(16)(Message.parse(l))).
+  map(m => Classified(classifier.predict(m.text), m)).
+  groupBy(_.label).
+  foreach {
+    case (label, producer) => ???
+  }.
+  onComplete(materializer) {
+    case Success(_) => system.shutdown()
+    case Failure(e) =>
+      println("Failure: " + e.getMessage)
+      system.shutdown()
+}
+          </code></pre>
+        </section>
+
+        <section>
+          <h2>Grouping</h2>
+          <pre><code data-trim class="scala">
+Flow(source.getLines()).
+  mapConcat(l => List.fill(16)(Message.parse(l))).
+  map(m => Classified(classifier.predict(m.text), m)).
+  groupBy(_.label).
+  foreach {
+    case (label, producer) =>
+      Flow(producer).
+        fold(0)((b, _) => b + 1).
+        foreach(count => println(s"$label -> $count")).
+        consume(materializer)
+  }.
+  onComplete(materializer) {
+    case Success(_) => system.shutdown()
+    case Failure(e) =>
+      println("Failure: " + e.getMessage)
+      system.shutdown()
+}
+          </code></pre>
+        </section>
+
+        <section data-background="images/angrymob.jpg">
+          <h1>Demo</h1>
+          <p>Application that reads the file <code>/20news-text.txt</code>, parses the lines, and attempts to predict which
+          topic it apprears in, the number of messages in each topic.</p>
         </section>
 
       </div>
