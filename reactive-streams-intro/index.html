@@ -52,8 +52,9 @@
           <h2>Processing live data</h2>
           <ul>
             <li>Use all available processing power</li>
-            <li>Fail gracefully</li>
-            <li>Control the ingestion rate</li>
+            <li>Be able to scale as required</li>
+            <li>Recover from failures and errors</li>
+            <li>Because <em>streams</em> are ephemeral data: one can never enter the same stream again!</li>
           </ul>
         </section>
 
@@ -82,30 +83,31 @@
         <section data-background="images/onedoesnotsimply.png">
           <h2>One does not simply</h2>
           <ul>
-            <li>Call a function in a different application,</li>
-            <li>Call a function in a (same) application on a different network node,</li>
-            <li>Share data without cost between CPU sockets (cores),</li>
-            <li>Share data between threads,</li>
-            <li>...</li>
+            <li>Call a function in a different application</li>
+            <li>Call a function in a (same) application on a different network node</li>
+            <li>Push data at arbitrary rate down network interfaces</li>
+            <li>Share data without cost between CPU sockets (cores)</li>
+            <li>Share data between threads</li>
+            <li>..</li>
           </ul>
         </section>
 
         <section data-background="images/notreactive.jpg">
           <h2>Blocking calls</h2>
-          <p>Say using <code>BlockingQueue[A]</code>s. The <em>producer</em> can become blocked when the <em>consumer</em> is too slow. Moreover, it is difficult to:</p>
+          <p>Say using <code>BlockingQueue[A]</code>s. The <em>producer</em> can become blocked when the <em>subscriber</em> is too slow. Moreover, it is difficult to:</p>
           <ul>
-            <li>Keep the producer responsive (perhaps to receive <em>cancellations</em>),</li>
-            <li>Correctly prioritise the incoming events,</li>
-            <li>Keep the context switches to a minimum,</li>
+            <li>Keep the producer responsive (perhaps to receive <em>cancellations</em>)</li>
+            <li>Correctly prioritise the incoming events</li>
+            <li>Keep the context switches to a minimum</li>
             <li>Prevent the CPUs from entering low-power states</li>
           </ul>
         </section>
 
         <section data-background="images/notreactive.jpg">
           <h2>Pure push</h2>
-          <p>Improving the concept, we can have the <em>producer</em> just push the data onto some queue, regardless of the consumers' performance. And so, we run into:</p>
+          <p>Improving the concept, we can have the <em>producer</em> just push the data onto some queue, regardless of the subscribers' performance. And so, we run into:</p>
           <ul>
-            <li>Allocating too much memory if the queues are unbounded,</li>
+            <li>Allocating too much memory if the queues are unbounded</li>
             <li>Dropping messages if they do not fit into the queue</li>
           </ul>
         </section>
@@ -113,15 +115,11 @@
         <section data-background="images/reactive.jpg">
           <h2>Reactive</h2>
           <p>Responsive, resilient, event-driven and scalable. In our context, non-blocking, lossless and bounded.</p>
-        </section>
-
-        <section>
-          <h2>How to do that?</h2>
-          <p>Lear from TCP. Match the rate of sending and receiving. Publisher (sender) sends the data, but the subscriber (receiver) signals back the rate it is expecting.</p>
-          <p>Push when subscriber is faster</p>
-          <p>Pull when ...</p>
-          <p>Automatic switching between the modes</p>
-          <p>Provisioning for batching. CPUs are good at repeating the same thing.</p>
+          <ul>
+            <li>Publisher sends the data, subscriber signals when it is ready for more data</li>
+            <li>Hybrid <em>push</em> / <em>pull</em> model</li>
+            <li>Support but sensibly limit batching</li>
+          </ul>
         </section>
 
         <section>
@@ -165,7 +163,7 @@ trait Subscriber[A] {
 trait Subscription {
   def cancel(): Unit
   
-  def requestMore(int elements): Unit
+  def requestMore(elements: Int): Unit
 }          
           </code></pre>
         </section>
@@ -179,10 +177,10 @@ trait Subscription {
           <p>We attach <code>Subscriber[A]</code> to <code>Producer[A]</code> using the <code>Flow</code> DSL. In the <code>Flow</code>,
           we can transform the data from the <code>Producer[A]</code> by:</p>
           <ul>
-            <li>Filtering elements (<code>drop</code>, <code>filter</code>),</li>
-            <li>Transforming elements (<code>map</code>, <code>mapConcat</code>, <code>fold</code>, <code>transform</code>),</li>
-            <li>Grouping (<code>grouped</code>, <code>groupBy</code>),</li>
-            <li>Appending, ziping and merging (<code>concat</code>, <code>zip</code>, <code>merge</code>),</li>
+            <li>Filtering elements (<code>drop</code>, <code>filter</code>)</li>
+            <li>Transforming elements (<code>map</code>, <code>mapConcat</code>, <code>fold</code>, <code>transform</code>)</li>
+            <li>Grouping (<code>grouped</code>, <code>groupBy</code>)</li>
+            <li>Appending, ziping and merging (<code>concat</code>, <code>zip</code>, <code>merge</code>)</li>
             <li>Finally, <em>materialize</em> the flow (<code>onComplete</code>, <code>consume</code>)</li>
           </ul>
         </section>
@@ -265,7 +263,7 @@ Flow(source.getLines()).
           <p>We'd like to report the total number of messages in each label. How many <code>alt.atheism</code>, how many <code>sci.space</code> and others.</p>
           <p>The result of <code>groupBy</code> is a tuple containing
           <ul>
-            <li>the key value produced by the function supplied to <code>groupBy</code>,</li>
+            <li>the key value produced by the function supplied to <code>groupBy</code></li>
             <li>the <code>Producer[A]</code> of values with matching key</li>
           </ul>
           </p>
@@ -315,6 +313,15 @@ Flow(source.getLines()).
           <h1>Demo</h1>
           <p>Application that reads the file <code>/20news-text.txt</code>, parses the lines, and attempts to predict which
           topic it apprears in, the number of messages in each topic.</p>
+        </section>
+
+        <section>
+          <h2>Thank you!</h2>
+          <ul>
+            <li>Source at <a href="https://github.com/eigengo/activator-breeze-streams">github.com/eigengo/activator-breeze-streams</a></li>
+            <li>Slides at <a href="http://www.eigengo.com/reactive-streams-intro">www.eigengo.com/reactive-streams-intro</a></li>
+            <li>Tweets at <a href="https://twitter.com/honzam399">@honzam399</a></li>
+          </ul>
         </section>
 
       </div>
