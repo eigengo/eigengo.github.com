@@ -108,7 +108,7 @@
           <p>Improving the concept, we can have the <em>producer</em> just push the data onto some queue, regardless of the subscribers' performance. And so, we run into:</p>
           <ul>
             <li>Allocating too much memory if the queues are unbounded</li>
-            <li>Dropping messages if they do not fit into the queue</li>
+            <li>Dropping messages if they do not fit into a bounded queue</li>
           </ul>
         </section>
 
