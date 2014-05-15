@@ -79,22 +79,40 @@
           <p>We don't want to closely couple our application: we break it into components that use events to talk amongst each other. The components do not know about each other. This gives us grounding for being able to distribute application. </p>
         </section>
 
-        <section>
-          <h2>Asynchronous boundaries</h2>
+        <section data-background="images/onedoesnotsimply.png">
+          <h2>One does not simply</h2>
           <ul>
-            <li>Between different applications. One does not simply call a method in another app!</li>
-            <li>Between network regions and network nodes. Network is fundamentally asynchronous</li>
-            <li>Between CPU sockets (cores). The link between sockets is remarkably similar to network</li>
-            <li>Between threads</li>
-            <li>Between actors (nota bene that actors can share threads, so they are a little smaller)</li>
+            <li>Call a function in a different application,</li>
+            <li>Call a function in a (same) application on a different network node,</li>
+            <li>Share data without cost between CPU sockets (cores),</li>
+            <li>Share data between threads,</li>
+            <li>...</li>
           </ul>
         </section>
 
-        <section>
-          <h2>Data over the asynchronous boundary</h2>
-          <p>Blocking calls. (BlockingQueue with—say—two threads.) The sender can get blocked when the receiver is too slow. But cannot react to cancel requests, cannot easily implement priorities. But also bad for CPUs: context switches, low-power states. After waking-up, everything is far more expensive. :((</p>
-          <p>Push. Sender can always shove the data over, but the recepient can be overwhelmed. It can either buffer or drop =&gt; lossy or dangerous. :(</p>
-          <p>Reactive. Non-blocking, non-dropping and bounded. :)</p>
+        <section data-background="images/notreactive.jpg">
+          <h2>Blocking calls</h2>
+          <p>Say using <code>BlockingQueue[A]</code>s. The <em>producer</em> can become blocked when the <em>consumer</em> is too slow. Moreover, it is difficult to:</p>
+          <ul>
+            <li>Keep the producer responsive (perhaps to receive <em>cancellations</em>),</li>
+            <li>Correctly prioritise the incoming events,</li>
+            <li>Keep the context switches to a minimum,</li>
+            <li>Prevent the CPUs from entering low-power states</li>
+          </ul>
+        </section>
+
+        <section data-background="images/notreactive.jpg">
+          <h2>Pure push</h2>
+          <p>Improving the concept, we can have the <em>producer</em> just push the data onto some queue, regardless of the consumers' performance. And so, we run into:</p>
+          <ul>
+            <li>Allocating too much memory if the queues are unbounded,</li>
+            <li>Dropping messages if they do not fit into the queue</li>
+          </ul>
+        </section>
+
+        <section data-background="images/reactive.jpg">
+          <h2>Reactive</h2>
+          <p>Responsive, resilient, event-driven and scalable. In our context, non-blocking, lossless and bounded.</p>
         </section>
 
         <section>
@@ -113,14 +131,58 @@
         </section>
 
         <section>
+          <h2>Main components</h2>
+          <img src="images/overall.png"/>
+        </section>
+
+        <section>
+          <h2>Publisher</h2>
+          <pre><code data-trim class="scala">
+trait Publisher[A] {
+  def subscribe(subscriber: Subscriber[A]): Unit
+}
+          </code></pre>
+        </section>
+
+        <section>
+          <h2>Subscriber</h2>
+          <pre><code data-trim class="scala">
+trait Subscriber[A] {
+  def onSubscribe(subscription: Subscription): Unit
+  
+  def onNext(element: A): Unit
+  
+  def onComplete(): Unit
+  
+  def onError(cause: Throwable): Unit
+}
+          </code></pre>
+        </section>
+
+        <section>
+          <h2>Subscription</h2>
+          <pre><code data-trim class="scala">
+trait Subscription {
+  def cancel(): Unit
+  
+  def requestMore(int elements): Unit
+}          
+          </code></pre>
+        </section>
+
+        <section>
+          <h2>Notice the <code>Unit</code>s</h2>
+        </section>
+
+        <section>
           <h2>Akka Streams DSL</h2>
-          <p>We attach <code>Consumer[A]</code> to <code>Producer[A]</code> using the <code>Flow</code> DSL. In the <code>Flow</code>,
-          we:</p>
+          <p>We attach <code>Subscriber[A]</code> to <code>Producer[A]</code> using the <code>Flow</code> DSL. In the <code>Flow</code>,
+          we can transform the data from the <code>Producer[A]</code> by:</p>
           <ul>
-            <li>Filter elements (<code>drop</code>, <code>filter</code>),</li>
-            <li>Transform elements (<code>map</code>, <code>mapConcat</code>, <code>fold</code>, <code>transform</code>),</li>
-            <li>Group (<code>grouped</code>, <code>groupBy</code>),</li>
-            <li>Append, zip and merge (<code>concat</code>, <code>zip</code>, <code>merge</code>),</li>
+            <li>Filtering elements (<code>drop</code>, <code>filter</code>),</li>
+            <li>Transforming elements (<code>map</code>, <code>mapConcat</code>, <code>fold</code>, <code>transform</code>),</li>
+            <li>Grouping (<code>grouped</code>, <code>groupBy</code>),</li>
+            <li>Appending, ziping and merging (<code>concat</code>, <code>zip</code>, <code>merge</code>),</li>
             <li>Finally, <em>materialize</em> the flow (<code>onComplete</code>, <code>consume</code>)</li>
           </ul>
         </section>
@@ -217,14 +279,15 @@ Flow(source.getLines()).
   map(m => Classified(classifier.predict(m.text), m)).
   groupBy(_.label).
   foreach {
-    case (label, producer) => ???
+    case (label, producer) => 
+      // print(s"$label -> $count")
   }.
   onComplete(materializer) {
     case Success(_) => system.shutdown()
     case Failure(e) =>
       println("Failure: " + e.getMessage)
       system.shutdown()
-}
+  }
           </code></pre>
         </section>
 
@@ -243,11 +306,8 @@ Flow(source.getLines()).
         consume(materializer)
   }.
   onComplete(materializer) {
-    case Success(_) => system.shutdown()
-    case Failure(e) =>
-      println("Failure: " + e.getMessage)
-      system.shutdown()
-}
+    ...
+  }
           </code></pre>
         </section>
 
