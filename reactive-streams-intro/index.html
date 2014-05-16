@@ -50,12 +50,16 @@
 
         <section data-background="images/mumlava1.jpeg">
           <h2>Processing live data</h2>
+          <p>Incoming data rates are unpredictable &amp; uncontrollable</p>
           <ul>
             <li>Use all available processing power</li>
             <li>Be able to scale as required</li>
             <li>Recover from failures and errors</li>
             <li>Because <em>streams</em> are ephemeral data: one can never enter the same stream again!</li>
           </ul>
+          <aside class="notes">
+            Give examples of streaming applications: surveilance video, stock prices, engineering / monitoring events, ..., <em>yes, tweets</em>
+          </aside>
         </section>
 
         <section data-background="images/mumlava2.jpeg">
@@ -66,18 +70,23 @@
             <li><p>Event-driven<p><small>Drive the application's behaviour as set of discrete events</small></p></li>
             <li><p>Scalable<p><small>To be able to handle spikes of usage and to be able to grow the application</small></p></li>
           </ul>
+          <aside class="notes">
+            Reactive manifesto
+          </aside>
         </section>
 
-        <section>
+        <section data-background="images/mumlava1.jpeg">
           <h2>Reactive Streams</h2>
-          <p>The items from the manifesto</p>
-        </section>
-
-        <section>
-          <h2>Asynchrony</h2>
-          <p>Resilience demands that we acknowledge (and make the most of asynchronous behaviour). If we are to grow our application,
-          we must build the foundations of resilience: encapsulation, isolation; and scalability: distribution across cores, nodes, regions, ...</p>
-          <p>We don't want to closely couple our application: we break it into components that use events to talk amongst each other. The components do not know about each other. This gives us grounding for being able to distribute application. </p>
+          <p>To successfully process live data streams, one must:</p>
+          <ul>
+            <li>Expose and acknowledge asynchronous nature</li>
+            <li>Explicitly handle flow of data between the components</li>
+          </ul>
+          <aside class="notes">
+            <p>Resilience demands that we acknowledge (and make the most of asynchronous behaviour). If we are to grow our application,
+            we must build the foundations of resilience: encapsulation, isolation; and scalability: distribution across cores, nodes,  regions, ...</p>
+            <p>We don't want to closely couple our application: we break it into components that use events to talk amongst each other. The components do not know about each other. This gives us grounding for being able to distribute application.</p>
+          </aside>
         </section>
 
         <section data-background="images/onedoesnotsimply.png">
@@ -90,6 +99,9 @@
             <li>Share data between threads</li>
             <li>..</li>
           </ul>
+          <aside class="notes">
+            Explain that synchonous behaviour is often <em>emulated</em>, at great cost to the throughput of the system.
+          </aside>
         </section>
 
         <section data-background="images/notreactive.jpg">
@@ -105,11 +117,14 @@
 
         <section data-background="images/notreactive.jpg">
           <h2>Pure push</h2>
-          <p>Improving the concept, we can have the <em>producer</em> just push the data onto some queue, regardless of the subscribers' performance. And so, we run into:</p>
+          <p>The <em>producer</em> pushes the data to a queue, regardless of the subscribers' performance. And so, one runs into:</p>
           <ul>
             <li>Allocating too much memory if the queues are unbounded</li>
             <li>Dropping messages if they do not fit into a bounded queue</li>
           </ul>
+          <aside class="notes">
+            RxJava
+          </aside>
         </section>
 
         <section data-background="images/reactive.jpg">
@@ -122,18 +137,20 @@
           </ul>
         </section>
 
+<!--
         <section>
           <h2>Data flows</h2>
           <p>Explicit definition of demand and supply streams.</p>
           <p>You can now have interesting components: say splitter and merger examples.</p>
         </section>
+-->
 
-        <section>
+        <section data-background="images/blueprint.jpg">
           <h2>Main components</h2>
           <img src="images/overall.png"/>
         </section>
 
-        <section>
+        <section data-background="images/blueprint.jpg">
           <h2>Publisher</h2>
           <pre><code data-trim class="scala">
 trait Publisher[A] {
@@ -142,7 +159,7 @@ trait Publisher[A] {
           </code></pre>
         </section>
 
-        <section>
+        <section data-background="images/blueprint.jpg">
           <h2>Subscriber</h2>
           <pre><code data-trim class="scala">
 trait Subscriber[A] {
@@ -157,7 +174,7 @@ trait Subscriber[A] {
           </code></pre>
         </section>
 
-        <section>
+        <section data-background="images/blueprint.jpg">
           <h2>Subscription</h2>
           <pre><code data-trim class="scala">
 trait Subscription {
@@ -168,11 +185,11 @@ trait Subscription {
           </code></pre>
         </section>
 
-        <section>
+        <section data-background="images/blueprint.jpg">
           <h2>Notice the <code>Unit</code>s</h2>
         </section>
 
-        <section>
+        <section data-background="images/madderakka.jpg">
           <h2>Akka Streams DSL</h2>
           <p>We attach <code>Subscriber[A]</code> to <code>Producer[A]</code> using the <code>Flow</code> DSL. In the <code>Flow</code>,
           we can transform the data from the <code>Producer[A]</code> by:</p>
@@ -185,13 +202,13 @@ trait Subscription {
           </ul>
         </section>
 
-        <section>
+        <section data-background="images/madderakka.jpg">
           <h2>Materializing streams</h2>
           <p>Remember, the flow pipeline is not synchronous. Even though the code <em>feels</em> like it's chain of typesafe function calls, each step is responsive, resilient, event-driven and scalable, with back-presssure reporting.</p>
           <p><em>Materializing</em> the <code>Flow</code> is a way to turn the steps in the flow into reactive components. In Akka, we call these <code>Actor</code>s, and Akka's <code>FlowMaterializer</code> creates and wires-up the <code>Actor</code>s for the flow.</p>
         </section>
 
-        <section>
+        <section data-background="images/madderakka.jpg">
           <h2>Code exmple</h2>
           <pre><code data-trim class="scala">
 Flow(...).
@@ -205,7 +222,7 @@ Flow(...).
           </code></pre>
         </section>
 
-        <section>
+        <section data-background="images/madderakka.jpg">
           <h2>Code exmple</h2>
           <pre><code data-trim class="scala">
 implicit val system = ActorSystem("Sys")
@@ -216,7 +233,7 @@ Flow(source.getLines()).
           </code></pre>
         </section>
 
-        <section>
+        <section data-background="images/madderakka.jpg">
           <h2>Code exmple</h2>
           <pre><code data-trim class="scala">
 implicit val system = ActorSystem("Sys")
@@ -231,7 +248,7 @@ Flow(source.getLines()).
           </code></pre>
         </section>
 
-        <section>
+        <section data-background="images/madderakka.jpg">
           <h2>Code exmple</h2>
           <pre><code data-trim class="scala">
 implicit val system = ActorSystem("Sys")
@@ -258,7 +275,7 @@ Flow(source.getLines()).
           <p>We are using <a href="http://www.scalanlp.org/" target="_blank">ScalaNLP</a> to do the hard work.</p>
         </section>
 
-        <section>
+        <section data-background="images/madderakka.jpg">
           <h2>Grouping</h2>
           <p>We'd like to report the total number of messages in each label. How many <code>alt.atheism</code>, how many <code>sci.space</code> and others.</p>
           <p>The result of <code>groupBy</code> is a tuple containing
@@ -269,7 +286,7 @@ Flow(source.getLines()).
           </p>
         </section>
 
-        <section>
+        <section data-background="images/madderakka.jpg">
           <h2>Grouping</h2>
           <pre><code data-trim class="scala">
 Flow(source.getLines()).
@@ -289,7 +306,7 @@ Flow(source.getLines()).
           </code></pre>
         </section>
 
-        <section>
+        <section data-background="images/madderakka.jpg">
           <h2>Grouping</h2>
           <pre><code data-trim class="scala">
 Flow(source.getLines()).
