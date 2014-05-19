@@ -272,7 +272,7 @@ Flow(source.getLines()).
           <p>Application that reads the file <code>/20news-text.txt</code>, parses the lines, and attempts to predict which
           topic it apprears in, printing the prediction to standard output.</p>
           <p>We are using <a href="http://www.scalanlp.org/" target="_blank">ScalaNLP</a> to do the hard work.</p>
-          <aside class="notes">
+          <aside class="notes"><pre>
 Flow(source.getLines()).
   filter(_.length > 10).
   map(Message.parse).
@@ -284,7 +284,7 @@ Flow(source.getLines()).
       println("Failure: " + e.getMessage)
       system.shutdown()
   }        
-          </aside>
+          </pre></aside>
         </section>
 
         <section data-background="images/madderakka.jpg">
@@ -342,7 +342,7 @@ Flow(source.getLines()).
           <h1>Demo</h1>
           <p>Application that reads the file <code>/20news-text.txt</code>, parses the lines, and attempts to predict which
           topic it apprears in, the number of messages in each topic.</p>
-          <aside class="notes">
+          <aside class="notes"><pre>
 Flow(source.getLines()).
   filter(_.length > 10).
   mapConcat(l => List.fill(16)(Message.parse(l))).
@@ -356,7 +356,7 @@ Flow(source.getLines()).
         consume(materializer)
   }.onComplete { ... }
 </aside>
-        </section>
+        </pre></section>
 
         <section>
           <h2>Thank you!</h2>
