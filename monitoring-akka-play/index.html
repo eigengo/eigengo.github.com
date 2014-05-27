@@ -53,8 +53,122 @@
           </p>
         </section>
 
+        <!-- what's happening -->
         <section>
-          <h2>The meat</h2>
+          <h2>Why</h2>
+          <p>Why monitor? What do you get, what happens when you don't</p>
+        </section>
+
+        <section>
+          <h2>Kinds of things in big system</h2>
+          <p>CPU-intensive (XML parsing)</p>
+          <p>Non-reactive / blocking third-party libraries (DB drivers, ....)</p>
+          <p>The reactive rest (async HTTP libs, DB drivers, ...: most of them Netty, not Akka IO)</p>
+          <p>The ActorSystem</p>
+        </section>
+
+        <section>
+          <h2>The bad stuff</h2>
+          <p>Not making most of the hardware: low CPU, low memory, lots of context switches and idle threads</p>
+          <p>Actor quques growing too much</p>
+          <p>Ultimately, the system was slow: not responsive enough</p>
+        </section>
+
+        <!-- what did we do? -->
+        <section>
+          <h2>Bulkhead the operations</h2>
+          <p>Different thread pools / ActorSystems for the unruly code</p>
+          <p>Monitor</p>
+          <ul>
+            <li>The number of messages</li>
+            <li>The sizes of queues</li>
+            <li>The duration of messages in queue</li>
+            <li>The duration of message in the <code>Actor.receive</code></li>
+            <li>Exceptions</li>
+          </ul>
+        </section>
+
+        <section>
+          <h2>Correlate with</h2>
+          <p>What the front-end is doing</p>
+          <p>Monitor</p>
+          <ul>
+            <li>The number of HTTP requests</li>
+            <li>Timing the HTTP responses</li>
+            <li>Exceptions</li>
+          </ul>
+        </section>
+
+        <!-- how we did it -->
+        <section>
+          <h2>Typesafe Console!</h2>
+          <p>Brilliant, clients loved it, but ...</p>
+          <p>Development OK, in fact recommended</p>
+          <p>Unusable in production: memory footprint, data (MongoDB) size, the volume of data produced</p>
+        </section>
+
+        <section>
+          <h2>Rolled ReactiveMonitor</h2>
+          <p>Same approach as the Console: LTW</p>
+          <p>Advised <em>interesting</em> methods in Akka:</p>
+          <ul>
+            <li><code>Actor.onReceive</code></li>
+            <li><code>ActorRef.xxxx</code></li>
+            <li><code>onXXX</code></li>
+          </ul>
+        </section>
+
+        <section>
+          <h2>Rolled ReactiveMonitor</h2>
+          <pre><code data-trim class="aspectj">
+public aspect Foo {
+
+}
+          </code></pre>
+        </section>
+
+        <section>
+          <h2>Subtle differences Java / Scala</h2>
+          <p><code>system.actorOf(Props[FooActor])</code> loooks rather different in Java. Ex: ...</p>
+        </section>
+
+        <section>
+          <h2>Not Mongo</h2>
+          <p>Pluggable output modules</p>
+          <ul>
+            <li>statsd / DD extensions</li>
+            <li>Codahale metrics</li>
+          </ul>
+        </section>
+
+        <section>
+          <h2>Statsd</h2>
+          <p>What is it?</p>
+          <pre><code data-trim class="java">
+UDP : ...
+          </code></pre>
+        </section>
+
+        <section>
+          <h2>How we deployed it?</h2>
+          <p>Add the dependency. Run</p>
+        </section>
+
+        <section>
+          <h2>Was it OK?</h2>
+          <p>What have we found?</p>
+        </section>
+
+        <!-- demo -->
+        <section data-background="images/angrymob.jpg">
+          <h1>Demo</h1>
+          <p>Adding monitoring to some existing Akka application. See DD integration.</p>
+        </section>
+
+        <section>
+          <h2>War stories?</h2>
+          <p>What have we learned in building large Akka system?</p>
+          <p>What have we learned in building the Reactive Monitor?</p>
         </section>
 
         <section>
