@@ -109,19 +109,69 @@
 
         <section>
           <h2>Rolled ReactiveMonitor</h2>
-          <p>Same approach as the Console: LTW</p>
-          <p>Advised <em>interesting</em> methods in Akka:</p>
+          <p>Same approach as the Typesafe Console: bytecode instrumentation in AspectJ and load-time weaving.</p>
+        </section>
+
+        <section>
+          <h2>We monitor</h2>
+          <p>Actor creation and destruction</p>
           <ul>
-            <li><code>Actor.onReceive</code></li>
-            <li><code>ActorRef.xxxx</code></li>
-            <li><code>onXXX</code></li>
+            <li><code>ActorRefFactory+.actorOf(*)</code>,<br/><code>ActorRefFactory+.actorOf(*,*)</code></li>
+            <li><code>Creator.create()</code></li>
+            <li><code>ActorCell.stop(actor)</code></li>
+          </ul>
+        </section>
+
+        <section>
+          <h2>We monitor</h2>
+          <p>Receiving messages and <em>catching</em> errors.</p>
+          <ul>
+            <li><code>ActorCell.receiveMessage(msg)</code></li>
+            <li><code>ActorCell.handleInvokeFailure(_, failure)</code></li>
+            <li><code>EventStream.publish(event)</code></li>
+          </ul>
+        </section>
+
+        <section>
+          <h2>We monitor</h2>
+          <p>The performance and behaviour of the <code>ExecutorService</code>.</p>
+          <ul>
+            <li><code>ExecutorService+.execute(..)</code></li>
+            <li><code>MessageDispatcher+.dispatch(..)</code></li>
           </ul>
         </section>
 
         <section>
           <h2>Rolled ReactiveMonitor</h2>
-          <pre><code data-trim class="aspectj">
-public aspect Foo {
+          <pre><code data-trim class="java">
+public aspect ActorCellMonitoringAspect {
+
+  Object around(ActorCell actorCell, Object msg) : 
+    call(* a.a.ActorCell.receiveMessage(..)) 
+    &amp;&amp; args(msg) &amp;&amp; target(actorCell) {
+      // check configuration to see if we're interested
+      // publish 'delivered' events
+      // measuring performance
+      Object result = null;
+      result = proceed(actorCell, msg);
+      // return null would do, but we are _proper_.
+      return result;
+  }
+}
+          </code></pre>
+        </section>
+
+        <section>
+          <h2>Rolled ReactiveMonitor</h2>
+          <pre><code data-trim class="java">
+public aspect DispatcherMonitoringAspect {
+
+  before(ExecutorService es) : 
+    call(* j.u.c.ExecutorService+.execute(..)) 
+    &amp;&amp; target(es) {
+      // publish 'active threads' count
+      // publish 'running threads' count
+    }
 
 }
           </code></pre>
@@ -133,16 +183,33 @@ public aspect Foo {
         </section>
 
         <section>
-          <h2>Not Mongo</h2>
-          <p>Pluggable output modules</p>
+          <h2>Output modules</h2>
+          <p>The aspects load configurable output modules. Our client needed statsd / DataDog, but we have two more!</p>
           <ul>
-            <li>statsd / DD extensions</li>
+            <li>statsd with DataDog extensions</li>
+            <li>dtrace</li>
             <li>Codahale metrics</li>
           </ul>
         </section>
 
         <section>
           <h2>Statsd</h2>
+          <p>What is it?</p>
+          <pre><code data-trim class="java">
+UDP : ...
+          </code></pre>
+        </section>
+
+        <section>
+          <h2>dtrace</h2>
+          <p>What is it?</p>
+          <pre><code data-trim class="java">
+UDP : ...
+          </code></pre>
+        </section>
+
+        <section>
+          <h2>Codahale Metrics</h2>
           <p>What is it?</p>
           <pre><code data-trim class="java">
 UDP : ...
