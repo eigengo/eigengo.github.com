@@ -107,37 +107,33 @@
           <p>Unusable in production: memory footprint, data (MongoDB) size, the volume of data produced</p>
         </section>
 
-        <section>
-          <h2>Rolled ReactiveMonitor</h2>
+        <section data-background="images/aspectj.jpg">
+          <h2>Reactive Monitor</h2>
           <p>Same approach as the Typesafe Console: bytecode instrumentation in AspectJ and load-time weaving.</p>
         </section>
 
         <section>
           <h2>We monitor</h2>
-          <p>Actor creation and destruction</p>
           <ul>
-            <li><code>ActorRefFactory+.actorOf(*)</code>,<br/><code>ActorRefFactory+.actorOf(*,*)</code></li>
-            <li><code>Creator.create()</code></li>
-            <li><code>ActorCell.stop(actor)</code></li>
+            <li>Actor creation through the <code>actorOf</code> call.</li>
+            <li>Actor destruction through the <code>stop</code> call.</li>
           </ul>
         </section>
 
         <section>
           <h2>We monitor</h2>
-          <p>Receiving messages and <em>catching</em> errors.</p>
           <ul>
-            <li><code>ActorCell.receiveMessage(msg)</code></li>
-            <li><code>ActorCell.handleInvokeFailure(_, failure)</code></li>
-            <li><code>EventStream.publish(event)</code></li>
+            <li>Performance and distribution of messages delivered to the actors</li>
+            <li>Exceptions spreading from the actors' <code>receive</code> handler</li>
+            <li>Events delivered to the system's <code>EventStream</code></li>
           </ul>
         </section>
 
         <section>
           <h2>We monitor</h2>
-          <p>The performance and behaviour of the <code>ExecutorService</code>.</p>
           <ul>
-            <li><code>ExecutorService+.execute(..)</code></li>
-            <li><code>MessageDispatcher+.dispatch(..)</code></li>
+            <li>The performance and behaviour of the <code>MessageDispatcher</code></li>
+            <li>The performance and behaviour of the <code>ExecutorService</code>.</li>
           </ul>
         </section>
 
