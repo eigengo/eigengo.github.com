@@ -10,7 +10,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-    <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Ubuntu Mono:regular,bold&subset=Latin">
+    <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Ubuntu%20Mono:regular,bold&subset=Latin">
     <link rel="stylesheet" href="../reveal.js/css/reveal.css">
     <link rel="stylesheet" href="../reveal.js/css/theme/default.css" id="theme">
 
@@ -107,38 +107,36 @@
           <p>Unusable in production: memory footprint, data (MongoDB) size, the volume of data produced</p>
         </section>
 
-        <section data-background="images/aspectj.jpg">
+        <section data-background="images/monitor.jpg">
           <h2>Reactive Monitor</h2>
-          <p>We wanted to record <em>just enough</em> information 
+          <p>We wanted to record <em>just enough</em> information. Too much would slow the system under monitor down,
+          too little would allow failures to go unnoticed.</p>
           <ul>
-            <li>Messages, message rates, failures and performance</li>
-            <li>
+            <li>Actor creation &amp; destruction.</li>
+            <li>Message types, message rates, failures and performance at the actor level</li>
+            <li>Queue size at the local actor level</li>
+            <li>The number of active and running threads in the <code>ThreadPool</code>s or <code>ExecutorService</code>s</li>
           </ul>
-        </section>
+          </section>
 
         <section>
           <h2>We monitor</h2>
-          <ul>
-            <li>Actor creation through the <code>actorOf</code> call.</li>
-            <li>Actor destruction through the <code>stop</code> call.</li>
-          </ul>
+          <pre><code data-trim class="scala">
+val system = ActorSystem()
+val x = system.actorOf(Props[XActor])
+val y = system.actorOf(Props[YActor])
+x ! "foo"
+y ! "foo"
+y ! 42
+          </code></pre>
+          <p>Want to see: number of actors: 2; messages delivered: 3, <code>String</code> messages delivered: 2, <code>Int</code> messages delivered: 1, <code>String</code> messages delivered to actor <code>x</code>: 1, <code>String</code> messages delivered to actor <code>y</code>: 1, ...; <code>XActor.receive</code> took 1 μs, <code>YActor.receive</code> took 2 μs; <code>ThreadPool</code> has 2 active threads, 14 idle threads...
         </section>
 
-        <section>
-          <h2>We monitor</h2>
-          <ul>
-            <li>Performance and distribution of messages delivered to the actors</li>
-            <li>Exceptions spreading from the actors' <code>receive</code> handler</li>
-            <li>Events delivered to the system's <code>EventStream</code></li>
-          </ul>
-        </section>
-
-        <section>
-          <h2>We monitor</h2>
-          <ul>
-            <li>The performance and behaviour of the <code>MessageDispatcher</code></li>
-            <li>The performance and behaviour of the <code>ExecutorService</code>.</li>
-          </ul>
+        <section data-background="images/aspectj.jpg">
+          <h2>AspectJ</h2>
+          <p>It allows us to instrument Akka's and Play's bytecode as it is loaded by the <code>ClassLoader</code>s. We can do 
+            <em>anything</em> we like, as long as the instrumented bytecode verifies. </p>
+          <img src="images/ltw.png"/> 
         </section>
 
         <section>
@@ -152,8 +150,7 @@ public aspect ActorCellMonitoringAspect {
       // check configuration to see if we're interested
       // publish 'delivered' events
       // measuring performance
-      Object result = null;
-      result = proceed(actorCell, msg);
+      Object result = proceed(actorCell, msg);
       // return null would do, but we are _proper_.
       return result;
   }
