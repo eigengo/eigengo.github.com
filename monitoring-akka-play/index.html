@@ -54,7 +54,7 @@
         </section>
 
         <!-- Production ready?-->
-        <section>
+        <section data-background="images/ready.jpg">
           <h2>Are you ready for Production?</h2>
           <p>ScalaDays 2014</p>
           <ul>
@@ -73,14 +73,14 @@
            <br/> <br/>
            <p>You need to keep an eye on the stack!</p>  
           <aside class="notes">
-              So are you ready for Production?
-              here at Scala Days we have seen some great talks, so i bet your itching to get back and do some coding. But what happens when you have created the next NetFlix? 
-              Unfortunatly akka does not solve all of the woes of running in production, you still need to keep an eye stack.
+              So are you ready for production?
+              Here at Scala Days we have seen some great talks, so I bet you're itching to get back and do some coding. But what happens when you have created the next Netflix? 
+              Unfortunatly, Akka does not solve all of the woes of running in production, you still need to keep an eye on your stack.
           </aside>
         </section>
 
         <!-- Monitoring -->
-        <section data-background="images/configuration.jpg">
+        <section data-background="images/monitor.jpg">
           <h2>Why Monitor?</h2>
           <ul>
             <li>What do you get?</li>
@@ -96,17 +96,13 @@
             </ul>
            </ul>   
           <aside class="notes">
-              Monitoring gives us an insight into the performance and flow of an application
-              Allowing us see "pain points", areas of poor performance.
-              Generally increasing our visibility to what is occuring.
-              The Aim is 24/7 uptime, preventing the big boom! 
-              How do you know that something's broken in time to do something about it.
-              We don't want to "monitor" HTTP 500s, we want to have a bit of time ahead
-              of the 500s to do something.
+              Monitoring gives an insight into the performance and flow of an application,
+              allowing us see pain points, and areas of poor performance: increasing our visibility to what is occuring.
+              The Aaim is 24/7 uptime, preventing the big boom! How do you know that something's broken in time to do something about it? It is insufficient to monitor HTTP 500s, we want to have a bit of time ahead of the 500s to do something.
           </aside>
         </section>
 
-        <section data-background="images/configuration.jpg">  
+        <section data-background="images/monitor.jpg">
           <h2>What to Monitor</h2>
           <p>You want to see inside the Actor System, Play Framework or Spray stack, how is data moving within the system</p>
           <br/>
@@ -120,21 +116,21 @@
            <aside class="notes">
              What metrics do you want to see, when the app is in production. 
 
-             During our consultancy customers often complain that actors are black boxes, its difficult to understand what the application is doing especially if they come from a traditional J2EE background.
+             During our consultancy, customers often complain that actors are black boxes. It is difficult to understand what the application is doing; especially if they come from a traditional JEE background.
           </aside>
         </section>
 
         <!-- how we did it -->
-        <section>
+        <section data-background="images/monitor.jpg">
           <h2>Typesafe Console!</h2>
           <img src="images/activator.png"/>
           <aside class="notes">
-            Typesafe Console! looks great, gave indepth stats on the actor system.
+            Typesafe Console! It looks great, and it gives in-depth stats on the actor system.
           </aside>
         </section>
 
         <!-- how we did it -->
-        <section>
+        <section data-background="images/monitor.jpg">
           <h2>Typesafe Console!</h2>
           <p>Brilliant, Looks great, under low load its really impressive, we loved it, but ...</p>
           <ul>
@@ -142,10 +138,10 @@
             <li>Development - Great: gave indepth stats on the actor system</li>
           </ul>
           <aside class="notes">
-            but just logged too much data and just ate resource when doing performance tests. 
-            in summary :
-            Production is a no go
-            Development is recomended, great for tracing the flow through the actor system. 
+            But it records too much data and just eats resource when doing performance tests. 
+            In summary:
+            * production is a no go
+            * development is recomended, great for tracing the flow through the actor system. 
           </aside>
         </section>
 
@@ -159,8 +155,9 @@
             <li>The number of active and running threads in the <code>ThreadPool</code>s or <code>ExecutorService</code>s</li>
           </ul>
           <p>And we wanted to have a flexible mechanism to deliver the monitoring output.</p>
-           <aside class="notes">
-            So we rolled our own OpenSource monitor... 
+          <aside class="notes">
+            We liked the Typesafe Console, but we needed an alternative solution for the client. So, we scratched our own itch, and made the open source Reactive Monitor. Instead of targetting <em>only</em> statsd (with Datadog), we split the agents and the outputs.
+            At the highest level, the architecture is:
           </aside>
         </section>
 
@@ -179,6 +176,9 @@ x ! "foo"
 y ! "foo"
 y ! 42
           </code></pre>
+          <aside class="notes">
+            With this code, what sort of metrics can you get with our monitoring tool?
+          </aside>
         </section>
 
         <section data-background="images/monitor.jpg">
@@ -194,6 +194,9 @@ x ! "foo"; y ! "foo"; y ! 42
           <p>It allows us to instrument Akka's and Play's bytecode as it is loaded by the <code>ClassLoader</code>s. We can do 
             <em>anything</em> we like, as long as the instrumented bytecode verifies. </p>
           <img src="images/ltw.png"/> 
+          <aside class="notes">
+            This is how we apply the agents into the application being monitored. We used AspectJ LTW to monkey-patch Akka's, Spray's and Play's JARs. This means that there are no custom builds of Akka, Spray or Play!
+          </aside>
         </section>
 
         <section data-background="images/aspectj.jpg">
@@ -213,6 +216,9 @@ x ! "foo"; y ! "foo"; y ! 42
     &lt;/weaver&gt;
 &lt;/aspectj&gt;
           </code></pre>
+          <aside class="notes">
+            aop.xml tells the weaver where to unleash its monkey-patching magic. In other words, we restrict the scope of the work that the weaver has to do.
+          </aside>
         </section>
 
         <section data-background="images/aspectj.jpg">
@@ -262,10 +268,10 @@ public aspect DispatcherMonitoringAspect {
 
         <section data-background="images/configuration.jpg">
           <h2>Configuration</h2>
-          <p>Typesafe Config-style files at known locations configure the agent and output modules.</p>
+          <p>Typesafe Config-style files at well-known locations configure the agent and output modules.</p>
           <ul>
-            <li><code>/META&ndash;INF/monitor/agent.conf</code> for the agent</li>
-            <li><code>/META&ndash;INF/monitor/output.conf</code> for the output</li>
+            <li><code>/META-INF/monitor/agent.conf</code> for the agent</li>
+            <li><code>/META-INF/monitor/output.conf</code> for the output</li>
           </ul>
         </section>
 
@@ -312,7 +318,7 @@ org.eigengo.monitor.output.codahalemetrics {
 
         <section data-background="images/output.jpg">
           <h2>Output modules</h2>
-          <p>The aspects load configurable output modules. Our client needed statsd / DataDog, but we have two more!</p>
+          <p>The aspects load configurable output modules. We scratched our own itch by implementing the statsd / Datadog output module, but we have two more!</p>
           <ul>
             <li>statsd (with <a href="http://www.datadoghq.com/" target="_blank">Datadog</a> extensions)</li>
             <li>dtrace (on Solaris, dummy elsewhere)</li>
@@ -363,7 +369,7 @@ UDP : ...
         <!-- demo -->
         <section data-background="images/angrymob.jpg">
           <h1>Demo</h1>
-          <p>Lets see this in action, an example app configured to output to Statsd & DataDog.</p>
+          <p>Let's see this in action, an example app configured to output to statsd &amp; Datadog.</p>
         </section>
         
         <section data-background="images/production.jpg">
