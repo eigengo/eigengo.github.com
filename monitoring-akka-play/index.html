@@ -125,15 +125,22 @@
         <!-- how we did it -->
         <section>
           <h2>Typesafe Console!</h2>
+          <img src="images/activator.png"/>
+          <aside class="notes">
+            Typesafe Console! looks great, gave indepth stats on the actor system.
+          </aside>
+        </section>
+
+        <!-- how we did it -->
+        <section>
+          <h2>Typesafe Console!</h2>
           <p>Brilliant, Looks great, under low load its really impressive, we loved it, but ...</p>
           <ul>
             <li>Production - Unusable: memory footprint, volume of data produced, just too heavy</li>
             <li>Development - Great: gave indepth stats on the actor system</li>
           </ul>
-          <img src="images/activator.png"/>
           <aside class="notes">
-            Typesafe Console! looks great, gave indepth stats on the actor system.
-            just logged too much data and just ate resource when doing performance tests. 
+            but just logged too much data and just ate resource when doing performance tests. 
             in summary :
             Production is a no go
             Development is recomended, great for tracing the flow through the actor system. 
@@ -357,13 +364,13 @@ UDP : ...
           <p>Lets see this in action, an example app configured to output to Statsd & DataDog.</p>
         </section>
         
-        <section>
+        <section data-background="images/production.jpg">
           <h2>War stories?</h2>
           <p>What have we learned in building large Akka system?</p>
           <p>What have we learned in building the Reactive Monitor?</p>
         </section>
 
-        <section>
+        <section data-background="images/production.jpg">
           <h2>Kinds of things in big system</h2>
           <p>CPU-intensive (XML parsing)</p>
           <p>Non-reactive / blocking third-party libraries (DB drivers, ....)</p>
@@ -377,7 +384,7 @@ UDP : ...
           </aside>
         </section>
 
-        <section>
+        <section data-background="images/production.jpg">
           <h2>The bad stuff</h2>
           <p>Not making most of the hardware: low CPU, low memory, lots of context switches and idle threads</p>
           <p>Actor queues growing too much</p>
@@ -389,7 +396,7 @@ UDP : ...
         </section>
 
         <!-- what did we do? -->
-        <section>
+        <section data-background="images/production.jpg">
           <h2>Bulkhead the operations</h2>
           <p>Issolated the actor system into:</p>
           <ul>
