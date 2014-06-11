@@ -309,19 +309,27 @@ org.eigengo.monitor.output.statsd {
     constantTags: []
 }
           </code></pre>
+          <pre><code data-trim class="javascript">
+org.eigengo.monitor.output.codahalemetrics {
+    registry-class: "org...DefaultRegistryProvider"
+    naming-class:   "org...DefaultNameMarshaller"
+    prefix: ""
+    refresh: 5
+}
+          </code></pre>
         </section>
 
         <section data-background="images/output.jpg">
           <h2>Output modules</h2>
           <p>The aspects load configurable output modules. Our client needed statsd / DataDog, but we have two more!</p>
           <ul>
-            <li>statsd with DataDog extensions</li>
-            <li>dtrace</li>
-            <li>Codahale metrics</li>
+            <li>statsd (with <a href="http://www.datadoghq.com/" target="_blank">Datadog</a> extensions)</li>
+            <li>dtrace (on Solaris, dummy elsewhere)</li>
+            <li>Codahale Metrics</li>
           </ul>
         </section>
 
-        <section>
+        <section data-background="images/output.jpg">
           <h2>Statsd</h2>
           <p>What is it?</p>
           <pre><code data-trim class="java">
@@ -329,7 +337,7 @@ UDP : ...
           </code></pre>
         </section>
 
-        <section>
+        <section data-background="images/output.jpg">
           <h2>dtrace</h2>
           <p>What is it?</p>
           <pre><code data-trim class="java">
@@ -337,7 +345,7 @@ UDP : ...
           </code></pre>
         </section>
 
-        <section>
+        <section data-background="images/output.jpg">
           <h2>Codahale Metrics</h2>
           <p>What is it?</p>
           <pre><code data-trim class="java">
@@ -345,12 +353,23 @@ UDP : ...
           </code></pre>
         </section>
 
-        <section>
-          <h2>How we deployed it?</h2>
-          <p>Add the dependency. Run</p>
+        <section data-background="images/production.jpg">
+          <h2>Into the battle!</h2>
+          <ul>
+            <li>Dependencies for the agents and output modules you require
+              <pre><code data-trim class="scala">
+"org.eigengo.monitor" %% "agent-akka"    % "0.4",
+"org.eigengo.monitor" %% "output-statsd" % "0.4"
+              </code></pre>
+            </li>
+            <li>Agent configuration in <code>/META-INF/monitor/agent.conf</code><br/>
+              and—if required—<br/>
+              Output configuration in <code>/META-INF/monitor/output.conf</code></li>
+            <li><code>/META-INF/aop.xml</code> to give configuration to the weaver</li>
+          </ul>
         </section>
 
-        <section>
+        <section data-background="images/production.jpg">
           <h2>Was it OK?</h2>
           <p>What have we found?</p>
         </section>
