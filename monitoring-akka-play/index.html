@@ -53,19 +53,52 @@
           </p>
         </section>
 
-        <!-- what's happening -->
+        <!-- Production ready?-->
         <section>
-          <h2>Why</h2>
-          <p>Why monitor? What do you get, what happens when you don't ...</p>
+          <h2>Are you ready for Production?</h2>
+          <p>ScalaDays 2014</p>
           <ul>
-            <li>Improved visibility</li>
-            <li>Identify "Pain Points"</li>
-            <li>Provide information to prevent the "big boom!"</li>
-          </ul>
+            <li>Akka</li>
+            <ul>
+              <li>An IMAGE TO GO HERE </li>
+              <li>or just a list of awesome stuff...</li>
+            </ul>
+            <br/>
+            <li>Play</li>
+            <ul>
+              <li>2.3 - awesomeness</li>
+              <li>Reactive web app....</li>
+            </ul>
+           </ul> 
+           <br/> <br/>
+           <p>You need to keep an eye on the stack!</p>  
+          <aside class="notes">
+              So are you ready for Production?
+              here at Scala Days we have seen some great talks, so i bet your itching to get back and do some coding. But what happens when you have created the next NetFlix? 
+              Unfortunatly akka does not solve all of the woes of running in production, you still need to keep an eye stack.
+          </aside>
+        </section>
+
+        <!-- Monitoring -->
+        <section data-background="images/configuration.jpg">
+          <h2>Why Monitor?</h2>
+          <ul>
+            <li>What do you get?</li>
+            <ul>
+              <li>Improved visibility</li>
+              <li>Identify "Pressure Points"</li>
+            </ul>
+            <br/>
+            <li>What happens if you dont?</li>
+            <ul>
+              <li>No warning before the "big boom!"</li>
+              <li>500's - no time to react</li>
+            </ul>
+           </ul>   
           <aside class="notes">
               Monitoring gives us an insight into the performance and flow of an application
-              Allowing us see "pain points", areas of poor performance
-              Generally increasing our visibility to what is occuring
+              Allowing us see "pain points", areas of poor performance.
+              Generally increasing our visibility to what is occuring.
               The Aim is 24/7 uptime, preventing the big boom! 
               How do you know that something's broken in time to do something about it.
               We don't want to "monitor" HTTP 500s, we want to have a bit of time ahead
@@ -73,88 +106,44 @@
           </aside>
         </section>
 
-        <section>
-          <h2>Kinds of things in big system</h2>
-          <p>CPU-intensive (XML parsing)</p>
-          <p>Non-reactive / blocking third-party libraries (DB drivers, ....)</p>
-          <p>The reactive rest (async HTTP libs, DB drivers, ...: most of them Netty, not Akka IO)</p>
-          <p>The ActorSystem</p>
-          <aside class="notes">
-              CPU-intensive  - Churning through lots of Data, big XML files, Big Data problems
-              Non-reactive - Legacy code, Blocking Libraries database integration etc...
-              lots of Awesome Reactive stuff, Async Http, async db drivers all none blocking.
-              and ofcause then Actor system its self.  
-          </aside>
-        </section>
-
-        <section>
-          <h2>The bad stuff</h2>
-          <p>Not making most of the hardware: low CPU, low memory, lots of context switches and idle threads</p>
-          <p>Actor queues growing too much</p>
-          <p>Ultimately, the system was slow: not responsive enough</p>
-          <aside class="notes">
-              Im sure this has happended to all of us at some point in the past, your first performance tests just sit there, not really taking hardware resource, essentially just "blocking". 
-              With more Akka specific problems, you can have mailbox queues growing, mean-time in 'onRecieve()' being too high. arrrrhhhhh...
-          </aside>
-        </section>
-
-        <!-- what did we do? -->
-        <section>
-          <h2>Bulkhead the operations</h2>
-          <p>Issolated the actor system into:</p>
-          <ul>
-            <li>CPU intensive </li> 
-            <li>legacy blocking code </li>
-            <li>remaining reactive code</li>
-          </ul>
-          <p>Creating different Dispatchers for the unruly code</p>
-          <a href="http://letitcrash.com/post/40755146949/tuning-dispatchers-in-akka-applications">tuning-dispatchers-in-akka-applications</a>
-          <aside class="notes">
-              so What did we do?
-              Bulkheading - So, we needed to bulkhead the app, break out the CPU intensive work, the fast reactive core and the integration to the legacy blocking code.  Deciding on the best dispatcher for a given actor was tricky but the blog from the typesafe guys was a good place to start.
-          </aside>
-        </section>
-
-        <section>  
-          <h2>Monitor</h2>
-          <p>what metrics did we want?</p>
+        <section data-background="images/configuration.jpg">  
+          <h2>What to Monitor</h2>
+          <p>You want to see inside the Actor System, Play Framework or Spray stack, how is data moving within the system</p>
+          <br/>
           <ul>
             <li>The number of messages</li>
             <li>The sizes of queues</li>
             <li>The duration of messages in queue</li>
-            <li>The duration of message in the <code>Actor.receive</code></li>
-            <li>Exceptions</li>
+            <li>The duration of message in the <code>receive</code></li>
+            <li>Exceptions / Errors</li>
           </ul>
            <aside class="notes">
-             We then thought about the metrics we would want to know, when the app was in production. 
-          </aside>
-        </section>
-
-        <section>
-          <h2>Correlate with</h2>
-          <p>Kill?</p>
-          <p>What the front-end is doing by Monitoring</p>
-           
-          <ul>
-            <li>The number of HTTP requests</li>
-            <li>Timing the HTTP responses</li>
-            <li>Exceptions</li>
-          </ul>
-          <aside class="notes">
-             and we would want to correlate this with what was going on in the front end. 
+             What metrics do you want to see, when the app is in production. 
           </aside>
         </section>
 
         <!-- how we did it -->
         <section>
           <h2>Typesafe Console!</h2>
-          <p>Brilliant, clients loved it, but ...</p>
-          <p>Development OK, in fact recommended</p>
-          <p>Unusable in production: memory footprint, data (MongoDB) size, the volume of data produced</p>
           <img src="images/activator.png"/>
           <aside class="notes">
             Typesafe Console! looks great, gave indepth stats on the actor system.
-            just logged too much data and just ate resource when doing performance tests. 
+          </aside>
+        </section>
+
+        <!-- how we did it -->
+        <section>
+          <h2>Typesafe Console!</h2>
+          <p>Brilliant, Looks great, under low load its really impressive, we loved it, but ...</p>
+          <ul>
+            <li>Production - Unusable: memory footprint, volume of data produced, just too heavy</li>
+            <li>Development - Great: gave indepth stats on the actor system</li>
+          </ul>
+          <aside class="notes">
+            but just logged too much data and just ate resource when doing performance tests. 
+            in summary :
+            Production is a no go
+            Development is recomended, great for tracing the flow through the actor system. 
           </aside>
         </section>
 
@@ -353,7 +342,7 @@ UDP : ...
           </code></pre>
         </section>
 
-        <section data-background="images/production.jpg">
+        <section data-background="images/angrymob.jpg">
           <h2>Into the battle!</h2>
           <ul>
             <li>Dependencies for the agents and output modules you require
@@ -369,27 +358,61 @@ UDP : ...
           </ul>
         </section>
 
-        <section data-background="images/production.jpg">
-          <h2>Was it OK?</h2>
-          <p>What have we found?</p>
-        </section>
-
         <!-- demo -->
         <section data-background="images/angrymob.jpg">
           <h1>Demo</h1>
-          <p>Adding monitoring to some existing Akka application. See DD integration.</p>
+          <p>Lets see this in action, an example app configured to output to Statsd & DataDog.</p>
         </section>
         
-        <section data-background="images/angrymob.jpg">
-          <h1>Demo</h1>
-          <p>Adding monitoring to some existing Akka application. See DD integration.</p>
-        </section>
-
-        <section>
+        <section data-background="images/production.jpg">
           <h2>War stories?</h2>
           <p>What have we learned in building large Akka system?</p>
           <p>What have we learned in building the Reactive Monitor?</p>
         </section>
+
+        <section data-background="images/production.jpg">
+          <h2>Kinds of things in big system</h2>
+          <p>CPU-intensive (XML parsing)</p>
+          <p>Non-reactive / blocking third-party libraries (DB drivers, ....)</p>
+          <p>The reactive rest (async HTTP libs, DB drivers, ...: most of them Netty, not Akka IO)</p>
+          <p>The ActorSystem</p>
+          <aside class="notes">
+              CPU-intensive  - Churning through lots of Data, big XML files, Big Data problems
+              Non-reactive - Legacy code, Blocking Libraries database integration etc...
+              lots of Awesome Reactive stuff, Async Http, async db drivers all none blocking.
+              and ofcause then Actor system its self.  
+          </aside>
+        </section>
+
+        <section data-background="images/production.jpg">
+          <h2>The bad stuff</h2>
+          <p>Not making most of the hardware: low CPU, low memory, lots of context switches and idle threads</p>
+          <p>Actor queues growing too much</p>
+          <p>Ultimately, the system was slow: not responsive enough</p>
+          <aside class="notes">
+              Im sure this has happended to all of us at some point in the past, your first performance tests just sit there, not really taking hardware resource, essentially just "blocking". 
+              With more Akka specific problems, you can have mailbox queues growing, mean-time in 'onRecieve()' being too high. arrrrhhhhh...
+          </aside>
+        </section>
+
+        <!-- what did we do? -->
+        <section data-background="images/production.jpg">
+          <h2>Bulkhead the operations</h2>
+          <p>Issolated the actor system into:</p>
+          <ul>
+            <li>CPU intensive </li> 
+            <li>legacy blocking code </li>
+            <li>remaining reactive code</li>
+          </ul>
+          <p>Creating different Dispatchers for the unruly code</p>
+          <a href="http://letitcrash.com/post/40755146949/tuning-dispatchers-in-akka-applications">tuning-dispatchers-in-akka-applications</a>
+          <aside class="notes">
+              so What did we do?
+              Bulkheading - So, we needed to bulkhead the app, break out the CPU intensive work, the fast reactive core and the integration to the legacy blocking code.  Deciding on the best dispatcher for a given actor was tricky but the blog from the typesafe guys was a good place to start.
+          </aside>
+        </section>
+
+
 
         <section>
           <h2>Thank you!</h2>
@@ -399,6 +422,8 @@ UDP : ...
             <li>Tweets at <a href="https://twitter.com/honzam399">@honzam399</a> | <a href="https://twitter.com/alexlashford">@alexlashford</a></li>
           </ul>
         </section>
+
+
 
       </div>
 
