@@ -119,7 +119,7 @@
           <p>And we wanted to have a flexible mechanism to deliver the monitoring output.</p>
           </section>
 
-        <section>
+        <section data-background="images/monitor.jpg">
           <h2>We monitor</h2>
           <pre><code data-trim class="scala">
 val system = ActorSystem()
@@ -129,7 +129,14 @@ x ! "foo"
 y ! "foo"
 y ! 42
           </code></pre>
-          <p>Want to see: number of actors: 2; messages delivered: 3, <code>String</code> messages delivered: 2, <code>Int</code> messages delivered: 1, <code>String</code> messages delivered to actor <code>x</code>: 1, <code>String</code> messages delivered to actor <code>y</code>: 1, ...; <code>XActor.receive</code> took 1 μs, <code>YActor.receive</code> took 2 μs; <code>ThreadPool</code> has 2 active threads, 14 idle threads...
+        </section>
+
+        <section data-background="images/monitor.jpg">
+          <h2>We monitor</h2>
+          <pre><code data-trim class="scala">
+x ! "foo"; y ! "foo"; y ! 42
+          </code></pre>
+          <img src="images/chart.png"/>
         </section>
 
         <section data-background="images/aspectj.jpg">
