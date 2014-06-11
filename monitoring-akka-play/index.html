@@ -171,7 +171,12 @@
            <aside class="notes">
             So we rolled our own OpenSource monitor... 
           </aside>
-          </section>
+        </section>
+
+        <section data-background="images/monitor.jpg">
+          <h2>Reactive Monitor</h2>
+          <img src="images/architecture.png"/>
+        </section>
 
         <section data-background="images/monitor.jpg">
           <h2>We monitor</h2>
@@ -202,7 +207,7 @@ x ! "foo"; y ! "foo"; y ! 42
 
         <section data-background="images/aspectj.jpg">
           <h2>AspectJ</h2>
-          <p>To <em>turn on</em> LTW, set the <code>-javaagent</code> JVM parameter, and include <code>/META-INF/aop.xml</code>, which drives the AspectJ instrumenter.</p>
+          <p>To <em>turn on</em> LTW, set the <code>-javaagent</code> JVM parameter, and add <code>/META-INF/aop.xml</code>.</p>
           <pre><code data-trim class="xml">
 &lt;aspectj&gt;
     &lt;aspects&gt;
