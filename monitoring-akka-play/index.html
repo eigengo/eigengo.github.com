@@ -109,14 +109,14 @@
 
         <section data-background="images/monitor.jpg">
           <h2>Reactive Monitor</h2>
-          <p>We wanted to record <em>just enough</em> information. Too much would slow the system under monitor down,
-          too little would allow failures to go unnoticed.</p>
+          <p>We wanted to record <em>just enough</em> information. Too much would slow the system under monitor down, too little would allow failures to go unnoticed.</p>
           <ul>
             <li>Actor creation &amp; destruction.</li>
             <li>Message types, message rates, failures and performance at the actor level</li>
             <li>Queue size at the local actor level</li>
             <li>The number of active and running threads in the <code>ThreadPool</code>s or <code>ExecutorService</code>s</li>
           </ul>
+          <p>And we wanted to have a flexible mechanism to deliver the monitoring output.</p>
           </section>
 
         <section>
@@ -139,8 +139,27 @@ y ! 42
           <img src="images/ltw.png"/> 
         </section>
 
-        <section>
-          <h2>Rolled ReactiveMonitor</h2>
+        <section data-background="images/aspectj.jpg">
+          <h2>AspectJ</h2>
+          <p>To <em>turn on</em> LTW, set the <code>-javaagent</code> JVM parameter, and include <code>/META-INF/aop.xml</code>, which drives the AspectJ instrumenter.</p>
+          <pre><code data-trim class="xml">
+&lt;aspectj&gt;
+    &lt;aspects&gt;
+        &lt;aspect name="ActorCellMonitoringAspect"/&gt;
+        &lt;aspect name="DispatcherMonitoringAspect"/&gt;
+    &lt;/aspects&gt;
+    &lt;weaver options="-verbose -showWeaveInfo"&gt;
+        &lt;include within="akka.actor.*"/&gt;
+        &lt;include within="akka.dispatch.*"/&gt;
+        &lt;include within="scala.concurrent.*"/&gt;
+        &lt;include within="java.util.concurrent.*"/&gt;
+    &lt;/weaver&gt;
+&lt;/aspectj&gt;
+          </code></pre>
+        </section>
+
+        <section data-background="images/aspectj.jpg">
+          <h2>AspectJ</h2>
           <pre><code data-trim class="java">
 public aspect ActorCellMonitoringAspect {
 
@@ -158,8 +177,8 @@ public aspect ActorCellMonitoringAspect {
           </code></pre>
         </section>
 
-        <section>
-          <h2>Rolled ReactiveMonitor</h2>
+        <section data-background="images/aspectj.jpg">
+          <h2>AspectJ</h2>
           <pre><code data-trim class="java">
 public aspect DispatcherMonitoringAspect {
 
@@ -174,12 +193,59 @@ public aspect DispatcherMonitoringAspect {
           </code></pre>
         </section>
 
-        <section>
-          <h2>Subtle differences Java / Scala</h2>
-          <p><code>system.actorOf(Props[FooActor])</code> loooks rather different in Java. Ex: ...</p>
+        <section data-background="images/configuration.jpg">
+          <h2>Configuration</h2>
+          <p>The aspects need configuration for the <em>agent</em>s and <em>output</em>s.</p>
+          <ul>
+            <li>Decide which actors to monitor</li>
+            <li>How to aggregate the monitoring data</li>
+            <li>How to deliver the monitoring data</li>
+          </ul>
         </section>
 
-        <section>
+        <section data-background="images/configuration.jpg">
+          <h2>Configuration</h2>
+          <p>Typesafe Config-style files at known locations configure the agent and output modules.</p>
+          <ul>
+            <li><code>/META&ndash;INF/monitor/agent.conf</code> for the agent</li>
+            <li><code>/META&ndash;INF/monitor/output.conf</code> for the output</li>
+          </ul>
+        </section>
+
+        <section data-background="images/configuration.jpg">
+          <h2>Configuration</h2>
+          <pre><code data-trim class="javascript">
+org.eigengo.monitor.agent {
+  output.class: "org...StatsdCounterInterface"
+
+  akka {
+    included: [
+      "akka:default.org...SimpleActor",
+      "akka://default/user/x"
+    ]
+    sampling: [
+      { rate: 5, for: [ "akka://default/user/*" ] }
+    ]
+  }
+}          
+          </code></pre>
+        </section>
+
+        <section data-background="images/configuration.jpg">
+          <h2>Configuration</h2>
+          <pre><code data-trim class="javascript">
+org.eigengo.monitor.output.statsd {
+    prefix: ""
+    remoteAddress: "localhost"
+    remotePort: 8125
+    refresh: 5
+    initialDelay: 5
+    constantTags: []
+}
+          </code></pre>
+        </section>
+
+        <section data-background="images/output.jpg">
           <h2>Output modules</h2>
           <p>The aspects load configurable output modules. Our client needed statsd / DataDog, but we have two more!</p>
           <ul>
