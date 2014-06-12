@@ -55,14 +55,14 @@
 
         <!-- Monitoring -->
         <section data-background="images/everythingfine.jpg">
-          <h2>Oh, you don't know of any errors?</h2>
+          <h2>Oh, you aren't aware of any errors?</h2>
           <h2>&nbsp;</h2>
           <h2>&nbsp;</h2>
           <h2>&nbsp;</h2>
           <h2>&nbsp;</h2>
           <h2>&nbsp;</h2>
           <h2>&nbsp;</h2>
-          <h2>Everything must be fine, then!</h2>
+          <h2>Everything is jolly good, then!</h2>
           <aside class="notes">
               Monitoring gives an insight into the performance and flow of an application,
               allowing us see pain points, and areas of poor performance: increasing our visibility to what is occuring.
@@ -73,7 +73,7 @@
         <!-- Production ready?-->
         <section data-background="images/fineindev.jpg">
           <h2>Worked fine in dev—ops problem now!</h2>
-          <p>We create actor system in Akka (perhaps with APIs in Spray); modern web applications in Play, and we all like to think that these applications will attract <strike>thousands</strike> billions of users.</p>
+          <p>We create actor systems in Akka (perhaps with REST APIs in Spray); modern web applications in Play, and we all like to think that these applications will attract <strike>thousands</strike> billions of users.</p>
           <aside class="notes">
               <p>So are you ready for production?</p>
               <p>Here at Scala Days we have seen some great talks, so I bet you're itching to get back and do some coding. But what happens when you have created the next Netflix? Unfortunatly, Akka does not solve all of the woes of running in production, you still need to keep an eye on your stack.</p>
@@ -88,14 +88,14 @@
 
         <section data-background="images/monitor.jpg">
           <h2>What to Monitor</h2>
-          <p>You want to see inside the Actor System, Play Framework or Spray stack, how is data moving within the system</p>
+          <p>You want to see inside the Akka, Play Framework or Spray and know what is happening in the system's components.</p>
           <br/>
           <ul>
             <li>Number / rates of messages</li>
             <li>Sizes of queues</li>
             <li>Duration of messages in queue</li>
-            <li>Duration of message in <code>Actors</code>' <code>receive</code></li>
-            <li>Failures</li>
+            <li>Time it takes to execute the <code>receive</code> PF</li>
+            <li>Number / rates of failures</li>
             <li>The threads in the thread pools</li>
           </ul>
            <aside class="notes">
@@ -117,7 +117,7 @@
         <!-- how we did it -->
         <section data-background="images/monitor.jpg">
           <h2>Typesafe Console!</h2>
-          <p>Brilliant, Looks great, under low load its really impressive, we loved it, but ...</p>
+          <p>Brilliant, looks great, under low load its really impressive. We loved it, but ...</p>
           <ul>
             <li>Production—unusable: volume of data produced, memory footprint, I/O</li>
             <li>Development—great: gives in–depth view of the actor system</li>
@@ -132,14 +132,14 @@
 
         <section data-background="images/monitor.jpg">
           <h2>Reactive Monitor</h2>
-          <p>We wanted to record <em>just enough</em> information. Too much would slow the system under monitor down, too little would allow failures to go unnoticed.</p>
+          <p>We wanted to record <em>just enough</em> information. Too much slows down the monitored system, too little lets events go unnoticed.</p>
+          <p>And we wanted to have a flexible mechanism to deliver the collected monitoring information.</p>
           <ul>
             <li>Actor creation &amp; destruction.</li>
             <li>Message types, message rates, failures and performance at the actor level</li>
-            <li>Queue size at the local actor level</li>
-            <li>The number of active and running threads in the <code>ThreadPool</code>s or <code>ExecutorService</code>s</li>
+            <li>Queue size at the (local) actor level</li>
+            <li>The number of active and running threads in the <code>ThreadPool</code>s</li>
           </ul>
-          <p>And we wanted to have a flexible mechanism to deliver the monitoring output.</p>
           <aside class="notes">
             We liked the Typesafe Console, but we needed an alternative solution for the client. So, we scratched our own itch, and made the open source Reactive Monitor. Instead of targetting <em>only</em> statsd (with Datadog), we split the agents and the outputs.
             At the highest level, the architecture is:
@@ -172,6 +172,22 @@ y ! 42
 x ! "foo"; y ! "foo"; y ! 42
           </code></pre>
           <img src="images/chart.png"/>
+        </section>
+
+        <section data-background="images/monitor.jpg">
+          <h2>We monitor</h2>
+          <pre><code data-trim class="scala">
+val system = ActorSystem()
+val x = system.actorOf(Props[XActor])
+val y = system.actorOf(Props[YActor])
+x ! "foo"
+y ! "foo"
+y ! 42
+          </code></pre>
+          <aside class="notes">
+            Remember, we do not want to have to modify our source code, nor do we want to maintain a custom
+            fork of Akka, Play, Spray, ...!
+          </aside>
         </section>
 
         <section data-background="images/aspectj.jpg">
@@ -310,33 +326,50 @@ org.eigengo.monitor.output.codahalemetrics {
             <li>Codahale Metrics</li>
           </ul>
           <aside class="notes">
-            <p>statsd is a light-weight UDP-based protocol to send tracing information to anything that can understand the datagrams. The datagrams carry specifically-formatted strings. Hence Datadog (and others) can offer extensions to the standard stasd formats easily.</p>
-            <p>There are ports of DTrace from Solaris to Linux, NetBSD and others. Reactive Monitor adds probes using JVM's tracing APIs, and even though for example OS X includes dtrace, the JVM on OS X does not "talk" to dtrace.</p>
-            <p>Codahale metrics
           </aside>
         </section>
 
         <section data-background="images/output.jpg">
           <h2>Statsd</h2>
-          <p>Really simple protocol: strings over UDP.</p>
+          <p>Really simple transport: strings up to 508 bytes long over UDP.</p>
           <pre><code data-trim>
-prefix aspect ':' value '|' group 
-  '|#' tag1 ',' tag2 ',' ... ',' tagn
+aspect ':' value '|' type '|#' tag1 ',' tag2 ',' ...
           </code></pre>
+          <p>For example, in our application</p>
+          <pre><code data-trim class="no-highlight">
+akka.actor.delivered:50|c|#↩
+  akka://default/user/x,akka.type:default.org...XActor
+akka.actor.delivered.Integer:50|c|#↩
+  akka://default/user/x,akka.type:default.org...XActor
+akka.actor.duration:99|ms|#↩
+  akka://default/user/x,akka.type:default.org...XActor
+          </code></pre>
+          <aside class="notes">
+            <p>statsd is a light-weight UDP-based protocol to send tracing information to anything that can understand the datagrams. The datagrams carry specifically-formatted strings. Hence Datadog (and others) can offer extensions to the standard stasd formats easily.</p>
+            <p>The <code>type</code> can be either 'c' for count—increments and decrements, 'g' for gauge—absolute value, and 'ms' for execution time.</p>
+            <p>We can get away with this—the minimum MTU on the internet is 576, the size of the IPv4 header at most 60 bytes, and the UDP header 8 bytes. This leaves 508 bytes available for the monitoring data.</p>
+          </aside>
+        </section>
+
+        <section data-background="images/output.jpg">
+          <h2>Statsd</h2>
+          <p>Most statsd tools can show very pretty charts.</p>
           <img src="images/datadog1.jpg"/>
+          <aside class="notes">
+            <p>There are plenty of tools that can listen for the statsd datagrams, and analyse the data. Typically, they have pretty user interfaces, charts, alerts, ...</p>
+          </aside>
         </section>
 
         <section data-background="images/output.jpg">
           <h2>Statsd</h2>
           <pre><code data-trim class="scala">
-class StatsdActor(remote: InetSocketAddress, prefix: String) extends Actor {
+class StatsdActor(remote: InetSocketAddress, 
+                  prefix: String) extends Actor {
   IO(Udp) ! Udp.SimpleSender
-  
   def receive: Receive = {
     case Udp.SimpleSenderReady =>
       context.become(ready(sender))
   }
-
   def ready(send: ActorRef): Receive = {
     case stat: StatsdStatistic =>
       val payload = toByteString(stat, prefix)
@@ -344,6 +377,9 @@ class StatsdActor(remote: InetSocketAddress, prefix: String) extends Actor {
   }
 }
           </code></pre>
+          <aside class="notes">
+            <p>In keeping with the asynchronous approach, the I/O that this output module produces is isolated in its own <code>ActorSystem</code>. This means that the output module has as little impact on your application as possible.</p>
+          </aside>
         </section>
 
         <section data-background="images/output.jpg">
@@ -357,13 +393,13 @@ ID   PROVIDER            MODULE     NAME
  3     dtrace                       ERROR
  4 nfsmapid804          nfsmapid    daemon-domain
  5 kerberos800    mech_krb5.so.1    krb_ap_rep-make
- 6 kerberos800    mech_krb5.so.1    krb_ap_rep-read
    ...
 33 akka2083         java_tracing    all-gauges
 34 akka2083         java_tracing    execution-time
 35 akka2083         java_tracing    all-counters          
           </code></pre>
           <aside class="notes">
+            <p>There are ports of DTrace from Solaris to Linux, NetBSD and others. Reactive Monitor adds probes using JVM's tracing APIs, and even though for example OS X includes dtrace, the JVM on OS X does not "talk" to dtrace.</p>
             <p>DTrace's <em>probes</em> are roughly comparable to pointcuts: that is, they point to a specific location in execution flow. When the execution hits the probe, it fires.</p>
             <p>One writes D programs that attach to the firing probes and execute C-like code. In the bodies of the probes, you can do arbitrary operations. Imagine, for example, being able to automatically modify the zone's CPUs, memory, and so on! In fact, this is what we're working on with Joyent. So go ahead and take a peek!</p>
           </aside>
@@ -371,15 +407,37 @@ ID   PROVIDER            MODULE     NAME
 
         <section data-background="images/output.jpg">
           <h2>DTrace</h2>
+          <p>The actual interface relies on the <em>internal</em> tracing API that the Oracle JDK and OpenJDK provides.</p>
+          <pre><code data-trim class="java">
+@ProviderName("akka")
+public interface DtraceCounterProvider 
+    extends com.sun.tracing.Provider {
+
+    @FunctionName("Receive execution time")
+    @ProbeName("execution-time")
+    void executionTime(String name, int length, 
+                       int duration);
+
+    ...
+}
+          </code></pre>
+          <aside class="notes">
+            <p>The annotations and the <code>Provider</code> interface itself are internal APIs; also notice that we have to be careful when sending the <code>String</code>s, and include the string's length and be sure that the character encoding is known. This will all become really important when we take a look at the D script that follows.</p>
+            <p>We then use JDK's tracing provider to get a JDK proxy that conforms to our interface, that—on Solaris—creates the DTrace entries when we call the interface's methods. Outside Solaris, we get a dummy implementation of this interface. We tried this on latest OS X, latest Ubunbu, latest CentOS, and Solaris 11; all with Oracle's JDK, and OpenJDK on OS X.</p>
+          </aside>
+        </section>
+
+        <section data-background="images/output.jpg">
+          <h2>DTrace</h2>
           <p>The D program needs to copy in data from kernel space to the user space where the program runs.</p>
           <pre><code data-trim class="D">
-akka$1:::all-counters {
-  printf("counter: %s -> %d", 
+akka$1:::exeucution-time {
+  printf("execution time: %s -> %d", 
     stringof(copyin(arg0, arg1 + 1)), arg2);
 }
 
-akka$1:::all-gauges {
-  printf("gauge: %s -> %d", 
+akka$1:::all-counters {
+  printf("counter: %s -> %d", 
     stringof(copyin(arg0, arg1 + 1)), arg2);
 }
           </code></pre>
