@@ -516,49 +516,61 @@ org.eigengo.monitor.output.codahalemetrics {
         
         <section data-background="images/production.jpg">
           <h2>War stories?</h2>
-          <p>What have we learned in building large Akka system?</p>
+          <br/><br/>
           <p>What have we learned in building the Reactive Monitor?</p>
+          <br/><br/>
+          <p>What have we learned in building a large Akka system?</p>
+          <aside class="notes">
+              well, yes it is possible to Monitor too much, you need to be pragmatic over the metrics you want to record and you should always `sample`.  Nothing comes for free, the more you monitor the more data is sent over the wire the more computation that is performed.  
+
+              But it is a nessarary evil, the visibility and the insight into the app montoring provides is invaluable in production.  
+
+              So one of our clients hired us to write a large Akka system that could serve millions of requests a day, early on in the project we had enough functionlaity to start running some performance tests.
+
+              Im sure this has happended to all of us at some point in the past, your first performance tests just sit there, not really taking hardware resource, essentially just "blocking". 
+             
+              We saw via the monitor mailbox queues growing, mean-time in 'onRecieve()' being too high. arrrrhhhhh...
+          </aside>
         </section>
 
         <section data-background="images/production.jpg">
-          <h2>Kinds of things in big system</h2>
+          <h2>Analysied the architecture</h2>
           <p>CPU-intensive (XML parsing)</p>
           <p>Non-reactive / blocking third-party libraries (DB drivers, ....)</p>
-          <p>The reactive rest (async HTTP libs, DB drivers, ...: most of them Netty, not Akka IO)</p>
+          <p>Reactive libraries (Async Http)</p>
           <p>The ActorSystem</p>
           <aside class="notes">
+              So we looked at the architecture, as in most big systems, we had a mixed bad of tech:
               CPU-intensive  - Churning through lots of Data, big XML files, Big Data problems
               Non-reactive - Legacy code, Blocking Libraries database integration etc...
               lots of Awesome Reactive stuff, Async Http, async db drivers all none blocking.
-              and ofcause then Actor system its self.  
+              and of cause then Actor system its self.  This all looked good, we had split the functional areas up into Actors or Sets of Actors all seemed nicely cohesive.  
+              Then light bulb momment...
           </aside>
         </section>
 
-        <section data-background="images/production.jpg">
-          <h2>The bad stuff</h2>
-          <p>Not making most of the hardware: low CPU, low memory, lots of context switches and idle threads</p>
-          <p>Actor queues growing too much</p>
-          <p>Ultimately, the system was slow: not responsive enough</p>
-          <aside class="notes">
-              Im sure this has happended to all of us at some point in the past, your first performance tests just sit there, not really taking hardware resource, essentially just "blocking". 
-              With more Akka specific problems, you can have mailbox queues growing, mean-time in 'onRecieve()' being too high. arrrrhhhhh...
-          </aside>
-        </section>
-
+        
         <!-- what did we do? -->
         <section data-background="images/production.jpg">
           <h2>Bulkhead the operations</h2>
-          <p>Issolated the actor system into:</p>
+          <p>Issolated the actor system into functional areas:</p>
           <ul>
-            <li>CPU intensive </li> 
-            <li>legacy blocking code </li>
-            <li>remaining reactive code</li>
+            <li>Assign appropriate Dispatcher strategy</li> 
+            <ul>
+              <li>legacy blocking code - Fixed Pool exectuter</li>
+              <li>CPU intensive code - ...</li>
+              <li>remaining reactive code - ...</li>
+            </ul>
           </ul>
           <p>Creating different Dispatchers for the unruly code</p>
-          <a href="http://letitcrash.com/post/40755146949/tuning-dispatchers-in-akka-applications">tuning-dispatchers-in-akka-applications</a>
+          <a href="http://letitcrash.com/post/40755146949/tuning-dispatchers-in-akka-applications">Letitcrash.com -> tuning-dispatchers-in-akka-applications</a>
           <aside class="notes">
-              so What did we do?
-              Bulkheading - So, we needed to bulkhead the app, break out the CPU intensive work, the fast reactive core and the integration to the legacy blocking code.  Deciding on the best dispatcher for a given actor was tricky but the blog from the typesafe guys was a good place to start.
+              
+              Bulkheading - So, we needed to bulkhead the app, we had it logically seperated in the architecture, but we still had the example app dispatcher config. 
+              legacy Code - blocking code that we wanted to issolate -
+              CPU intensive - didn't want this code to starve the actor system
+              Everything else can have a shared pool 
+              Deciding on the best dispatcher for a given actor is tricky and a lot of reading needs to be done, there are some bad blogs outthere but the blog from the typesafe guys is a good place to start.
           </aside>
         </section>
 
