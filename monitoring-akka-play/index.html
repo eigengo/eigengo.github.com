@@ -53,52 +53,36 @@
           </p>
         </section>
 
-        <!-- Production ready?-->
-        <section data-background="images/ready.jpg">
-          <h2>Are you ready for Production?</h2>
-          <p>ScalaDays 2014</p>
-          <ul>
-            <li>Akka</li>
-            <ul>
-              <li>An IMAGE TO GO HERE </li>
-              <li>or just a list of awesome stuff...</li>
-            </ul>
-            <br/>
-            <li>Play</li>
-            <ul>
-              <li>2.3 - awesomeness</li>
-              <li>Reactive web app....</li>
-            </ul>
-           </ul> 
-           <br/> <br/>
-           <p>You need to keep an eye on the stack!</p>  
-          <aside class="notes">
-              So are you ready for production?
-              Here at Scala Days we have seen some great talks, so I bet you're itching to get back and do some coding. But what happens when you have created the next Netflix? 
-              Unfortunatly, Akka does not solve all of the woes of running in production, you still need to keep an eye on your stack.
-          </aside>
-        </section>
-
         <!-- Monitoring -->
-        <section data-background="images/monitor.jpg">
-          <h2>Why Monitor?</h2>
-          <ul>
-            <li>What do you get?</li>
-            <ul>
-              <li>Improved visibility</li>
-              <li>Identify "Pressure Points"</li>
-            </ul>
-            <br/>
-            <li>What happens if you dont?</li>
-            <ul>
-              <li>No warning before the "big boom!"</li>
-              <li>500's - no time to react</li>
-            </ul>
-           </ul>   
+        <section data-background="images/everythingfine.jpg">
+          <h2>Oh, you don't know of any errors?</h2>
+          <h2>&nbsp;</h2>
+          <h2>&nbsp;</h2>
+          <h2>&nbsp;</h2>
+          <h2>&nbsp;</h2>
+          <h2>&nbsp;</h2>
+          <h2>&nbsp;</h2>
+          <h2>Everything must be fine, then!</h2>
           <aside class="notes">
               Monitoring gives an insight into the performance and flow of an application,
               allowing us see pain points, and areas of poor performance: increasing our visibility to what is occuring.
-              The Aaim is 24/7 uptime, preventing the big boom! How do you know that something's broken in time to do something about it? It is insufficient to monitor HTTP 500s, we want to have a bit of time ahead of the 500s to do something.
+              The aim is 24/7 uptime, preventing the big boom! How do you know that something's broken in time to do something about it? It is insufficient to monitor HTTP 500s, we want to have a bit of time ahead of the 500s to do something.
+          </aside>
+        </section>
+
+        <!-- Production ready?-->
+        <section data-background="images/fineindev.jpg">
+          <h2>Worked fine in dev—ops problem now!</h2>
+          <p>We create actor system in Akka (perhaps with APIs in Spray); modern web applications in Play, and we all like to think that these applications will attract <strike>thousands</strike> billions of users.</p>
+          <aside class="notes">
+              <p>So are you ready for production?</p>
+              <p>Here at Scala Days we have seen some great talks, so I bet you're itching to get back and do some coding. But what happens when you have created the next Netflix? Unfortunatly, Akka does not solve all of the woes of running in production, you still need to keep an eye on your stack.</p>
+              <p>What is happening <em>inside</em> the application?</p>
+              <ul>
+                <li>Do we have any hotspots in our actor system?</li>
+                <li>Are the message queues getting too big? (Are the messages spending too much time in the queues?)</li>
+                <li>Do we have enough threads, and are the threads being blocked?</li>
+              </ul>
           </aside>
         </section>
 
@@ -107,11 +91,12 @@
           <p>You want to see inside the Actor System, Play Framework or Spray stack, how is data moving within the system</p>
           <br/>
           <ul>
-            <li>The number of messages</li>
-            <li>The sizes of queues</li>
-            <li>The duration of messages in queue</li>
-            <li>The duration of message in the <code>receive</code></li>
-            <li>Exceptions / Errors</li>
+            <li>Number / rates of messages</li>
+            <li>Sizes of queues</li>
+            <li>Duration of messages in queue</li>
+            <li>Duration of message in <code>Actors</code>' <code>receive</code></li>
+            <li>Failures</li>
+            <li>The threads in the thread pools</li>
           </ul>
            <aside class="notes">
              What metrics do you want to see, when the app is in production. 
@@ -123,7 +108,7 @@
         <!-- how we did it -->
         <section data-background="images/monitor.jpg">
           <h2>Typesafe Console!</h2>
-          <img src="images/activator.png"/>
+          <img src="images/console.png"/>
           <aside class="notes">
             Typesafe Console! It looks great, and it gives in-depth stats on the actor system.
           </aside>
@@ -134,8 +119,8 @@
           <h2>Typesafe Console!</h2>
           <p>Brilliant, Looks great, under low load its really impressive, we loved it, but ...</p>
           <ul>
-            <li>Production - Unusable: memory footprint, volume of data produced, just too heavy</li>
-            <li>Development - Great: gave indepth stats on the actor system</li>
+            <li>Production—unusable: volume of data produced, memory footprint, I/O</li>
+            <li>Development—great: gives in–depth view of the actor system</li>
           </ul>
           <aside class="notes">
             But it records too much data and just eats resource when doing performance tests. 
@@ -321,9 +306,14 @@ org.eigengo.monitor.output.codahalemetrics {
           <p>The aspects load configurable output modules. We scratched our own itch by implementing the statsd / Datadog output module, but we have two more!</p>
           <ul>
             <li>statsd (with <a href="http://www.datadoghq.com/" target="_blank">Datadog</a> extensions)</li>
-            <li>dtrace (on Solaris, dummy elsewhere)</li>
+            <li>DTrace (on Solaris, dummy elsewhere)</li>
             <li>Codahale Metrics</li>
           </ul>
+          <aside class="notes">
+            <p>statsd is a light-weight UDP-based protocol to send tracing information to anything that can understand the datagrams. The datagrams carry specifically-formatted strings. Hence Datadog (and others) can offer extensions to the standard stasd formats easily.</p>
+            <p>There are ports of DTrace from Solaris to Linux, NetBSD and others. Reactive Monitor adds probes using JVM's tracing APIs, and even though for example OS X includes dtrace, the JVM on OS X does not "talk" to dtrace.</p>
+            <p>Codahale metrics
+          </aside>
         </section>
 
         <section data-background="images/output.jpg">
@@ -335,11 +325,48 @@ UDP : ...
         </section>
 
         <section data-background="images/output.jpg">
-          <h2>dtrace</h2>
-          <p>What is it?</p>
-          <pre><code data-trim class="java">
-UDP : ...
+          <h2>DTrace</h2>
+          <p>DTrace is kernel-level, production-ready, minimal-impact tracing mechanism.</p>
+          <pre><code data-trim class="bash">
+$ sudo dtrace -l
+ID   PROVIDER            MODULE     NAME
+ 1     dtrace                       BEGIN
+ 2     dtrace                       END
+ 3     dtrace                       ERROR
+ 4 nfsmapid804          nfsmapid    daemon-domain
+ 5 kerberos800    mech_krb5.so.1    krb_ap_rep-make
+ 6 kerberos800    mech_krb5.so.1    krb_ap_rep-read
+   ...
+33 akka2083         java_tracing    all-gauges
+34 akka2083         java_tracing    execution-time
+35 akka2083         java_tracing    all-counters          
           </code></pre>
+          <aside class="notes">
+            <p>DTrace's <em>probes</em> are roughly comparable to pointcuts: that is, they point to a specific location in execution flow. When the execution hits the probe, it fires.</p>
+            <p>One writes D programs that attach to the firing probes and execute C-like code. In the bodies of the probes, you can do arbitrary operations. Imagine, for example, being able to automatically modify the zone's CPUs, memory, and so on! In fact, this is what we're working on with Joyent. So go ahead and take a peek!</p>
+          </aside>
+        </section>
+
+        <section data-background="images/output.jpg">
+          <h2>DTrace</h2>
+          <p>The D program needs to copy in data from kernel space to the user space where the program runs.</p>
+          <pre><code data-trim class="D">
+akka$1:::all-counters {
+  printf("counter: %s -> %d", 
+    stringof(copyin(arg0, arg1 + 1)), arg2);
+}
+
+akka$1:::all-gauges {
+  printf("gauge: %s -> %d", 
+    stringof(copyin(arg0, arg1 + 1)), arg2);
+}
+          </code></pre>
+          <pre><code data-trim class="bash">
+$ sudo dtrace -s script.d `pgrep java`
+          </code></pre>
+          <aside class="notes">
+            <p>Notice in particular the <code>copyin</code> and <code>stringof</code> calls. The first one deals with copying kernel memory from the pointer <code>arg0</code>, taking <code>arg1</code> bytes. This is exactly the place where one needs to be aware of string encoding (anyone fancies using unicode names for actor names?)</p>
+          </aside>
         </section>
 
         <section data-background="images/output.jpg">
