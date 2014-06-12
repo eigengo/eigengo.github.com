@@ -517,11 +517,11 @@ org.eigengo.monitor.output.codahalemetrics {
         <section data-background="images/production.jpg">
           <h2>War stories?</h2>
           <br/><br/>
-          <p>What have we learned in building the Reactive Monitor?</p>
-          <br/><br/>
-          <p>What have we learned in building a large Akka system?</p>
+          <p>What have we learnt in building the Reactive Monitor?</p>
+          <p>&nbsp;</p>
+          <p>What have we learnt in building a large Akka system?</p>
           <aside class="notes">
-              well, yes it is possible to Monitor too much, you need to be pragmatic over the metrics you want to record and you should always `sample`.  Nothing comes for free, the more you monitor the more data is sent over the wire the more computation that is performed.  
+              Well, yes it is possible to Monitor too much, you need to be pragmatic over the metrics you want to record and you should always `sample`.  Nothing comes for free, the more you monitor the more data is sent over the wire the more computation that is performed.  
 
               But it is a nessarary evil, the visibility and the insight into the app montoring provides is invaluable in production.  
 
@@ -534,11 +534,10 @@ org.eigengo.monitor.output.codahalemetrics {
         </section>
 
         <section data-background="images/production.jpg">
-          <h2>Analysied the architecture</h2>
+          <h2>Analysed the architecture</h2>
           <p>CPU-intensive (XML parsing)</p>
           <p>Non-reactive / blocking third-party libraries (DB drivers, ....)</p>
-          <p>Reactive libraries (Async Http)</p>
-          <p>The ActorSystem</p>
+          <p>Reactive libraries (Async HTTP)</p>
           <aside class="notes">
               So we looked at the architecture, as in most big systems, we had a mixed bad of tech:
               CPU-intensive  - Churning through lots of Data, big XML files, Big Data problems
@@ -553,16 +552,13 @@ org.eigengo.monitor.output.codahalemetrics {
         <!-- what did we do? -->
         <section data-background="images/production.jpg">
           <h2>Bulkhead the operations</h2>
-          <p>Issolated the actor system into functional areas:</p>
+          <p>Isolated the actor system into functional areas:</p>
           <ul>
-            <li>Assign appropriate Dispatcher strategy</li> 
-            <ul>
-              <li>legacy blocking code - Fixed Pool exectuter</li>
-              <li>CPU intensive code - ...</li>
-              <li>remaining reactive code - ...</li>
-            </ul>
+            <li>Legacy blocking code - fixed pool exectuter</li>
+            <li>CPU intensive code - ...</li>
+            <li>Remaining reactive code - ...</li>
           </ul>
-          <p>Creating different Dispatchers for the unruly code</p>
+          <p>Creating different dispatchers for the unruly code</p>
           <a href="http://letitcrash.com/post/40755146949/tuning-dispatchers-in-akka-applications">Letitcrash.com -> tuning-dispatchers-in-akka-applications</a>
           <aside class="notes">
               
@@ -571,6 +567,12 @@ org.eigengo.monitor.output.codahalemetrics {
               CPU intensive - didn't want this code to starve the actor system
               Everything else can have a shared pool 
               Deciding on the best dispatcher for a given actor is tricky and a lot of reading needs to be done, there are some bad blogs outthere but the blog from the typesafe guys is a good place to start.
+          </aside>
+        </section>
+
+        <section data-background="images/theend.jpg">
+          <h2>Summary</h2>
+          <aside class="notes">
           </aside>
         </section>
 
@@ -584,8 +586,6 @@ org.eigengo.monitor.output.codahalemetrics {
           <hr/>
           <p><big>Law of Murphy for devops: if thing can able go wrong, is mean is already wrong but you not have Nagios alert of it yet.</big></p>
         </section>
-
-
 
       </div>
 
