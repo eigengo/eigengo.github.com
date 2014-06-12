@@ -318,9 +318,31 @@ org.eigengo.monitor.output.codahalemetrics {
 
         <section data-background="images/output.jpg">
           <h2>Statsd</h2>
-          <p>What is it?</p>
-          <pre><code data-trim class="java">
-UDP : ...
+          <p>Really simple protocol: strings over UDP.</p>
+          <pre><code data-trim>
+prefix aspect ':' value '|' group 
+  '|#' tag1 ',' tag2 ',' ... ',' tagn
+          </code></pre>
+          <img src="images/datadog1.jpg"/>
+        </section>
+
+        <section data-background="images/output.jpg">
+          <h2>Statsd</h2>
+          <pre><code data-trim class="scala">
+class StatsdActor(remote: InetSocketAddress, prefix: String) extends Actor {
+  IO(Udp) ! Udp.SimpleSender
+  
+  def receive: Receive = {
+    case Udp.SimpleSenderReady =>
+      context.become(ready(sender))
+  }
+
+  def ready(send: ActorRef): Receive = {
+    case stat: StatsdStatistic =>
+      val payload = toByteString(stat, prefix)
+      send ! Udp.Send(payload, remote)
+  }
+}
           </code></pre>
         </section>
 
