@@ -138,7 +138,7 @@
             <li>Actor creation &amp; destruction.</li>
             <li>Message types, message rates, failures and performance at the actor level</li>
             <li>Queue size at the (local) actor level</li>
-            <li>The number of active and running threads in the <code>ThreadPool</code>s</li>
+            <li>The number of available and running threads in the <code>ThreadPool</code>s</li>
           </ul>
           <aside class="notes">
             We liked the Typesafe Console, but we needed an alternative solution for the client. So, we scratched our own itch, and made the open source Reactive Monitor. Instead of targetting <em>only</em> statsd (with Datadog), we split the agents and the outputs.
@@ -555,10 +555,12 @@ org.eigengo.monitor.output.codahalemetrics {
           <h2>Bulkhead the operations</h2>
           <p>Isolated the actor system into functional areas:</p>
           <ul>
-            <li>Legacy blocking code - fixed pool exectuter</li>
-            <li>CPU intensive code - ...</li>
-            <li>Remaining reactive code - ...</li>
+            <li>Legacy blocking code - PinnedDispatcher</li>
+            <li>CPU intensive code - BalancingDispatcher</li>
+            <li>Remaining reactive code - fork-join-executor / executor</li>
           </ul>
+          <br/>
+          <br/>
           <p>Creating different dispatchers for the unruly code</p>
           <a href="http://letitcrash.com/post/40755146949/tuning-dispatchers-in-akka-applications">Letitcrash.com -> tuning-dispatchers-in-akka-applications</a>
           <aside class="notes">
@@ -573,7 +575,17 @@ org.eigengo.monitor.output.codahalemetrics {
 
         <section data-background="images/theend.jpg">
           <h2>Nearly over!</h2>
+          <h4>Remember...</h4>
+          <ul>
+            <li>Visibility is King</li>
+            <li>Monitor only what you need</li>
+            <li>Don't wait for the Big Boom!</li>
+            <li>Bulkhead your application</li>
+          </ul>
+          <br/><br/>
+          <h4>Happy coding...</h4>
           <aside class="notes">
+             Bulkhead - Remember Akka 101 apps dont provide `Production` ready config
           </aside>
         </section>
 
