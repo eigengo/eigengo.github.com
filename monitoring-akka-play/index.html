@@ -497,8 +497,8 @@ org.eigengo.monitor.output.codahalemetrics {
           <ul>
             <li>Dependencies for the agents and output modules you require
               <pre><code data-trim class="scala">
-"org.eigengo.monitor" %% "agent-akka"    % "0.4",
-"org.eigengo.monitor" %% "output-statsd" % "0.4"
+"org.eigengo.monitor" % "agent-akka"    % "0.4",
+"org.eigengo.monitor" % "output-statsd" % "0.4"
               </code></pre>
             </li>
             <li>Agent configuration in <code>/META-INF/monitor/agent.conf</code><br/>
@@ -511,7 +511,8 @@ org.eigengo.monitor.output.codahalemetrics {
         <!-- demo -->
         <section data-background="images/angrymob.jpg">
           <h1>Demo</h1>
-          <p>Let's see this in action, an example app configured to output to statsd &amp; Datadog.</p>
+          <p>Let's add monitoring to statsd &amp; Datadog to an Akka application</p>
+          <img src="images/activatorapp.png"/>
         </section>
         
         <section data-background="images/production.jpg">
