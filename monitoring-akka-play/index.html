@@ -187,6 +187,8 @@ y ! 42
           <aside class="notes">
             Remember, we do not want to have to modify our source code, nor do we want to maintain a custom
             fork of Akka, Play, Spray, ...!
+
+            You source code stays the same...
           </aside>
         </section>
 
@@ -260,13 +262,63 @@ public aspect DispatcherMonitoringAspect {
         <section data-background="images/agent.jpg">
           <h2>Agents</h2>
           <ul>
-            <li>Akka—measuring actor instances, their performance, failures, messages, message queues and threads</li>
-            <li>Spray—measuring the HTTP requests, and bytes transferred</li>
-            <li>Play—measuring the HTTP requests, the controllers' performance and failures</li>
+            <li><strong>Akka</strong> - measuring actor instances, their performance, failures, messages, message queues and threads</li>
+            <br/>
+            <li><strong>Spray</strong> - measuring the HTTP requests, and bytes transferred</li>
+            <br/>
+            <li><strong>Play</strong> - measuring the HTTP requests, controller performance and failures</li>
           </ul>
           <aside class="notes">
             <p>Nota bene that Spray is based on Akka, so the I/O traffic is <em>in addition</em> to everything that the Akka agent measures</p>
             <p>The agents are essentially a collection of aspects that instrument the interesting methods in their target, and report the information they collected to the configured <em>output</em> module.</p>
+          </aside>
+        </section>
+
+        <section data-background="images/agent.jpg">
+          <h2>Akka Agent</h2>
+          <p>We have some specific instrumenation around some of the useful intractions in the Akka framework, including support for both the Java and Scala Api's</p><br/>
+          <ul>
+            <li>Actor instances</li>
+            <li>Avergage time in onRecieve()</li>
+            <li>Mailbox size</li>
+            <li>Mailbox duration</li>
+            <li>Number of Exceptions</li>
+            <li>Executor / Thread data</li>
+          </ul>
+          <aside class="notes">
+            <p>instrumentation around specific akka interactions, i,e  Actor Count, Avg OnRecieve ...</p>
+          </aside>
+        </section>
+
+         <section data-background="images/agent.jpg">
+          <h2>Play Framework Agent</h2>
+          <p>Instrumenation around some of the useful intractions in the Play Framework, including support for both the Java and Scala Api's</p><br/>
+          <ul>
+            <li>Number of Requests</li>
+            <ul>
+              <li>Grouped by Route</li>
+            </ul>
+            <li>Number of Exceptions</li>
+          </ul>
+          <aside class="notes">
+            <p>instrumentation around specific Play interactions, i,e  Request Count grouped by Route / Path, Error / Exception count...</p>
+          </aside>
+        </section>
+
+         <section data-background="images/agent.jpg">
+          <h2>Spray Agent</h2>
+          <p>Provides instrumenation for the Spray libraries</p><br/>
+          <ul>
+            <li>Number of Requests</li>
+            <ul>
+              <li>Grouped by Route</li>
+            </ul>
+            <li>Number of Exceptions</li>
+          </ul>
+          <br/><br/>
+          <p>* In addition to all of the Akka Agent metrics</p>
+          <aside class="notes">
+            <p>Provide the hooks and instrumenation around around the spray Api, i,e  Request Count grouped by Route / Path, Error / Exception count.  in addtiion to all the metrics you get with the Akka agent...</p>
           </aside>
         </section>
 
@@ -332,6 +384,8 @@ class StatsdActor(remote: InetSocketAddress,
           </code></pre>
           <aside class="notes">
             <p>In keeping with the asynchronous approach, the I/O that this output module produces is isolated in its own <code>ActorSystem</code>. This means that the output module has as little impact on your application as possible.</p>
+            <p>its also note worthy that the datagrams are sent over UDP so even at a low level there is no blocking as the Ststad client is not waiting for an ack of the message.</p>
+            <p>so in summary, Statsd is lightwieght, simple first impl was only 137 lines long, widly supported, DataDog, Graphite etc.</p>
           </aside>
         </section>
 
