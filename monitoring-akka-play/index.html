@@ -555,14 +555,14 @@ org.eigengo.monitor.output.codahalemetrics {
           <h2>Bulkhead the operations</h2>
           <p>Isolated the actor system into functional areas:</p>
           <ul>
-            <li>Legacy blocking code - PinnedDispatcher</li>
-            <li>CPU intensive code - BalancingDispatcher</li>
+            <li>Legacy blocking code - <code>PinnedDispatcher</code></li>
+            <li>CPU intensive code - <code>BalancingDispatcher</code></li>
             <li>Remaining reactive code - fork-join-executor / executor</li>
           </ul>
           <br/>
           <br/>
           <p>Creating different dispatchers for the unruly code</p>
-          <a href="http://letitcrash.com/post/40755146949/tuning-dispatchers-in-akka-applications">Letitcrash.com -> tuning-dispatchers-in-akka-applications</a>
+          Viz <a href="http://letitcrash.com/post/40755146949/tuning-dispatchers-in-akka-applications">tuning-dispatchers-in-akka-applications</a> on letitcrash.com.
           <aside class="notes">
               
               Bulkheading - So, we needed to bulkhead the app, we had it logically seperated in the architecture, but we still had the example app dispatcher config. 
@@ -577,9 +577,9 @@ org.eigengo.monitor.output.codahalemetrics {
           <h2>Nearly over!</h2>
           <h4>Remember...</h4>
           <ul>
-            <li>Visibility is King</li>
+            <li>Visibility is king</li>
             <li>Monitor only what you need</li>
-            <li>Don't wait for the Big Boom!</li>
+            <li>Don't wait for the big boom!</li>
             <li>Bulkhead your application</li>
           </ul>
           <br/><br/>
