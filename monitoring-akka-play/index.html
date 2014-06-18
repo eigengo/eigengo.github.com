@@ -89,7 +89,7 @@
         <section data-background="images/monitor.jpg">
           <h2>What to Monitor</h2>
           <p>You want to see inside the Akka, Play Framework or Spray and know what is happening in the system's components.</p>
-          <br/>
+          <p>&nbsp;</p>
           <ul>
             <li>Number / rates of messages</li>
             <li>Sizes of queues</li>
@@ -118,8 +118,9 @@
         <section data-background="images/monitor.jpg">
           <h2>Typesafe Console!</h2>
           <p>Brilliant, looks great, under low load its really impressive. We loved it, but ...</p>
+          <p>&nbsp;</p>
           <ul>
-            <li>Production—unusable: volume of data produced, memory footprint, I/O</li>
+            <li>Production—unusable: too much data, memory usage, I/O</li>
             <li>Development—great: gives in–depth view of the actor system</li>
           </ul>
           <aside class="notes">
@@ -134,6 +135,7 @@
           <h2>Reactive Monitor</h2>
           <p>We wanted to record <em>just enough</em> information. Too much slows down the monitored system, too little lets events go unnoticed.</p>
           <p>And we wanted to have a flexible mechanism to deliver the collected monitoring information.</p>
+          <p>&nbsp;</p>
           <ul>
             <li>Actor creation &amp; destruction.</li>
             <li>Message types, message rates, failures and performance at the actor level</li>
@@ -263,9 +265,7 @@ public aspect DispatcherMonitoringAspect {
           <h2>Agents</h2>
           <ul>
             <li><strong>Akka</strong> - measuring actor instances, their performance, failures, messages, message queues and threads</li>
-            <br/>
             <li><strong>Spray</strong> - measuring the HTTP requests, and bytes transferred</li>
-            <br/>
             <li><strong>Play</strong> - measuring the HTTP requests, controller performance and failures</li>
           </ul>
           <aside class="notes">
@@ -276,13 +276,14 @@ public aspect DispatcherMonitoringAspect {
 
         <section data-background="images/agent.jpg">
           <h2>Akka Agent</h2>
-          <p>We have some specific instrumenation around some of the useful intractions in the Akka framework, including support for both the Java and Scala Api's</p><br/>
+          <p>We have some specific instrumenation around some of the useful intractions in the Akka framework, including support for both the Java and Scala APIs</p>
+          <p>&nbsp;</p>
           <ul>
             <li>Actor instances</li>
-            <li>Avergage time in onRecieve()</li>
+            <li>Time in <code>receive</code> / <code>onRecieve(Object)</code></li>
             <li>Mailbox size</li>
-            <li>Mailbox duration</li>
-            <li>Number of Exceptions</li>
+            <li>Message time in mailbox</li>
+            <li>Exceptions</li>
             <li>Executor / Thread data</li>
           </ul>
           <aside class="notes">
@@ -292,13 +293,11 @@ public aspect DispatcherMonitoringAspect {
 
          <section data-background="images/agent.jpg">
           <h2>Play Framework Agent</h2>
-          <p>Instrumenation around some of the useful intractions in the Play Framework, including support for both the Java and Scala Api's</p><br/>
+          <p>Instrumenation around some of the useful intractions in the Play Framework, including support for both the Java and Scala APIs</p>
+          <p>&nbsp;</p>
           <ul>
-            <li>Number of Requests</li>
-            <ul>
-              <li>Grouped by Route</li>
-            </ul>
-            <li>Number of Exceptions</li>
+            <li>HTTP requests (grouped by route)</li>
+            <li>Exceptions</li>
           </ul>
           <aside class="notes">
             <p>instrumentation around specific Play interactions, i,e  Request Count grouped by Route / Path, Error / Exception count...</p>
@@ -307,16 +306,14 @@ public aspect DispatcherMonitoringAspect {
 
          <section data-background="images/agent.jpg">
           <h2>Spray Agent</h2>
-          <p>Provides instrumenation for the Spray libraries</p><br/>
+          <p>Provides instrumenation for the Spray libraries</p>
+          <p>&nbsp;</p>
           <ul>
-            <li>Number of Requests</li>
-            <ul>
-              <li>Grouped by Route</li>
-            </ul>
-            <li>Number of Exceptions</li>
+            <li>HTTP requests</li>
+            <li>Overall request processing time</li>
+            <li>Marshaller / unmarshaller performance</li>
+            <li>Bytes transferred</li>
           </ul>
-          <br/><br/>
-          <p>* In addition to all of the Akka Agent metrics</p>
           <aside class="notes">
             <p>Provide the hooks and instrumenation around around the spray Api, i,e  Request Count grouped by Route / Path, Error / Exception count.  in addtiion to all the metrics you get with the Akka agent...</p>
           </aside>
@@ -325,6 +322,7 @@ public aspect DispatcherMonitoringAspect {
         <section data-background="images/output.jpg">
           <h2>Output modules</h2>
           <p>The aspects load configurable output modules. We scratched our own itch by implementing the statsd / Datadog output module, but we have two more!</p>
+          <p>&nbsp;</p>
           <ul>
             <li>statsd (with <a href="http://www.datadoghq.com/" target="_blank">Datadog</a> extensions)</li>
             <li>DTrace (on Solaris, dummy elsewhere)</li>
@@ -489,6 +487,7 @@ class MetricsCounterInterface
         <section data-background="images/configuration.jpg">
           <h2>Configuration</h2>
           <p>The aspects need configuration for the <em>agent</em>s and <em>output</em>s.</p>
+          <p>&nbsp;</p>
           <ul>
             <li>Decide which actors to monitor</li>
             <li>How to aggregate the monitoring data</li>
@@ -499,6 +498,7 @@ class MetricsCounterInterface
         <section data-background="images/configuration.jpg">
           <h2>Configuration</h2>
           <p>Typesafe Config-style files at well-known locations configure the agent and output modules.</p>
+          <p>&nbsp;</p>
           <ul>
             <li><code>/META-INF/monitor/agent.conf</code> for the agent</li>
             <li><code>/META-INF/monitor/output.conf</code> for the output</li>
@@ -608,6 +608,7 @@ org.eigengo.monitor.output.codahalemetrics {
         <section data-background="images/production.jpg">
           <h2>Bulkhead the operations</h2>
           <p>Isolated the actor system into functional areas:</p>
+          <p>&nbsp;</p>
           <ul>
             <li>Legacy blocking code - <code>PinnedDispatcher</code></li>
             <li>CPU intensive code - <code>BalancingDispatcher</code></li>
@@ -636,8 +637,6 @@ org.eigengo.monitor.output.codahalemetrics {
             <li>Don't wait for the big boom!</li>
             <li>Bulkhead your application</li>
           </ul>
-          <br/><br/>
-          <h4>Happy coding...</h4>
           <aside class="notes">
              Bulkhead - Remember Akka 101 apps dont provide `Production` ready config
           </aside>
