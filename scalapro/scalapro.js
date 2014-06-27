@@ -11,11 +11,10 @@ $(
 var scalapro = {
     text: null,
     index: 0,
-    file: "",
 
     init: function () {// inizialize Hacker Typer
         accessCountimer = setInterval(function () { scalapro.updLstChr(); }, 500); 
-        $.get(scalapro.file, function (data) { 
+        $.get(scalapro.fileName(), function (data) { 
             scalapro.text = data; 
             var markup = hljs.highlight("scala", "", true).value;
             $("#console").html(markup);

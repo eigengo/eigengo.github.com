@@ -10,7 +10,9 @@
 </head>
 <body>
 <script>
-scalapro.file = 'Macros.scala';
+scalapro.fileName = function() {
+	return "input/" + Math.ceil(Math.random() * 4) + ".scala";
+}
 scalapro.init();
 hljs.initHighlighting();
 </script>
