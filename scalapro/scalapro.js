@@ -25,7 +25,9 @@ var scalapro = {
     },
 
     write: function (str) {// append to console content
-        $("#console").append(str);
+        var block = $("#console");
+        block.append(str);
+        hljs.highlightBlock(block);
         return false;
     },
 
