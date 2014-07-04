@@ -1,0 +1,31 @@
+body {
+	background-color: #2B2B2B;
+}
+
+pre {
+	font-family: "Ubuntu Mono";
+}
+
+code {
+	font-family: "Ubuntu Mono";	
+	color: #A9B7C6;
+}
+
+div.message {
+	color: #A9B7C6;
+	float: right;
+	width: 200pt;
+	height: 50pt;
+	border: 1px solid #A9B7C6;
+}
+
+div.message div.from {
+	width: 100px;
+	height: 100px;
+	float: left;
+}
+
+div.message div.text {
+	font-family: helvetica;
+	float: left;	
+}
