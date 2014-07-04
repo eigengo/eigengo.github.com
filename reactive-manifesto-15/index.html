@@ -98,7 +98,7 @@
           </aside>
         </section>
 
-        <section data-background="images/nuke.jpg">
+        <section data-background="images/reactive.jpg">
           <h2>Scalable</h2>
           <ul>
             <li>The ability to flex the number of components in the system according to demand</li>
@@ -109,15 +109,29 @@
           </aside>
         </section>
 
-        <section data-background="images/nuke.jpg">
+        <section data-background="images/reactive.jpg">
           <h2>Resilient</h2>
           <ul>
             <li>Ability to recover from errors at the appropriate level</li>
-            <li>The components can be single CPU cores, individual machines or clusters of machines</li>
+            <li>Ability to stop errors from spreading throughout the application</li>
           </ul>
           <aside class="notes">
             <p>(1) That does not mean being magically able to handle all exceptions. Recover here means to get back to 
-            a stable state / state before the error ocurred.
+            a stable state / state before the error ocurred.</p>
+            <p>(1) The errors could be <em>a response that should have arrived in 1000 ms did not arrive</em>, the application should react at the appropriate level. Recall though that all message-passing is asynchronous, which "forces" us to think of the possible edge-cases from the outset.</p>
+            <p>(2) Bulkheading is one such technique, where the application is divided into areas that are independent. Recall again how being event-driven makes this a lot easier.</p>
+          </aside>
+        </section>
+
+        <section data-background="images/reactive.jpg">
+          <h2>Responsive</h2>
+          <ul>
+            <li>Provide timely response even when dealing with failures</li>
+            <li>XXX</li>
+          </ul>
+          <aside class="notes">
+            <p>(1) This could be <em>I'm broken</em> delivered in place of the expected message, but delivered nonetheless. It is not acceptable to just hang, and not reply with anything at all.</p>
+            
           </aside>
         </section>
 
@@ -125,12 +139,9 @@
         <section data-background="images/devops.jpg">
           <h2>Thank you!</h2>
           <ul>
-            <li>Source at <a href="https://github.com/eigengo/monitor">github.com/eigengo/monitor</a></li>
-            <li>Slides at <a href="http://www.eigengo.com/monitoring-akka-play">www.eigengo.com/monitoring-akka-play</a></li>
-            <li>Tweets at <a href="https://twitter.com/honzam399">@honzam399</a> | <a href="https://twitter.com/alexlashford">@alexlashford</a></li>
+            <li>Slides at <a href="http://www.eigengo.com/reactive-manifesto-15">www.eigengo.com/reactive-manifesto-15</a></li>
+            <li>Tweets at <a href="https://twitter.com/honzam399">@honzam399</a></li>
           </ul>
-          <hr/>
-          <p><big>Law of Murphy for devops: if thing can able go wrong, is mean is already wrong but you not have Nagios alert of it yet.</big></p>
         </section>
 
       </div>
