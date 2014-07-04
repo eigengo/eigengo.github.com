@@ -63,13 +63,11 @@
         </section>
 
         <section data-background="images/reactive.jpg">
-          <h2>Isn't that just good architecture?</h2>
-        </section>
-
-        <section data-background="images/nuke.jpg">
-          <h2>No.</h2>
+          <h2>It's not <em>just good architecture</em></h2>
           <aside class="notes">
-            <p>Reactive manifesto describes a <em>new world order</em>. </p>
+            <p>The reactive manifesto describes new class of problems that a new class of applications throw at us. We are no longer in control of the inputs that our applications need to process. Think information from mobiles, wearables, and other devices that just keep arriving, and we have to process it. If this sounds too far-fetched, imagine building a new game (or even perhaps some analytics component of a game).</p>
+            <p>And that ignores applications that are business-critical or process sensitive information. Imagine building a biometric surveillance system (say hi to Andrew), which needs to detect dangerous intruders, and notify police / security. Data from the cameras are arriving all the time, and responses have to be sent out in every situation. It is unacceptable for such system to be unavailable.</p>
+            <p>Unfortunately, I cannot say anything about real-time and life-critical systems!</p>
           </aside>
         </section>
 
@@ -131,7 +129,24 @@
           </ul>
           <aside class="notes">
             <p>(1) This could be <em>I'm broken</em> delivered in place of the expected message, but delivered nonetheless. It is not acceptable to just hang, and not reply with anything at all.</p>
-            
+          </aside>
+        </section>
+
+        <section data-background="images/reactive.jpg">
+          <h2>Frameworks &amp; tools</h2>
+          <ul>
+            <li>RxJava (JVM), Akka (JVM), <br/>Reactive Extensions (.NET)</li>
+            <li>Erlang/OTP, Elixir/OTP (Beam)</li>
+          </ul>
+          <hr/>
+          <ul>
+            <li>core.async (JVM), <br/>Akka Streams (JVM)</li>
+            <li>Asynchronous workflows (.NET)</li>
+            <li>Async functions (ECMASCript 7)</li>
+          </ul>
+          <aside class="notes">
+            <p>(1.1) Observable. Note that there is a <em>duality</em> between observable and iterable. You can think of observable as collection in time, and iterable as collection in space. In both cases, you can only go forward, and there may not be an upper bound on the number of values you will observe or iterate over.</p>
+            <p>The manifesto does not prescribe any implementation. You are free to use the Haskell Rx extensions if you like. All that you have to do is to satisfy the four traits of the manifesto. I have slight beef with the fact that the manifesto does not include any TCK. Unlike, say, the reactive streams project, which also aims to be language-agnostic, but provides test compatiblity kit, allowing you to verify that your implementation satisfies the specification.</p>
           </aside>
         </section>
 
@@ -139,7 +154,8 @@
         <section data-background="images/devops.jpg">
           <h2>Thank you!</h2>
           <ul>
-            <li>Slides at <a href="http://www.eigengo.com/reactive-manifesto-15">www.eigengo.com/reactive-manifesto-15</a></li>
+            <li>Slides at <a href="http://www.eigengo.com/reactive-manifesto-15">www.eigengo.com/reactive-manifesto-15</a><br/>
+            <small>(press <code>s</code> for speaker notes!)</small></li>
             <li>Tweets at <a href="https://twitter.com/honzam399">@honzam399</a></li>
           </ul>
         </section>
