@@ -131,7 +131,7 @@
           </ul>
           <aside class="notes">
             <p>(1) This could be <em>I'm broken</em> delivered in place of the expected message, but delivered nonetheless. It is not acceptable to just hang, and not reply with anything at all.</p>
-            <p>(2) Blocking threads is the source of non-responsiveness. And no, you cannot just arbitrarily increase the number of threads. Each thread is overhead in the kernel space; additionally, thread context switches represent cache coherency probkems, a blocking call might cause the CPU to enter sleep state, the OS might clear the FS caches, ...
+            <p>(2) Blocking threads is the source of non-responsiveness. And no, you cannot just arbitrarily increase the number of threads. Each thread is overhead in the kernel space; additionally, thread context switches represent cache coherency probkems, a blocking call might cause the CPU to enter sleep state, the OS might clear the FS caches, ...</p>
           </aside>
         </section>
 
