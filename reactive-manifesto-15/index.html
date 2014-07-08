@@ -103,7 +103,8 @@
             <li>The components can be single CPU cores, individual machines or clusters of machines</li>
           </ul>
           <aside class="notes">
-            XXX
+            <p>(1) remember, no language of framework is going to give you this for free.</p>
+            <p>(2) to do this, one needs to be event-driven. If one is able to pass data across the asynchronous boundaries, then one is able to scale the systems by simply scheduling the execution of the messages on different CPUs. Additionally, in the actor concurrency model, an actor does not map to a single thread.</p>
           </aside>
         </section>
 
@@ -125,10 +126,11 @@
           <h2>Responsive</h2>
           <ul>
             <li>Provide timely response even when dealing with failures</li>
-            <li>XXX</li>
+            <li>Release the underlying OS primitives as soon as possible</li>
           </ul>
           <aside class="notes">
             <p>(1) This could be <em>I'm broken</em> delivered in place of the expected message, but delivered nonetheless. It is not acceptable to just hang, and not reply with anything at all.</p>
+            <p>(2) Blocking threads is the source of non-responsiveness. And no, you cannot just arbitrarily increase the number of threads. Each thread is overhead in the kernel space; additionally, thread context switches represent cache coherency probkems, a blocking call might cause the CPU to enter sleep state, the OS might clear the FS caches, ...
           </aside>
         </section>
 
