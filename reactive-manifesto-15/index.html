@@ -103,8 +103,9 @@
             <li>The components can be single CPU cores, individual machines or clusters of machines</li>
           </ul>
           <aside class="notes">
-            <p>(1) remember, no language of framework is going to give you this for free.</p>
-            <p>(2) to do this, one needs to be event-driven. If one is able to pass data across the asynchronous boundaries, then one is able to scale the systems by simply scheduling the execution of the messages on different CPUs. Additionally, in the actor concurrency model, an actor does not map to a single thread.</p>
+            <p>(1) Remember, no language of framework is going to give you this for free.</p>
+            <p>(2) To do this, one should be event-driven. If one is able to pass data across the asynchronous boundaries, then one is able to scale the systems by simply scheduling the execution of the messages on different CPUs. Additionally, in the actor concurrency model, an actor does not map to a single thread.</p>
+            <p>(2) It is possible to scale by just replicating the same monolithic applications, but that may not be the most efficient use of the computing resources. And, running things on the cloud without using the machines fully is the most expensive hosting platform you'll ever have.</p>
           </aside>
         </section>
 
