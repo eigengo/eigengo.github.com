@@ -79,7 +79,7 @@ BRUSHED.slider = function(){
 		slides 					:  	[			// Slideshow Images
 											{image : 'brushed/img/slider-images/opensource.jpg', title : '<div class="slide-content"><a href="#opensource">Open Source</a></div>', thumb : '', url : '#opensource'},
 											//{image : 'brushed/img/slider-images/embedded.jpg', title : '<div class="slide-content">Embedded software</div>', thumb : '', url : '#embedded'},
-											{image : 'brushed/img/slider-images/tir.jpg', title : '<div class="slide-content"><a href="http://blog.eigengo.com/category/reactive-weekly/" target="_blank">Reactive weekly</a></div>', thumb : '', url : 'http://blog.eigengo.com/category/reactive-weekly/'},
+											{image : 'brushed/img/slider-images/tir.jpg', title : '<div class="slide-content"><a href="http://blog.eigengo.com/" target="_blank">Blog</a></div>', thumb : '', url : 'http://blog.eigengo.com/'},
 											{image : 'brushed/img/slider-images/conferences.jpg', title : '<div class="slide-content"><a href="#conferences">Conferences</a></div>', thumb : '', url : '#conferences'},
 											{image : 'brushed/img/slider-images/mobilewearable.jpg', title : '<div class="slide-content">Mobile &amp; wearables</div>', thumb : '', url : '#mobilewearable'},
 											{image : 'brushed/img/slider-images/goodlife.jpg', title : '<div class="slide-content"><a href="#contact">The good life</a></div>', thumb : '', url : '#contact'}
