@@ -58,6 +58,16 @@
             <p><em>Image from Jan's phone</em></p>
         	<p>Start by being event-driven. Events (in Akka, think messages delivered to <code>ActorRef</code>s) are <em>not really inconvenient &amp; clunky method calls</em>. Event-driven systems embrace the asynchronous nature of event delivery. They react to events instead of sending a request out and then waiting for a response.</p>
         	<p>Being event-driven helps scalability. If one designs a system whose components are loosely-coupled and communicate throgh messages, it becomes easy to scale such system by simply adding processing nodes. The nodes could be CPU cores, JVMs, network nodes, sets of nodes in a different network region, ...</p>
+          <aside class="notes">
+              <p>So are you ready for production?</p>
+              <p>Here at Scala Days we have seen some great talks, so I bet you're itching to get back and do some coding. But what happens when you have created the next Netflix? Unfortunatly, Akka does not solve all of the woes of running in production, you still need to keep an eye on your stack.</p>
+              <p>What is happening <em>inside</em> the application?</p>
+              <ul>
+                <li>Do we have any hotspots in our actor system?</li>
+                <li>Are the message queues getting too big? (Are the messages spending too much time in the queues?)</li>
+                <li>Do we have enough threads, and are the threads being blocked?</li>
+              </ul>
+          </aside>
         </section>
 
         <section data-background="images/tuning.jpg">
@@ -157,20 +167,55 @@
           </aside>
         </section>
 
-        <!-- Production ready?-->
+        <!-- what did we do? -->
+        <section data-background="images/production.jpg">
+          <h2>Bulkhead the operations</h2>
+          <p>Isolated the actor system into functional areas:</p>
+          <ul>
+            <li>Legacy blocking code - <code>PinnedDispatcher</code></li>
+            <li>CPU intensive code - <code>BalancingDispatcher</code></li>
+            <li>Remaining reactive code - fork-join-executor / executor</li>
+          </ul>
+          <hr/>
+          <p>Creating different dispatchers for the unruly code</p>
+          Viz <a href="http://letitcrash.com/post/40755146949/tuning-dispatchers-in-akka-applications">tuning-dispatchers-in-akka-applications</a> on letitcrash.com.
+          <aside class="notes">
+              Bulkheading - So, we needed to bulkhead the app, we had it logically seperated in the architecture, but we still had the example app dispatcher config. 
+              legacy Code - blocking code that we wanted to issolate -
+              CPU intensive - didn't want this code to starve the actor system
+              Everything else can have a shared pool 
+              Deciding on the best dispatcher for a given actor is tricky and a lot of reading needs to be done, there are some bad blogs outthere but the blog from the typesafe guys is a good place to start.
+          </aside>
+        </section>
+
+        <section data-background="images/theend.jpg">
+          <h2>Nearly over!</h2>
+          <h4>Remember...</h4>
+          <ul>
+            <li>Visibility is king</li>
+            <li>Monitor only what you need</li>
+            <li>Don't wait for the big boom!</li>
+            <li>Bulkhead your application</li>
+          </ul>
+          <aside class="notes">
+             Bulkhead - Remember Akka 101 apps dont provide `Production` ready config
+          </aside>
+        </section>
+
+        <section data-background="images/devops.jpg">
+          <h2>Thank you!</h2>
+          <ul>
+            <li>Slides at <a href="http://www.eigengo.com/monitoring-akka-play">www.eigengo.com/tuning-akka</a></li>
+            <li>Tweets at <a href="https://twitter.com/honzam399">@honzam399</a> | <a href="https://twitter.com/alexlashford">@alexlashford</a></li>
+          </ul>
+          <hr/>
+          <p><big>Law of Murphy for devops: if thing can able go wrong, is mean is already wrong but you not have Nagios alert of it yet.</big></p>
+        </section>
+        
+        <!-- Production ready?
         <section data-background="images/fineindev.jpg">
           <h2>Worked fine in dev—ops problem now!</h2>
           <p>We create actor systems in Akka (perhaps with REST APIs in Spray); modern web applications in Play, and we all like to think that these applications will attract <strike>thousands</strike> billions of users.</p>
-          <aside class="notes">
-              <p>So are you ready for production?</p>
-              <p>Here at Scala Days we have seen some great talks, so I bet you're itching to get back and do some coding. But what happens when you have created the next Netflix? Unfortunatly, Akka does not solve all of the woes of running in production, you still need to keep an eye on your stack.</p>
-              <p>What is happening <em>inside</em> the application?</p>
-              <ul>
-                <li>Do we have any hotspots in our actor system?</li>
-                <li>Are the message queues getting too big? (Are the messages spending too much time in the queues?)</li>
-                <li>Do we have enough threads, and are the threads being blocked?</li>
-              </ul>
-          </aside>
         </section>
 
         <section data-background="images/monitor.jpg">
@@ -192,7 +237,6 @@
           </aside>
         </section>
 
-        <!-- how we did it -->
         <section data-background="images/monitor.jpg">
           <h2>Typesafe Console!</h2>
           <img src="images/console.png"/>
@@ -201,7 +245,6 @@
           </aside>
         </section>
 
-        <!-- how we did it -->
         <section data-background="images/monitor.jpg">
           <h2>Typesafe Console!</h2>
           <p>Brilliant, looks great, under low load its really impressive. We loved it, but ...</p>
@@ -649,7 +692,6 @@ org.eigengo.monitor.output.codahalemetrics {
           </ul>
         </section>
 
-        <!-- demo -->
         <section data-background="images/angrymob.jpg">
           <h1>Demo</h1>
           <p>Let's add monitoring to statsd &amp; Datadog to an Akka application</p>
@@ -689,57 +731,7 @@ org.eigengo.monitor.output.codahalemetrics {
               Then light bulb momment...
           </aside>
         </section>
-
-        
-        <!-- what did we do? -->
-        <section data-background="images/production.jpg">
-          <h2>Bulkhead the operations</h2>
-          <p>Isolated the actor system into functional areas:</p>
-          <p>&nbsp;</p>
-          <ul>
-            <li>Legacy blocking code - <code>PinnedDispatcher</code></li>
-            <li>CPU intensive code - <code>BalancingDispatcher</code></li>
-            <li>Remaining reactive code - fork-join-executor / executor</li>
-          </ul>
-          <br/>
-          <br/>
-          <p>Creating different dispatchers for the unruly code</p>
-          Viz <a href="http://letitcrash.com/post/40755146949/tuning-dispatchers-in-akka-applications">tuning-dispatchers-in-akka-applications</a> on letitcrash.com.
-          <aside class="notes">
-              
-              Bulkheading - So, we needed to bulkhead the app, we had it logically seperated in the architecture, but we still had the example app dispatcher config. 
-              legacy Code - blocking code that we wanted to issolate -
-              CPU intensive - didn't want this code to starve the actor system
-              Everything else can have a shared pool 
-              Deciding on the best dispatcher for a given actor is tricky and a lot of reading needs to be done, there are some bad blogs outthere but the blog from the typesafe guys is a good place to start.
-          </aside>
-        </section>
-
-        <section data-background="images/theend.jpg">
-          <h2>Nearly over!</h2>
-          <h4>Remember...</h4>
-          <ul>
-            <li>Visibility is king</li>
-            <li>Monitor only what you need</li>
-            <li>Don't wait for the big boom!</li>
-            <li>Bulkhead your application</li>
-          </ul>
-          <aside class="notes">
-             Bulkhead - Remember Akka 101 apps dont provide `Production` ready config
-          </aside>
-        </section>
-
-        <section data-background="images/devops.jpg">
-          <h2>Thank you!</h2>
-          <ul>
-            <li>Source at <a href="https://github.com/eigengo/monitor">github.com/eigengo/monitor</a></li>
-            <li>Slides at <a href="http://www.eigengo.com/monitoring-akka-play">www.eigengo.com/monitoring-akka-play</a></li>
-            <li>Tweets at <a href="https://twitter.com/honzam399">@honzam399</a> | <a href="https://twitter.com/alexlashford">@alexlashford</a></li>
-          </ul>
-          <hr/>
-          <p><big>Law of Murphy for devops: if thing can able go wrong, is mean is already wrong but you not have Nagios alert of it yet.</big></p>
-        </section>
-
+        -->
       </div>
 
     </div>
