@@ -76,6 +76,7 @@
             <li>Event-driven</li>
             <li>Scalable</li>
           </ul>
+          <p>Used Akka in the right way</p>
          	<aside class="notes">
 	        	<p>You got the basics right. You are event-driven. Events (in Akka, think messages delivered to <code>ActorRef</code>s) are <em>not really inconvenient &amp; clunky method calls</em>, you treat them as truly asynchronous events that can arrive at any point, and your system must react to them.</p>
         		<p>All this helps scalability. If one designs a system whose components are loosely-coupled and communicate throgh messages, it becomes easy to scale such system by simply adding processing nodes. The nodes could be CPU cores, JVMs, network nodes, sets of nodes in a different network region, ...</p>
@@ -94,7 +95,7 @@
           <ul>
             <li>Number or string crunching</li>
             <li>I/O</li>
-            <li>...</li>
+            <li>Memory</li>
           </ul>
         </section>
 
