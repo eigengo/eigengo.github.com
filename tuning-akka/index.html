@@ -53,11 +53,10 @@
           </p>
         </section>
 
-        <section data-background="images/basics.jpg">
-        	<h2>The basics</h2>
-            <p><em>Image from Jan's phone</em></p>
-        	<p>Start by being event-driven. Events (in Akka, think messages delivered to <code>ActorRef</code>s) are <em>not really inconvenient &amp; clunky method calls</em>. Event-driven systems embrace the asynchronous nature of event delivery. They react to events instead of sending a request out and then waiting for a response.</p>
-        	<p>Being event-driven helps scalability. If one designs a system whose components are loosely-coupled and communicate throgh messages, it becomes easy to scale such system by simply adding processing nodes. The nodes could be CPU cores, JVMs, network nodes, sets of nodes in a different network region, ...</p>
+        <section data-background="images/success-baby.jpg">
+        	<h2>Congratulations! You've made it!</h2>
+        	<p>The users love your system—bringing even more users &amp; load.</p>
+        	<p>And you <em>worry</em>.</p>
           <aside class="notes">
               <p>So are you ready for production?</p>
               <p>Here at Scala Days we have seen some great talks, so I bet you're itching to get back and do some coding. But what happens when you have created the next Netflix? Unfortunatly, Akka does not solve all of the woes of running in production, you still need to keep an eye on your stack.</p>
@@ -70,84 +69,99 @@
           </aside>
         </section>
 
+        <section data-background="images/basics.jpg">
+        	<h2>The basics</h2>
+          <p><em>Image from Jan's phone</em></p>
+          <ul>
+            <li>Event-driven</li>
+            <li>Scalable</li>
+          </ul>
+         	<aside class="notes">
+	        	<p>You got the basics right. You are event-driven. Events (in Akka, think messages delivered to <code>ActorRef</code>s) are <em>not really inconvenient &amp; clunky method calls</em>, you treat them as truly asynchronous events that can arrive at any point, and your system must react to them.</p>
+        		<p>All this helps scalability. If one designs a system whose components are loosely-coupled and communicate throgh messages, it becomes easy to scale such system by simply adding processing nodes. The nodes could be CPU cores, JVMs, network nodes, sets of nodes in a different network region, ...</p>
+        	</aside>
+        </section>
+
         <section data-background="images/tuning.jpg">
-            <h2>Tune to achieve</h2>
-            <p>You are <em>event-driven</em> and therefore more easily <em>scalable</em>. Then tune to achive the best <em>responsiveness</em> and <em>resilience</em>.
+          <h2>Tune to achieve</h2>
+          <p>You are <em>event-driven</em> and therefore more easily <em>scalable</em>. You are using Akka <em>properly</em>, so you just need to tweak some settings to achive the best <em>responsiveness</em> and <em>resilience</em>.</p>
+          <aside class="notes">
+          </aside>
         </section>
 
         <section data-background="images/class.jpg">
-            <h2>Classes of problems</h2>
-            <ul>
-                <li>Number or string crunching</li>
-                <li>I/O</li>
-                <li>...</li>
-            </ul>
+          <h2>Classes of problems</h2>
+          <ul>
+            <li>Number or string crunching</li>
+            <li>I/O</li>
+            <li>...</li>
+          </ul>
         </section>
 
         <section data-background="images/class.jpg">
-            <h2>Number or string crunching</h2>
-            <p>What to do with that?</p>
+          <h2>Number or string crunching</h2>
+          <p>What to do with that?</p>
         </section>
 
         <section data-background="images/class.jpg">
-            <h2>I/O</h2>
-            <p>What to do with that?</p>
+          <h2>I/O</h2>
+          <p>What to do with that?</p>
         </section>
 
         <section data-background="images/broken.jpg">
-            <h2>Sometimes things aren't ideal</h2>
-            <p><em>Image from Jan's lib</em></p>
-            <p><em>Your code</em> is reactive and tuned, but now you have to integrate with third-party libraries that block, use services that do not scale, ...</p>
-            <ul>
-                <li>~responsive (bulkhead thread pools)</li>
-                <li>~resilient (bulkhead failures)</li>
-                <li>~scalable (throttle, circuit-breaker)</li>
-            </ul>
+          <h2>Sometimes things aren't ideal</h2>
+          <p><em>Image from Jan's lib</em></p>
+          <p><em>Your code</em> is reactive and tuned, but now you have to integrate with third-party libraries that block, use services that do not scale, ...</p>
+          <ul>
+            <li>~responsive (bulkhead thread pools)</li>
+            <li>~resilient (bulkhead failures)</li>
+            <li>~scalable (throttle, circuit-breaker)</li>
+          </ul>
         </section>
 
         <section data-background="images/broken.jpg">
-            <h2><strike>Responsive</strike></h2>
-            <p>Blocking. Describe symptoms. Show snippet of code.</p>
+          <h2><strike>Responsive</strike></h2>
+          <p>Blocking. Describe symptoms. Show snippet of code.</p>
         </section>
 
         <section data-background="images/broken.jpg">
-            <h2><strike>Responsive</strike></h2>
-            <p>Show solution &amp; tuning approach for the specific snippet</p>
+          <h2><strike>Responsive</strike></h2>
+          <p>Show solution &amp; tuning approach for the specific snippet</p>
         </section>
 
         <section data-background="images/broken.jpg">
-            <h2><strike>Responsive</strike></h2>
-            <p>Generalise</p>
+          <h2><strike>Responsive</strike></h2>
+          <p>Generalise</p>
         </section>
 
         <section data-background="images/broken.jpg">
-            <h2><strike>Resilient</strike></h2>
-            <p>Fails dramatically, failures spread / persist. Describe symptoms. Show snippet of code.</p>
+          <h2><strike>Resilient</strike></h2>
+          <p>Fails dramatically, failures spread / persist. Describe symptoms. Show snippet of code.</p>
         </section>
 
         <section data-background="images/broken.jpg">
-            <h2><strike>Resilient</strike></h2>
-            <p>Show solution &amp; tuning approach for the specific snippet</p>
+          <h2><strike>Resilient</strike></h2>
+          <p>Show solution &amp; tuning approach for the specific snippet</p>
         </section>
 
         <section data-background="images/broken.jpg">
-            <h2><strike>Resilient</strike></h2>
-            <p>Generalise</p>
+          <h2><strike>Resilient</strike></h2>
+          <p>Generalise</p>
         </section>
 
         <section data-background="images/broken.jpg">
-            <h2><strike>Scalable</strike></h2>
-            <p>Throttle / flow control / circuit breaker. Describe symptoms. Show snippet of code.</p>
+          <h2><strike>Scalable</strike></h2>
+          <p>Throttle / flow control / circuit breaker. Describe symptoms. Show snippet of code.</p>
         </section>
 
         <section data-background="images/broken.jpg">
-            <h2><strike>Scalable</strike></h2>
-            <p>Solution for the specific scenario.</p>
+          <h2><strike>Scalable</strike></h2>
+          <p>Solution for the specific scenario.</p>
         </section>
 
         <section data-background="images/broken.jpg">
-            <h2><strike>Scalable</strike></h2>
-            <p>Generalise.</p>
+          <h2><strike>Scalable</strike></h2>
+          <p>Generalise.</p>
         </section>
 
         <!-- Monitoring -->
