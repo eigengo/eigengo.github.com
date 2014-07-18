@@ -260,38 +260,60 @@
           </aside>
         </section>
 
-        <!-- what did we do? -->
-        <section data-background="images/production.jpg">
-          <h2>Bulkhead the operations</h2>
-          <p>Isolated the actor system into functional areas:</p>
+        <section data-background="images/monitor.jpg">
+          <h2>Monitor</h2>
+          <p>Record <em>just enough</em> information. Too much slows down the monitored system, too little lets events go unnoticed.</p>
+          <p>&nbsp;</p>
           <ul>
-            <li>Legacy blocking code - <code>PinnedDispatcher</code></li>
-            <li>CPU intensive code - <code>BalancingDispatcher</code></li>
-            <li>Remaining reactive code - fork-join-executor / executor</li>
+            <li>Actor creation &amp; destruction.</li>
+            <li>Message types, message rates, failures and performance at the actor level</li>
+            <li>Queue size at the (local) actor level</li>
+            <li>The number of available and running threads in the <code>ThreadPool</code>s</li>
           </ul>
-          <hr/>
-          <p>Creating different dispatchers for the unruly code</p>
-          Viz <a href="http://letitcrash.com/post/40755146949/tuning-dispatchers-in-akka-applications">tuning-dispatchers-in-akka-applications</a> on letitcrash.com.
           <aside class="notes">
-              Bulkheading - So, we needed to bulkhead the app, we had it logically seperated in the architecture, but we still had the example app dispatcher config. 
-              legacy Code - blocking code that we wanted to issolate -
-              CPU intensive - didn't want this code to starve the actor system
-              Everything else can have a shared pool 
-              Deciding on the best dispatcher for a given actor is tricky and a lot of reading needs to be done, there are some bad blogs outthere but the blog from the typesafe guys is a good place to start.
+            <p>Do not allow the monitoring tool to bring down the application; use light-weight montioring message delivery mechanisms.</p>
+
+            <p>We liked the Typesafe Console, but we needed an alternative solution for the client. So, we scratched our own itch, and made the open source Reactive Monitor. Instead of targetting <em>only</em> statsd (with Datadog), we split the agents and the outputs.</p>
           </aside>
         </section>
 
-        <section data-background="images/theend.jpg">
-          <h2>Nearly over!</h2>
-          <h4>Remember...</h4>
+        <section data-background="images/monitor.jpg">
+          <h2>We monitor</h2>
+          <pre><code data-trim class="scala">
+x ! "foo"; y ! "foo"; y ! 42
+          </code></pre>
+          <img src="images/chart.png"/>
+        </section>
+
+        <section data-background="images/monitor.jpg">
+          <h2>Typesafe Console!</h2>
+          <img src="images/console.png"/>
+          <aside class="notes">
+            <p>Typesafe Console! It looks great, and it gives in-depth stats on the actor system. But... we promised we won't be party poopers, and so, let's talk about something else.</p>
+          </aside>
+        </section>
+
+        <section data-background="images/monitor.jpg">
+          <h2>Statsd</h2>
+          <p>Most statsd tools can show very pretty charts.</p>
+          <img src="images/datadog.png"/>
+          <aside class="notes">
+            <p>There are plenty of tools that can listen for the statsd datagrams, and analyse the data. Typically, they have pretty user interfaces, charts, alerts, ...</p>
+          </aside>
+        </section>
+
+        <section data-background="images/mementomori.jpg">
+          <h2>Remember!</h2>
           <ul>
-            <li>Visibility is king</li>
-            <li>Monitor only what you need</li>
-            <li>Don't wait for the big boom!</li>
-            <li>Bulkhead your application</li>
+            <li>Be reactive, isolate the non-reactive components</li>
+            <li>Measure and then measure again, do not guess</li>
+            <li>Find out how your application breaks under extreme load</li>
           </ul>
           <aside class="notes">
-             Bulkhead - Remember Akka 101 apps dont provide `Production` ready config
+            <p><em>Finis coronat opus!</em>—the end crowns the work</p>
+            <p>Remeber: be event-driven, which helps scalability. Then ensure that you remain responsive through non-blocking APIs and bulkheading of blocking calls, take care of back-pressure and memory-pressure. Use your system's hierarchy: actors, entire JVMs, clusters of JVMs to provide reslience. It is better to go out with a bang (think <code>System.exit(-1)</code> than whimper along)</p>
+            <p>Remember: The "Akka 101" applications don't provide production-ready configuration or style</p>
+            <p>Remember: Good observation is good science. You want to come home and say to your partner that you've been <em>doing really complicated science all day at work</em>!</p>
           </aside>
         </section>
 
