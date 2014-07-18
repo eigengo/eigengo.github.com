@@ -164,7 +164,7 @@
           </aside>
         </section>
 
-        <section data-background="images/memory.jpg">
+        <section data-background="images/class.jpg">
           <h2>Memory</h2>
           <ul>
             <li>Use bounded mailboxes (<code>BoundedMailbox</code>, <code>BoundedPriorityMailbox</code>, <code>BoundedControlAwareMailbox</code>)</li>
@@ -180,18 +180,18 @@
 
         <section data-background="images/notideal1.jpg">
           <h2>Sometimes things aren't ideal</h2>
-          <p><em>Your code</em> is reactive and tuned, but you now have to deal with things that are:</p>
+          <p><em>Your code</em> is reactive and tuned, reality brings things that are:</p>
           <ul>
-            <li>not responsive (bulkhead thread pools)</li>
-            <li>not resilient (bulkhead failures)</li>
-            <li>not scalable (throttle, circuit-breaker)</li>
+            <li>not responsive</li>
+            <li>not resilient</li>
+            <li>not scalable</li>
           </ul>
           <aside class="notes">
             <p>Here, we mean integrate with libraries that block threads; that—once they fail, they keep failing; services that you know (or suspect) are not scalable.</p>
             <ul>
-            <li>not responsive &larrow; bulkhead thread-pools and executors</li>
-            <li>not resilient &larrow; bulkhead failures, define good supervisor strategies</li>
-            <li>not scalable &larrow; implement flow control / back pressure reporting or a hard circuit-breaker</li>
+            <li>not responsive &rarr; bulkhead thread-pools and executors</li>
+            <li>not resilient &rarr; bulkhead failures, define good supervisor strategies</li>
+            <li>not scalable &rarr; implement flow control / back pressure reporting or a hard circuit-breaker</li>
             </ul>
             <p>It would be nice to be able to make all of this reactive, but sometimes, you have to pick your battles. And so, rather than trying to fix the world, an easier way is to isolate the problematic areas, and to <em>try to be nice</em> to services that cannot keep up with your system.</p>
             <p>Think how important the concept of <em>back pressure</em> is! It is far better for your system to know what its dependencies can cope with, than deal with sudden failures, or to have a hard circuit-breaker.</p>
