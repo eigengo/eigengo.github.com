@@ -85,11 +85,15 @@
           <h2>The basics</h2>
           <ul>
             <li>Defined supervisor strategies</li>
-            <li>Set the routers</li>
+            <li>When creating actors, set the dispatcher, router and mailbox</li>
+            <li>Your actors form hierarchies, and you have only a few top-level actors</li>
+            <li>You do not allow actor's state to escape</li>
           </ul>
           <aside class="notes">
             <p>You must have supervisor strategies, otherwise, you have no hope of being resilient.</p>
-            <p>Routers should ideally be set in configuration, not in code.</p>
+            <p>The configuration for the actors (mailboxes, routers, dispatchers, ...) is configured in a well-known place. If the actor configuration needs some logic, have it all in code; if the configuration requires no logic at all, keep it in the configuration file. But do not mix the approaches. <code>system.actorOf(Props[FooActor])</code> is almost always bad.</p>
+            <p>The top-level actors are not part of any supervision chain that you control. If the top-level actor fails, the entire system fails.</p>
+            <p>It is often tempting to send back a function that closes over the state as the response from an actor, but that is <em>always</em> a terrible idea. (Ignoring for now the problem of sending the closed-over variables and the function to some <em>remote</em> actor, this sort of horror immediately puts you back into the raw Java concurrency world.)</p>
           </aside>
         </section>
 
@@ -97,6 +101,26 @@
           <h2>Tune to achieve</h2>
           <p>You are <em>event-driven</em> and therefore more easily <em>scalable</em>. You are using Akka <em>properly</em>, so you just need to tweak some settings to achive the best <em>responsiveness</em> and <em>resilience</em>.</p>
           <aside class="notes">
+            <p>Assuming your code follows our previous slides—that is:
+            <ul>
+              <li>you have proper actor hierarchy, with supervisor strategies at the appropriate level giving resilience</li>
+              <li>the <code>Props</code> for the actors always set the dispatcher, router, and mailbox</li>
+              <li>you do not let [mutable] state escape</li>
+            </ul>
+            Then your job is to ensure that you configure the dispatchers, routers and mailboxes appropriately for the type of load that your application is expected to handle.</p>
+            <p>Even better, as we'll explore later on, you will instrument your application so that you <em>know</em> instead of <em>think</em> what your application is actually doing.</p>
+          </aside>
+        </section>
+
+        <section data-background="images/class.jpg">
+          <h2>Mailboxes, dispatchers and routers</h2>
+          <ul>
+            <li>Mailbox holds the messages for an actor</li>
+            <li>Dispatcher ...</li>
+            <li>Router ...</li>
+          </ul>
+          <aside class="notes">
+            <p>XXX</p>
           </aside>
         </section>
 
@@ -111,17 +135,47 @@
 
         <section data-background="images/class.jpg">
           <h2>Number or string crunching</h2>
-          <p>What to do with that?</p>
+          <ul>
+            <li>XXX</li>
+            <li>For computation, avoid context switching; consider <code>PinnedDispatcher</code></li>
+            <li>Set the number of threads in the pool to match your cores</li>
+          </ul>
+          <aside class="notes">
+            <p>This is typically CPU-bound work. There is no point in attempting to be somehow non-blocking: the CPU is be busy performing the computation, it cannot do the work in the background, and then send a message back when it's done.</p>
+          </aside>
         </section>
 
         <section data-background="images/class.jpg">
           <h2>I/O</h2>
-          <p>What to do with that?</p>
+          <ul>
+            <li>Favour non-blocking APIs</li>
+            <li>Be aware of back-pressure</li>
+            <li>Carefully configure timeouts and remember to react to errors</li>
+            <li>If you must use blocking calls, bulkhead them in separate <code>Future</code>s, <code>Actor</code>s, or even <code>ActorSystem</code>s</li>
+          </ul>
+          <aside class="notes">
+            <p>Non-blocking APIs are not a golden hammer: you cannot just think "I'm using non-blocking APIs, therefore I'm safe". To be flippant, why do you think say a network interface comes with a silly specification like <em>1 Gbps</em>? It means that you should never feed it more than 1 Gbps. To be sure, your userspace program will probably be fine for a bit, but the kernel will have more and more work dealing with the unexpeced load. With non-blocking APIs, you must be aware of the back-pressure.</p>
+            <p>Back-pressure is a mechanism that allows the downstream components to drive the flow of data. The concept (in Reactive Streams) is that the downstream components must explicitly ask for more data from the upstrem components. </p>
+            <p>If the downstream guys are feeling confident, they can easily request <code>Int.MaxValue</code> values, and then it's up to the upstream guys to satisfy the demand. 
+            <br/>
+            If the downstream components are super-cautious, they will only ask for one element at a time; and the upstream components must comply with the demand.</p>
+            <p>If you are using non-blocking APIs appropriately (with back-pressure), be sure to configure and use appropriate timeouts and react to error conditions. Remember, the errors will come later, perhaps on some other thread. Same applies to timeouts: if your users are expecting a response in 2 seconds, it is useless to have 60 second timeout on some HTTP call that you're making to satisfy the user's request.</p>
+            <p>Finally, if you are using blocking calls, be sure to separate them out in their own—ultimately—threads. Your actors <em>cannot</em> block, otherwise you are risking the health of the entire actor system.</p>
+          </aside>
         </section>
 
         <section data-background="images/memory.jpg">
           <h2>Memory</h2>
-          <p>What to do with that?</p>
+          <ul>
+            <li>Use bounded mailboxes (<code>BoundedMailbox</code>, <code>BoundedPriorityMailbox</code>, <code>BoundedControlAwareMailbox</code>)</li>
+            <li>If your actor behaviour is processing a lot of data, consider using off-heap structures (think <code>ByteBuffer.allocateDirect(Int.MaxValue)</code></li>
+            <li>Memory / GC pressure will make your application die with a whimper, not a bang</li>
+          </ul>
+          <aside class="notes">
+            <p>If your application generates too much pressure on the GC, the performance will degrade, but there is nothing you will be able to do about it. In extreme—or simply naive—cases, you can make your application appear completely frozen just by sending your actors too many messages.</p>
+            <p>First off, and this applies to any production-ready Akka system, always use bounded mailboxes. If you do not, it is possible to kill your actor system by forcing an <code>OutOfMemoryError</code> or to generate so much GC pressure that the application will become completely unresponsive and spend all time in GC.</p>
+            <p>For example, it is much faster to allocate 2GiB off-heap, and then manage the memory layout yourself. Think some big-data analysis.</p>
+          </aside>
         </section>
 
         <section data-background="images/notideal1.jpg">
