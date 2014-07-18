@@ -48,9 +48,6 @@
               Alex Lashford <a href="https://twitter.com/alexlashford">@alexlashford</a>
             </small>
           </p>
-          <p>
-            <small><a href="http://www.eigengo.com/tuning-akka">www.eigengo.com/tuning-akka</a></small>
-          </p>
         </section>
 
         <section data-background="images/success-baby.jpg">
@@ -58,14 +55,14 @@
           <p>The users love your system—bringing even more users &amp; load.</p>
           <p>And you <em>worry</em>.</p>
           <aside class="notes">
-              <p>So are you ready for production?</p>
-              <p>Here at Scala Days we have seen some great talks, so I bet you're itching to get back and do some coding. But what happens when you have created the next Netflix? Unfortunatly, Akka does not solve all of the woes of running in production, you still need to keep an eye on your stack.</p>
-              <p>What is happening <em>inside</em> the application?</p>
-              <ul>
-                <li>Do we have any hotspots in our actor system?</li>
-                <li>Are the message queues getting too big? (Are the messages spending too much time in the queues?)</li>
-                <li>Do we have enough threads, and are the threads being blocked?</li>
-              </ul>
+            <p>So are you ready for production?</p>
+            <p>Here at Scala Days we have seen some great talks, so I bet you're itching to get back and do some coding. But what happens when you have created the next Netflix? Unfortunatly, Akka does not solve all of the woes of running in production, you still need to keep an eye on your stack.</p>
+            <p>What is happening <em>inside</em> the application?</p>
+            <ul>
+              <li>Do we have any hotspots in our actor system?</li>
+              <li>Are the message queues getting too big? (Are the messages spending too much time in the queues?)</li>
+              <li>Do we have enough threads, and are the threads being blocked?</li>
+            </ul>
           </aside>
         </section>
 
@@ -115,12 +112,15 @@
         <section data-background="images/class.jpg">
           <h2>Mailboxes, dispatchers and routers</h2>
           <ul>
+            <li>Dispatchers execute arbitrary code</li>
             <li>Mailbox holds the messages for an actor</li>
-            <li>Dispatcher ...</li>
             <li>Router ...</li>
           </ul>
           <aside class="notes">
-            <p>XXX</p>
+            <p>In the Akka world, the dispatchers define the mailbox sharing strategy, and schedule the delivery of the messages between the actors. We have four dispatchers baked into Akka.</p>
+            <ul>
+              <li><code>Dispatcher</code> binds </p>
+            <p>
           </aside>
         </section>
 
