@@ -114,13 +114,25 @@
           <ul>
             <li>Dispatchers execute arbitrary code</li>
             <li>Mailbox holds the messages for an actor</li>
-            <li>Router ...</li>
+            <li>Routers allow a number of actors to process the incoming messages</li>
           </ul>
           <aside class="notes">
             <p>In the Akka world, the dispatchers define the mailbox sharing strategy, and schedule the delivery of the messages between the actors. We have four dispatchers baked into Akka.</p>
             <ul>
-              <li><code>Dispatcher</code> binds </p>
-            <p>
+              <li>Dispatcher sets each actor with its own mailbox; shareable; backed by thread pool or F-J pool. Optimised for non-blocking code.</li>
+              <li>Pinned dispatcher sets each actor with its own mailbox; non-shareable—creates dedicated thread for each actor; backed by thread pool; optimised for blocking or CPU-bound operations</li>
+              <li>Balancing dispatcher sets one mailbox for all actors; shareable by actors of the same kind; backed by thead pool or F-J pool</li>
+            </li>
+            <p>Mailbox holds the messages delivered to the actor. The dispatcher decides how actors share the mailbox, delivers the message to the mailbox, and schedules the actor's <code>receive</code> function.</p>
+            <p>Router manages and maintains its routees. The dispatcher delivers a message to the router, and depending on the routing strategy, it decides how to deliver it to one of its routees. The strategies are:
+            <ul>
+              <li>Round robin router</li>
+              <li>Random</li>
+              <li>Smallest mailbox</li>
+              <li>Broadcast</li>
+              <li>Scatter, gather first completed</li>
+            </ul>
+            </p>
           </aside>
         </section>
 
@@ -136,12 +148,13 @@
         <section data-background="images/class.jpg">
           <h2>Number or string crunching</h2>
           <ul>
-            <li>XXX</li>
-            <li>For computation, avoid context switching; consider <code>PinnedDispatcher</code></li>
+            <li>Consumes the thread</li>
+            <li>Avoid context switching</li>
             <li>Set the number of threads in the pool to match your cores</li>
           </ul>
           <aside class="notes">
             <p>This is typically CPU-bound work. There is no point in attempting to be somehow non-blocking: the CPU is be busy performing the computation, it cannot do the work in the background, and then send a message back when it's done.</p>
+          	<p>Use the <code>PinnedDispatcher</code> backed by reasonably-sized thread pool. Remember CPU-bound work feels like blocking I/O; but it actually keeps the CPU hot. You want to avoid context switches, you want to keep the caches hot, the CPU from entering sleep states, ...</p>
           </aside>
         </section>
 
@@ -151,7 +164,7 @@
             <li>Favour non-blocking APIs</li>
             <li>Be aware of back-pressure</li>
             <li>Carefully configure timeouts and remember to react to errors</li>
-            <li>If you must use blocking calls, bulkhead them in separate <code>Future</code>s, <code>Actor</code>s, or even <code>ActorSystem</code>s</li>
+            <li>If you must use blocking calls, bulkhead them</li>
           </ul>
           <aside class="notes">
             <p>Non-blocking APIs are not a golden hammer: you cannot just think "I'm using non-blocking APIs, therefore I'm safe". To be flippant, why do you think say a network interface comes with a silly specification like <em>1 Gbps</em>? It means that you should never feed it more than 1 Gbps. To be sure, your userspace program will probably be fine for a bit, but the kernel will have more and more work dealing with the unexpeced load. With non-blocking APIs, you must be aware of the back-pressure.</p>
@@ -160,7 +173,7 @@
             <br/>
             If the downstream components are super-cautious, they will only ask for one element at a time; and the upstream components must comply with the demand.</p>
             <p>If you are using non-blocking APIs appropriately (with back-pressure), be sure to configure and use appropriate timeouts and react to error conditions. Remember, the errors will come later, perhaps on some other thread. Same applies to timeouts: if your users are expecting a response in 2 seconds, it is useless to have 60 second timeout on some HTTP call that you're making to satisfy the user's request.</p>
-            <p>Finally, if you are using blocking calls, be sure to separate them out in their own—ultimately—threads. Your actors <em>cannot</em> block, otherwise you are risking the health of the entire actor system.</p>
+            <p>Finally, if you are using blocking calls, be sure to separate them  in separate <code>Future</code>s, <code>Actor</code>s, or even <code>ActorSystem</code>s—ultimately—threads. Your actors <em>cannot</em> block, otherwise you are risking the health of the entire actor system.</p>
           </aside>
         </section>
 
