@@ -52,17 +52,23 @@
 
         <section data-background="images/success-baby.jpg">
           <h2>Congratulations! You've made it!</h2>
-          <p>The users love your system—bringing even more users &amp; load.</p>
+          <p>The users love your system - interactions increase </p>
+          <p>100's -> 1000's -> 10,000's of users</p>
           <p>And you <em>worry</em>.</p>
           <aside class="notes">
-            <p>So are you ready for production?</p>
-            <p>So Akka is 5 years old, it's a fantastic framework which gives us the toolset to create Scalable / Event Drivien applications.  These applications will follow the core principles of the Reactice Manefesto But what happens when you have created the next Netflix? Unfortunatly, Akka does not solve all of the woes of running in production, you still need to keep an eye on your stack.</p>
-            <p>What is happening <em>inside</em> the application?</p>
+            <p>So Akka is 5 years old, it's a fantastic framework which gives us the toolset to create Scalable / Event Drivien applications.  Hopefully these applications will follow the core principles of the Reactice Manefesto, but what happens when you have created the next Netflix? Unfortunatly, Akka does not solve all of the woes of running in production, it is not a silver bullet, you still need to keep an eye on your stack and follow key principles during your development.</p>
+            <p>In our talk we are going to run through some of the Basics of "Akka in Production" and hopefully give you some tips & tricks as you embark on your Production journey.</p>
+            <p>??????????????????? Should the rest go here ?????????????????</p>
+            <p>What is happening <em>inside</em> your application?</p>
+            <p>we should be looking to lift the lid on our apps and shine the light on this Black box to get us some much needed visibility.  
             <ul>
               <li>Do we have any hotspots in our actor system?</li>
-              <li>Are the message queues getting too big? (Are the messages spending too much time in the queues?)</li>
-              <li>Do we have enough threads, and are the threads being blocked?</li>
+              <li>Are the message queues getting too big? (Are the messages spending too much time in the queues?) </li>
+              <li>Is 'mean' time in on-receive too high</li>
+              <li>Do we have enough threads, and are those threads being blocked, utilised efficently?</li>
             </ul>
+            <p>So the question is, are you ready for production?  We will revisit this question later but before we do, lets take a look at the basics.</p>
+
           </aside>
         </section>
 
@@ -121,7 +127,7 @@
             <ul>
               <li>Dispatcher sets each actor with its own mailbox; shareable; backed by thread pool or F-J pool. Optimised for non-blocking code.</li>
               <li>Pinned dispatcher sets each actor with its own mailbox; non-shareable—creates dedicated thread for each actor; backed by thread pool; optimised for blocking or CPU-bound operations</li>
-              <li>Balancing dispatcher sets one mailbox for all actors; shareable by actors of the same kind; backed by thead pool or F-J pool</li>
+              <li>Balancing dispatcher sets one mailbox for all actors; shareable by actors of the same kind; backed by thead pool or Fork-Join pool</li>
             </li>
             <p>Mailbox holds the messages delivered to the actor. The dispatcher decides how actors share the mailbox, delivers the message to the mailbox, and schedules the actor's <code>receive</code> function.</p>
             <p>Router manages and maintains its routees. The dispatcher delivers a message to the router, and depending on the routing strategy, it decides how to deliver it to one of its routees. The strategies are:
@@ -143,6 +149,9 @@
             <li>I/O</li>
             <li>Memory</li>
           </ul>
+          <aside class="notes">
+            <p>So before you can make the right choices about configuration of the Actor system, you need to understand and classify the types of problems. Then ultimatly use the appropriate config to instruct Akka on how to best deal with that classifaction of problem.</p>
+          </aside>
         </section>
 
         <section data-background="images/class.jpg">
