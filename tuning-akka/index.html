@@ -58,17 +58,7 @@
           <aside class="notes">
             <p>So Akka is 5 years old, it's a fantastic framework which gives us the toolset to create Scalable / Event Drivien applications.  Hopefully these applications will follow the core principles of the Reactice Manefesto, but what happens when you have created the next Netflix? Unfortunatly, Akka does not solve all of the woes of running in production, it is not a silver bullet, you still need to keep an eye on your stack and follow key principles during your development.</p>
             <p>In our talk we are going to run through some of the Basics of "Akka in Production" and hopefully give you some tips & tricks as you embark on your Production journey.</p>
-            <p>??????????????????? Should the rest go here ?????????????????</p>
-            <p>What is happening <em>inside</em> your application?</p>
-            <p>we should be looking to lift the lid on our apps and shine the light on this Black box to get us some much needed visibility.  
-            <ul>
-              <li>Do we have any hotspots in our actor system?</li>
-              <li>Are the message queues getting too big? (Are the messages spending too much time in the queues?) </li>
-              <li>Is 'mean' time in on-receive too high</li>
-              <li>Do we have enough threads, and are those threads being blocked, utilised efficently?</li>
-            </ul>
             <p>So the question is, are you ready for production?  We will revisit this question later but before we do, lets take a look at the basics.</p>
-
           </aside>
         </section>
 
@@ -163,7 +153,7 @@
           </ul>
           <aside class="notes">
             <p>This is typically CPU-bound work. There is no point in attempting to be somehow non-blocking: the CPU is be busy performing the computation, it cannot do the work in the background, and then send a message back when it's done.</p>
-          	<p>Use the <code>PinnedDispatcher</code> backed by reasonably-sized thread pool. Remember CPU-bound work feels like blocking I/O; but it actually keeps the CPU hot. You want to avoid context switches, you want to keep the caches hot, the CPU from entering sleep states, ...</p>
+          	<p>Use the <code>PinnedDispatcher</code> backed by reasonably-sized thread pool. Remember CPU-bound work feels like blocking I/O; but it actually keeps the CPU hot. You want to avoid context switches, you want to keep the caches hot, prevent the CPU from entering sleep states, ...</p>
           </aside>
         </section>
 
@@ -209,7 +199,7 @@
             <li>not scalable</li>
           </ul>
           <aside class="notes">
-            <p>Here, we mean integrate with libraries that block threads; that—once they fail, they keep failing; services that you know (or suspect) are not scalable.</p>
+            <p>Here, we mean integratation with libraries that block threads; that—once they fail, they keep failing; services that you know (or suspect) are not scalable.</p>
             <ul>
             <li>not responsive &rarr; bulkhead thread-pools and executors</li>
             <li>not resilient &rarr; bulkhead failures, define good supervisor strategies</li>
@@ -265,6 +255,23 @@
           <p>Generalise.</p>
         </section>
 
+        <section data-background="images/sinking_ship.jpg">
+          <h2>Bulkheading</h2>
+          <p><em>Divide</em> your application not only by functional area, but by classifaction of the problem</p>
+          <br/>
+          <h2>Backpressure</h2>
+          <p>It is far better for your system to know what its dependencies can cope with, than to deal with the <em>big bang!</em></p>
+          <aside class="notes">
+            <p>Two common themes we have touched on here is Bulkheading & Backpressure</p>
+            <ul>
+            <p>Bulkheading</p>
+            <li>This principle comes from ship building, where you would typically Bulkhead (divide) parts of the hull.  The aim to prevent the hole ship sinking due to damage in a section of the hull.   You can easily see this idea is easily applied to the architecture of an Akka application where you need to isolate the CPU intensive from the blocking IO, so not bring the hole application to a standstill. </li>
+            <p>Back-pressure</p>
+            <li>It is far better for your system to know what its dependencies can cope with, than to deal with the <em>big bang!</em>, encapsulate the slowness and allow that function to self-regulate its consumption rate.</li>
+            </ul>
+          </aside>
+        </section>
+
         <!-- Monitoring -->
         <section data-background="images/everythingfine.jpg">
           <h2>So, tell me again</h2>
@@ -276,9 +283,17 @@
           <h2>&nbsp;</h2>
           <h2>how everything's fine in production!</h2>
           <aside class="notes">
+            <p>What is happening <em>inside</em> your application?</p>
+            <p>we should be looking to lift the lid on our apps and shine the light on this Black box to get us some much needed visibility.  
+            <ul>
+              <li>Do we have any hotspots in our actor system?</li>
+              <li>Are the message queues getting too big? (Are the messages spending too much time in the queues?) </li>
+              <li>Is the 'mean' time in on-receive too high</li>
+              <li>Do we have enough threads, and are those threads being blocked, utilised efficently?</li>
+            </ul>
               Monitoring gives an insight into the performance and flow of an application,
-              allowing us see pain points, and areas of poor performance: increasing our visibility to what is occuring.
-              The aim is 24/7 uptime, preventing the big boom! How do you know that something's broken in time to do something about it? It is insufficient to monitor HTTP 500s, we want to have a bit of time ahead of the 500s to do something.
+              allowing us see hotspots, and areas of poor performance: increasing our visibility to what is occuring.
+              The aim is 24/7 uptime, preventing the big boom! How do you know that something's broken in time to do something about it? It is insufficient to monitor HTTP 500s, we want to have time to react before the 500s.
           </aside>
         </section>
 
@@ -294,21 +309,28 @@
           </ul>
           <aside class="notes">
             <p>Do not allow the monitoring tool to bring down the application; use light-weight montioring message delivery mechanisms.</p>
-
-            <p>We liked the Typesafe Console, but we needed an alternative solution for the client. So, we scratched our own itch, and made the open source Reactive Monitor. Instead of targetting <em>only</em> statsd (with Datadog), we split the agents and the outputs.</p>
           </aside>
         </section>
 
         <section data-background="images/monitor.jpg">
-          <h2>We monitor</h2>
-          <pre><code data-trim class="scala">
-x ! "foo"; y ! "foo"; y ! 42
-          </code></pre>
-          <img src="images/chart.png"/>
+          <h2>Monitoring Options</h2>
+          <p>Typesafe Console<pre>- Dev focused montioring</pre></p>
+          <p>Reactive Monitor<pre>- Lightweight, Configurable, OpenSource</pre><</p>
+          <p>Kamon.io<pre>- Akka based, statsd / graphite inetgrations</pre></p>
+          <aside>
+            <p>So for monitoring your akka application you have a few of options</p>
+            <ul>
+              <li>Typesafe Console - aimed at Development rather than prduction but can provide improved visibility for your devs.</li>
+              <li>Reactive Monitor - Lightweight, configurable, muliple integrations, open source and improvements welcome.</li>
+              <li>Kamon - gaining populatrity, muliple integrations also Aspect based.</li>
+            </ul>
+             <p>We liked the Typesafe Console, but we needed an alternative solution for the client in Production. So, we scratched our own itch, and made the open source Reactive Monitor. Instead of targetting <em>only</em> statsd (with Datadog), we split the agents and the outputs.</p>
+          </aside>
         </section>
 
         <section data-background="images/monitor.jpg">
-          <h2>Typesafe Console!</h2>
+          <h2>candidate for DELETION!</h2>
+            <h2>Typesafe Console!</h2>
           <img src="images/console.png"/>
           <aside class="notes">
             <p>Typesafe Console! It looks great, and it gives in-depth stats on the actor system. But... we promised we won't be party poopers, and so, let's talk about something else.</p>
@@ -316,6 +338,7 @@ x ! "foo"; y ! "foo"; y ! 42
         </section>
 
         <section data-background="images/monitor.jpg">
+          <h2>candidate for DELETION!</h2>
           <h2>Statsd</h2>
           <p>Most statsd tools can show very pretty charts.</p>
           <img src="images/datadog.png"/>
@@ -333,7 +356,7 @@ x ! "foo"; y ! "foo"; y ! 42
           </ul>
           <aside class="notes">
             <p><em>Finis coronat opus!</em>—the end crowns the work</p>
-            <p>Remeber: be event-driven, which helps scalability. Then ensure that you remain responsive through non-blocking APIs and bulkheading of blocking calls, take care of back-pressure and memory-pressure. Use your system's hierarchy: actors, entire JVMs, clusters of JVMs to provide reslience. It is better to go out with a bang (think <code>System.exit(-1)</code> than whimper along)</p>
+            <p>Remember: be event-driven, which helps scalability. Then ensure that you remain responsive through non-blocking APIs and bulkheading of blocking calls, take care of back-pressure and memory-pressure. Use your system's hierarchy: actors, entire JVMs, clusters of JVMs to provide reslience. It is better to go out with a bang (think <code>System.exit(-1)</code> than whimper along)</p>
             <p>Remember: The "Akka 101" applications don't provide production-ready configuration or style</p>
             <p>Remember: Good observation is good science. You want to come home and say to your partner that you've been <em>doing really complicated science all day at work</em>!</p>
           </aside>
@@ -342,7 +365,7 @@ x ! "foo"; y ! "foo"; y ! 42
         <section data-background="images/devops.jpg">
           <h2>Thank you!</h2>
           <ul>
-            <li>Slides at <a href="http://www.eigengo.com/monitoring-akka-play">www.eigengo.com/tuning-akka</a></li>
+            <li>Slides at <a href="http://www.eigengo.com/tuning-akka">www.eigengo.com/tuning-akka</a></li>
             <li>Tweets at <a href="https://twitter.com/honzam399">@honzam399</a> | <a href="https://twitter.com/alexlashford">@alexlashford</a></li>
           </ul>
           <hr/>
