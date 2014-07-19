@@ -53,8 +53,8 @@
         <section data-background="images/success-baby.jpg">
           <h2>Congratulations! You've made it!</h2>
           <p>The users love your system - interactions increase </p>
-          <p>100's -> 1000's -> 10,000's of users</p>
-          <p>And you <em>worry</em>.</p>
+          <p>100's -> 1000's -> 10,000's of users!</p>
+          <p>And you <em>worry</em></p>
           <aside class="notes">
             <p>So Akka is 5 years old, it's a fantastic framework which gives us the toolset to create Scalable / Event Drivien applications.  Hopefully these applications will follow the core principles of the Reactice Manefesto, but what happens when you have created the next Netflix? Unfortunatly, Akka does not solve all of the woes of running in production, it is not a silver bullet, you still need to keep an eye on your stack and follow key principles during your development.</p>
             <p>In our talk we are going to run through some of the Basics of "Akka in Production" and hopefully give you some tips & tricks as you embark on your Production journey.</p>
@@ -66,7 +66,9 @@
           <h2>The basics</h2>
           <ul>
             <li>Event-driven</li>
+            <p>Imuatble State, Concurrent and non-blocking</p>
             <li>Scalable</li>
+            <p></p>
           </ul>
           <aside class="notes">
             <p>You got the basics right. You are event-driven. Events (in Akka, think messages delivered to <code>ActorRef</code>s) are <em>not really inconvenient &amp; clunky method calls</em>, you treat them as truly asynchronous events that can arrive at any point, and your system must react to them.</p>
@@ -222,7 +224,10 @@
 
         <section data-background="images/notideal1.jpg">
           <h2><strike>Responsive</strike></h2>
-          <p>Generalise</p>
+          <p>Be asncyronous, real-time, open comms with the user.</p>
+          <aside class="notes">
+            <p></p>
+          </aside>
         </section>
 
         <section data-background="images/notideal2.jpg">
@@ -237,7 +242,10 @@
 
         <section data-background="images/notideal2.jpg">
           <h2><strike>Resilient</strike></h2>
-          <p>Generalise</p>
+          <p>Detect / Isolate / Heal</p>
+          <aside class="notes">
+            <p></p>
+          </aside>
         </section>
 
         <section data-background="images/notideal3.png">
@@ -252,7 +260,10 @@
 
         <section data-background="images/notideal3.png">
           <h2><strike>Scalable</strike></h2>
-          <p>Generalise.</p>
+          <p>Horizontal scalling, new JVM's, embrase the cloud, Imutatble state </p>
+          <aside class="notes">
+            <p></p>
+          </aside>
         </section>
 
         <section data-background="images/sinking_ship.jpg">
@@ -314,10 +325,14 @@
 
         <section data-background="images/monitor.jpg">
           <h2>Monitoring Options</h2>
-          <p>Typesafe Console<pre>- Dev focused montioring</pre></p>
-          <p>Reactive Monitor<pre>- Lightweight, Configurable, OpenSource</pre><</p>
-          <p>Kamon.io<pre>- Akka based, statsd / graphite inetgrations</pre></p>
-          <aside>
+          <ul>
+            <li>Typesafe Console<em> - Dev focused montioring</em></li>
+            <p>&nbsp;</p>
+            <li>Reactive Monitor<em> - Lightweight, Configurable, OpenSource</em></li>
+            <p>&nbsp;</p>
+            <li>Kamon.io<em> - Multiple Integrations, OpenSource</em></li>
+          </ul>
+          <aside class="notes">
             <p>So for monitoring your akka application you have a few of options</p>
             <ul>
               <li>Typesafe Console - aimed at Development rather than prduction but can provide improved visibility for your devs.</li>
@@ -328,30 +343,13 @@
           </aside>
         </section>
 
-        <section data-background="images/monitor.jpg">
-          <h2>candidate for DELETION!</h2>
-            <h2>Typesafe Console!</h2>
-          <img src="images/console.png"/>
-          <aside class="notes">
-            <p>Typesafe Console! It looks great, and it gives in-depth stats on the actor system. But... we promised we won't be party poopers, and so, let's talk about something else.</p>
-          </aside>
-        </section>
-
-        <section data-background="images/monitor.jpg">
-          <h2>candidate for DELETION!</h2>
-          <h2>Statsd</h2>
-          <p>Most statsd tools can show very pretty charts.</p>
-          <img src="images/datadog.png"/>
-          <aside class="notes">
-            <p>There are plenty of tools that can listen for the statsd datagrams, and analyse the data. Typically, they have pretty user interfaces, charts, alerts, ...</p>
-          </aside>
-        </section>
-
         <section data-background="images/mementomori.jpg">
           <h2>Remember!</h2>
           <ul>
             <li>Be reactive, isolate the non-reactive components</li>
+            <p>&nbsp;</p>
             <li>Measure and then measure again, do not guess</li>
+            <p>&nbsp;</p>
             <li>Find out how your application breaks under extreme load</li>
           </ul>
           <aside class="notes">
