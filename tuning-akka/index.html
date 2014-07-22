@@ -53,11 +53,11 @@
         <section data-background="images/success-baby.jpg">
           <h2>Congratulations! You've made it!</h2>
           <p>The users love your system - interactions increase </p>
-          <p>100's -> 1000's -> 10,000's of users!</p>
+          <p>100s &rarr; 1000s &rarr; 10,000s of users!</p>
           <p>And you <em>worry</em></p>
           <aside class="notes">
             <p>So Akka is 5 years old, it's a fantastic framework which gives us the toolset to create Scalable / Event Drivien applications.  Hopefully these applications will follow the core principles of the Reactice Manefesto, but what happens when you have created the next Netflix? Unfortunatly, Akka does not solve all of the woes of running in production, it is not a silver bullet, you still need to keep an eye on your stack and follow key principles during your development.</p>
-            <p>In our talk we are going to run through some of the Basics of "Akka in Production" and hopefully give you some tips & tricks as you embark on your Production journey.</p>
+            <p>In our talk we are going to run through some of the Basics of "Akka in Production" and hopefully give you some tips &amp; tricks as you embark on your Production journey.</p>
             <p>So the question is, are you ready for production?  We will revisit this question later but before we do, lets take a look at the basics.</p>
           </aside>
         </section>
@@ -66,13 +66,13 @@
           <h2>The basics</h2>
           <ul>
             <li>Event-driven</li>
-            <p>Imuatble State, Concurrent and non-blocking</p>
             <li>Scalable</li>
             <p></p>
           </ul>
           <aside class="notes">
             <p>You got the basics right. You are event-driven. Events (in Akka, think messages delivered to <code>ActorRef</code>s) are <em>not really inconvenient &amp; clunky method calls</em>, you treat them as truly asynchronous events that can arrive at any point, and your system must react to them.</p>
             <p>All this helps scalability. If one designs a system whose components are loosely-coupled and communicate throgh messages, it becomes easy to scale such system by simply adding processing nodes. The nodes could be CPU cores, JVMs, network nodes, sets of nodes in a different network region, ...</p>
+            <p>You've spotted that these are the two reactive traits. Let's now explore what it takes to achieve the other two: resilient and responsive.</p>
           </aside>
         </section>
 
@@ -117,11 +117,11 @@
           <aside class="notes">
             <p>In the Akka world, the dispatchers define the mailbox sharing strategy, and schedule the delivery of the messages between the actors. We have four dispatchers baked into Akka.</p>
             <ul>
-              <li>Dispatcher sets each actor with its own mailbox; shareable; backed by thread pool or F-J pool. Optimised for non-blocking code.</li>
+              <li>[DEFAULT] Dispatcher sets each actor with its own mailbox; shareable; backed by thread pool or F-J pool. Optimised for non-blocking code.</li>
               <li>Pinned dispatcher sets each actor with its own mailbox; non-shareable—creates dedicated thread for each actor; backed by thread pool; optimised for blocking or CPU-bound operations</li>
               <li>Balancing dispatcher sets one mailbox for all actors; shareable by actors of the same kind; backed by thead pool or Fork-Join pool</li>
             </li>
-            <p>Mailbox holds the messages delivered to the actor. The dispatcher decides how actors share the mailbox, delivers the message to the mailbox, and schedules the actor's <code>receive</code> function.</p>
+            <p>Mailbox holds the messages delivered to the actor. The dispatcher decides how actors share the mailbox, delivers the message to the mailbox, and schedules the actor's <code>receive</code> function. There are about 8 different type of mailboxes; the general theme is that mailboxes can be (bounded or unbounded (bad!)) and (arbitrary or prioritised) and (transitent r persistent). There's plenty of detail in the Akka documentation—the thing we'll mention here, and many more times in the talk, is that unbounded is BAD!</p>
             <p>Router manages and maintains its routees. The dispatcher delivers a message to the router, and depending on the routing strategy, it decides how to deliver it to one of its routees. The strategies are:
             <ul>
               <li>Round robin router</li>
@@ -131,6 +131,7 @@
               <li>Scatter, gather first completed</li>
             </ul>
             </p>
+            <p>now that we understand what Routers, Mailboxes and Dispatchers do, lets see how we choose the right one for a given problem.</p>
           </aside>
         </section>
 
@@ -168,13 +169,14 @@
             <li>If you must use blocking calls, bulkhead them</li>
           </ul>
           <aside class="notes">
+            <p>Reading files, Network traffic, (Potentialy Blocking)</p>
             <p>Non-blocking APIs are not a golden hammer: you cannot just think "I'm using non-blocking APIs, therefore I'm safe". To be flippant, why do you think say a network interface comes with a silly specification like <em>1 Gbps</em>? It means that you should never feed it more than 1 Gbps. To be sure, your userspace program will probably be fine for a bit, but the kernel will have more and more work dealing with the unexpeced load. With non-blocking APIs, you must be aware of the back-pressure.</p>
             <p>Back-pressure is a mechanism that allows the downstream components to drive the flow of data. The concept (in Reactive Streams) is that the downstream components must explicitly ask for more data from the upstrem components. </p>
             <p>If the downstream guys are feeling confident, they can easily request <code>Int.MaxValue</code> values, and then it's up to the upstream guys to satisfy the demand. 
             <br/>
             If the downstream components are super-cautious, they will only ask for one element at a time; and the upstream components must comply with the demand.</p>
             <p>If you are using non-blocking APIs appropriately (with back-pressure), be sure to configure and use appropriate timeouts and react to error conditions. Remember, the errors will come later, perhaps on some other thread. Same applies to timeouts: if your users are expecting a response in 2 seconds, it is useless to have 60 second timeout on some HTTP call that you're making to satisfy the user's request.</p>
-            <p>Finally, if you are using blocking calls, be sure to separate them  in separate <code>Future</code>s, <code>Actor</code>s, or even <code>ActorSystem</code>s—ultimately—threads. Your actors <em>cannot</em> block, otherwise you are risking the health of the entire actor system.</p>
+            <p>Finally, if you are using blocking calls, be sure to separate them in there own <code>Future</code>s, <code>Actor</code>s, or even <code>ActorSystem</code>s—ultimately—threads. Your actors <em>cannot</em> block, otherwise you are risking the health of the entire actor system.</p>
           </aside>
         </section>
 
@@ -186,9 +188,10 @@
             <li>Memory / GC pressure will make your application die with a whimper, not a bang</li>
           </ul>
           <aside class="notes">
-            <p>If your application generates too much pressure on the GC, the performance will degrade, but there is nothing you will be able to do about it. In extreme—or simply naive—cases, you can make your application appear completely frozen just by sending your actors too many messages.</p>
+            <p>Use bounded mailboxes - If your application generates too much pressure on the GC, the performance will degrade, but there is nothing you will be able to do about it. In extreme—or simply naive—cases, you can make your application appear completely frozen just by sending your actors too many messages.</p>
             <p>First off, and this applies to any production-ready Akka system, always use bounded mailboxes. If you do not, it is possible to kill your actor system by forcing an <code>OutOfMemoryError</code> or to generate so much GC pressure that the application will become completely unresponsive and spend all time in GC.</p>
-            <p>For example, it is much faster to allocate 2GiB off-heap, and then manage the memory layout yourself. Think some big-data analysis.</p>
+            <p>If your actor is doing big data, it is much faster to allocate 2GiB off-heap, and then manage the memory layout yourself. Think some big-data analysis. Take a look at ByteBuffer api.</p>
+            <p>in summary, Memory / GC pressure will make your application die with a whimper, not a bang </p>
           </aside>
         </section>
 
@@ -212,60 +215,6 @@
           </aside>
         </section>
 
-        <section data-background="images/notideal1.jpg">
-          <h2><strike>Responsive</strike></h2>
-          <p>Blocking. Describe symptoms. Show snippet of code.</p>
-        </section>
-
-        <section data-background="images/notideal1.jpg">
-          <h2><strike>Responsive</strike></h2>
-          <p>Show solution &amp; tuning approach for the specific snippet</p>
-        </section>
-
-        <section data-background="images/notideal1.jpg">
-          <h2><strike>Responsive</strike></h2>
-          <p>Be asncyronous, real-time, open comms with the user.</p>
-          <aside class="notes">
-            <p></p>
-          </aside>
-        </section>
-
-        <section data-background="images/notideal2.jpg">
-          <h2><strike>Resilient</strike></h2>
-          <p>Fails dramatically, failures spread / persist. Describe symptoms. Show snippet of code.</p>
-        </section>
-
-        <section data-background="images/notideal2.jpg">
-          <h2><strike>Resilient</strike></h2>
-          <p>Show solution &amp; tuning approach for the specific snippet</p>
-        </section>
-
-        <section data-background="images/notideal2.jpg">
-          <h2><strike>Resilient</strike></h2>
-          <p>Detect / Isolate / Heal</p>
-          <aside class="notes">
-            <p></p>
-          </aside>
-        </section>
-
-        <section data-background="images/notideal3.png">
-          <h2><strike>Scalable</strike></h2>
-          <p>Throttle / flow control / circuit breaker. Describe symptoms. Show snippet of code.</p>
-        </section>
-
-        <section data-background="images/notideal3.png">
-          <h2><strike>Scalable</strike></h2>
-          <p>Solution for the specific scenario.</p>
-        </section>
-
-        <section data-background="images/notideal3.png">
-          <h2><strike>Scalable</strike></h2>
-          <p>Horizontal scalling, new JVM's, embrase the cloud, Imutatble state </p>
-          <aside class="notes">
-            <p></p>
-          </aside>
-        </section>
-
         <section data-background="images/sinking_ship.jpg">
           <h2>Bulkheading</h2>
           <p><em>Divide</em> your application not only by functional area, but by classifaction of the problem</p>
@@ -273,15 +222,47 @@
           <h2>Backpressure</h2>
           <p>It is far better for your system to know what its dependencies can cope with, than to deal with the <em>big bang!</em></p>
           <aside class="notes">
-            <p>Two common themes we have touched on here is Bulkheading & Backpressure</p>
-            <ul>
-            <p>Bulkheading</p>
-            <li>This principle comes from ship building, where you would typically Bulkhead (divide) parts of the hull.  The aim to prevent the hole ship sinking due to damage in a section of the hull.   You can easily see this idea is easily applied to the architecture of an Akka application where you need to isolate the CPU intensive from the blocking IO, so not bring the hole application to a standstill. </li>
-            <p>Back-pressure</p>
-            <li>It is far better for your system to know what its dependencies can cope with, than to deal with the <em>big bang!</em>, encapsulate the slowness and allow that function to self-regulate its consumption rate.</li>
+            <p>Two common themes we have touched on here is Bulkheading &am[;] Backpressure</p>
+            <p>Bulkheading - This principle comes from ship building, where you would typically Bulkhead (divide) parts of the hull.  The aim to prevent the hole ship sinking due to damage in a section of the hull. You can easily see this idea is easily applied to the architecture of an Akka application where you need to isolate the CPU intensive from the blocking IO, so not bring the hole application to a standstill. </p>
+            <p>Back-pressure - It is far better for your system to know what its dependencies can cope with, than to deal with the <em>big bang!</em>, encapsulate the slowness and allow that function to self-regulate its consumption rate.</p>
             </ul>
           </aside>
         </section>
+
+        <section data-background="images/notideal1.jpg">
+          <h2><strike>Responsive</strike></h2>
+          <p>Blocking. Describe symptoms. Show snippet of code.</p>
+          <p>Show solution &amp; tuning approach for the specific snippet</p>
+          <p>Be asncyronous, real-time, open comms with the user.</p>
+          <aside class="notes">
+            <p>jaxb configuration example???- less reponsive / not just IO</p>
+          </aside>
+        </section>
+
+        <section data-background="images/notideal2.jpg">
+          <h2><strike>Resilient</strike></h2>
+          <p>Fails dramatically, failures spread / persist. Describe symptoms. Show snippet of code.</p>
+          <p>Show solution &amp; tuning approach for the specific snippet</p>
+          <p>Detect / Isolate / Heal</p>
+          <aside class="notes">
+            <p>Hibernate session is danmaged, every subsiquent call will be broken too.</p>
+            <p>recrete the instance</p>
+            <p>error in the Static init block, propegate error up.</p>
+             <p>Get to state you were in before the exception</p>
+          </aside>
+        </section>
+
+        <section data-background="images/notideal3.png">
+          <h2><strike>Scalable</strike></h2>
+          <p>Throttle / flow control / circuit breaker. Describe symptoms. Show snippet of code.</p>
+           <p>Solution for the specific scenario.</p>
+          <p>Horizontal scalling, new JVMs, embrase the cloud, Imutatble state </p>
+          <aside class="notes">
+            <p>slow down ... slow down ... 503</p>
+            <p>deal with back-pressure, flow limiter so that i will not send more than 10/sec<p>
+            <p>aggregation engine.</p>
+          </aside>
+        </section>   
 
         <!-- Monitoring -->
         <section data-background="images/everythingfine.jpg">
@@ -302,9 +283,9 @@
               <li>Is the 'mean' time in on-receive too high</li>
               <li>Do we have enough threads, and are those threads being blocked, utilised efficently?</li>
             </ul>
-              Monitoring gives an insight into the performance and flow of an application,
+            <p>Monitoring gives an insight into the performance and flow of an application,
               allowing us see hotspots, and areas of poor performance: increasing our visibility to what is occuring.
-              The aim is 24/7 uptime, preventing the big boom! How do you know that something's broken in time to do something about it? It is insufficient to monitor HTTP 500s, we want to have time to react before the 500s.
+              The aim is 24/7 uptime, preventing the big boom! How do you know that something's broken in time to do something about it? It is insufficient to monitor HTTP 500s, we want to have time to react before the 500s.</p>
           </aside>
         </section>
 
@@ -339,7 +320,6 @@
               <li>Reactive Monitor - Lightweight, configurable, muliple integrations, open source and improvements welcome.</li>
               <li>Kamon - gaining populatrity, muliple integrations also Aspect based.</li>
             </ul>
-             <p>We liked the Typesafe Console, but we needed an alternative solution for the client in Production. So, we scratched our own itch, and made the open source Reactive Monitor. Instead of targetting <em>only</em> statsd (with Datadog), we split the agents and the outputs.</p>
           </aside>
         </section>
 
@@ -370,526 +350,6 @@
           <p><big>Law of Murphy for devops: if thing can able go wrong, is mean is already wrong but you not have Nagios alert of it yet.</big></p>
         </section>
         
-        <!-- Production ready?
-        <section data-background="images/fineindev.jpg">
-          <h2>Worked fine in dev—ops problem now!</h2>
-          <p>We create actor systems in Akka (perhaps with REST APIs in Spray); modern web applications in Play, and we all like to think that these applications will attract <strike>thousands</strike> billions of users.</p>
-        </section>
-
-        <section data-background="images/monitor.jpg">
-          <h2>What to Monitor</h2>
-          <p>You want to see inside the Akka, Play Framework or Spray and know what is happening in the system's components.</p>
-          <p>&nbsp;</p>
-          <ul>
-            <li>Number / rates of messages</li>
-            <li>Sizes of queues</li>
-            <li>Duration of messages in queue</li>
-            <li>Time it takes to execute the <code>receive</code> PF</li>
-            <li>Number / rates of failures</li>
-            <li>The threads in the thread pools</li>
-          </ul>
-           <aside class="notes">
-             What metrics do you want to see, when the app is in production. 
-
-             During our consultancy, customers often complain that actors are black boxes. It is difficult to understand what the application is doing; especially if they come from a traditional JEE background.
-          </aside>
-        </section>
-
-        <section data-background="images/monitor.jpg">
-          <h2>Typesafe Console!</h2>
-          <img src="images/console.png"/>
-          <aside class="notes">
-            Typesafe Console! It looks great, and it gives in-depth stats on the actor system.
-          </aside>
-        </section>
-
-        <section data-background="images/monitor.jpg">
-          <h2>Typesafe Console!</h2>
-          <p>Brilliant, looks great, under low load its really impressive. We loved it, but ...</p>
-          <p>&nbsp;</p>
-          <ul>
-            <li>Production—unusable: too much data, memory usage, I/O</li>
-            <li>Development—great: gives in–depth view of the actor system</li>
-          </ul>
-          <aside class="notes">
-            But it records too much data and just eats resource when doing performance tests. 
-            In summary:
-            * production is a no go
-            * development is recomended, great for tracing the flow through the actor system. 
-          </aside>
-        </section>
-
-        <section data-background="images/monitor.jpg">
-          <h2>Reactive Monitor</h2>
-          <p>We wanted to record <em>just enough</em> information. Too much slows down the monitored system, too little lets events go unnoticed.</p>
-          <p>And we wanted to have a flexible mechanism to deliver the collected monitoring information.</p>
-          <p>&nbsp;</p>
-          <ul>
-            <li>Actor creation &amp; destruction.</li>
-            <li>Message types, message rates, failures and performance at the actor level</li>
-            <li>Queue size at the (local) actor level</li>
-            <li>The number of available and running threads in the <code>ThreadPool</code>s</li>
-          </ul>
-          <aside class="notes">
-            We liked the Typesafe Console, but we needed an alternative solution for the client. So, we scratched our own itch, and made the open source Reactive Monitor. Instead of targetting <em>only</em> statsd (with Datadog), we split the agents and the outputs.
-            At the highest level, the architecture is:
-          </aside>
-        </section>
-
-        <section data-background="images/monitor.jpg">
-          <h2>Reactive Monitor</h2>
-          <img src="images/architecture.png"/>
-        </section>
-
-        <section data-background="images/monitor.jpg">
-          <h2>We monitor</h2>
-          <pre><code data-trim class="scala">
-val system = ActorSystem()
-val x = system.actorOf(Props[XActor])
-val y = system.actorOf(Props[YActor])
-x ! "foo"
-y ! "foo"
-y ! 42
-          </code></pre>
-          <aside class="notes">
-            With this code, what sort of metrics can you get with our monitoring tool?
-          </aside>
-        </section>
-
-        <section data-background="images/monitor.jpg">
-          <h2>We monitor</h2>
-          <pre><code data-trim class="scala">
-x ! "foo"; y ! "foo"; y ! 42
-          </code></pre>
-          <img src="images/chart.png"/>
-        </section>
-
-        <section data-background="images/monitor.jpg">
-          <h2>We monitor</h2>
-          <pre><code data-trim class="scala">
-val system = ActorSystem()
-val x = system.actorOf(Props[XActor])
-val y = system.actorOf(Props[YActor])
-x ! "foo"
-y ! "foo"
-y ! 42
-          </code></pre>
-          <aside class="notes">
-            Remember, we do not want to have to modify our source code, nor do we want to maintain a custom
-            fork of Akka, Play, Spray, ...!
-
-            You source code stays the same...
-          </aside>
-        </section>
-
-        <section data-background="images/aspectj.jpg">
-          <h2>AspectJ</h2>
-          <p>It allows us to instrument Akka's and Play's bytecode as it is loaded by the <code>ClassLoader</code>s. We can do 
-            <em>anything</em> we like, as long as the instrumented bytecode verifies. </p>
-          <img src="images/ltw.png"/> 
-          <aside class="notes">
-            This is how we apply the agents into the application being monitored. We used AspectJ LTW to monkey-patch Akka's, Spray's and Play's JARs. This means that there are no custom builds of Akka, Spray or Play!
-          </aside>
-        </section>
-
-        <section data-background="images/aspectj.jpg">
-          <h2>AspectJ</h2>
-          <p>To <em>turn on</em> LTW, set the <code>-javaagent</code> JVM parameter, and add <code>/META-INF/aop.xml</code>.</p>
-          <pre><code data-trim class="xml">
-&lt;aspectj&gt;
-    &lt;aspects&gt;
-        &lt;aspect name="ActorCellMonitoringAspect"/&gt;
-        &lt;aspect name="DispatcherMonitoringAspect"/&gt;
-    &lt;/aspects&gt;
-    &lt;weaver options="-verbose -showWeaveInfo"&gt;
-        &lt;include within="akka.actor.*"/&gt;
-        &lt;include within="akka.dispatch.*"/&gt;
-        &lt;include within="scala.concurrent.*"/&gt;
-        &lt;include within="java.util.concurrent.*"/&gt;
-    &lt;/weaver&gt;
-&lt;/aspectj&gt;
-          </code></pre>
-          <aside class="notes">
-            aop.xml tells the weaver where to unleash its monkey-patching magic. In other words, we restrict the scope of the work that the weaver has to do.
-          </aside>
-        </section>
-
-        <section data-background="images/aspectj.jpg">
-          <h2>AspectJ</h2>
-          <pre><code data-trim class="java">
-public aspect ActorCellMonitoringAspect {
-
-  Object around(ActorCell actorCell, Object msg) : 
-    call(* a.a.ActorCell.receiveMessage(..)) 
-    &amp;&amp; args(msg) &amp;&amp; target(actorCell) {
-      // check configuration to see if we're interested
-      // publish 'delivered' events
-      // measuring performance
-      Object result = proceed(actorCell, msg);
-      // return null would do, but we are _proper_.
-      return result;
-  }
-}
-          </code></pre>
-        </section>
-
-        <section data-background="images/aspectj.jpg">
-          <h2>AspectJ</h2>
-          <pre><code data-trim class="java">
-public aspect DispatcherMonitoringAspect {
-
-  before(ExecutorService es) : 
-    call(* j.u.c.ExecutorService+.execute(..)) 
-    &amp;&amp; target(es) {
-      // publish 'active threads' count
-      // publish 'running threads' count
-    }
-
-}
-          </code></pre>
-        </section>
-
-        <section data-background="images/agent.jpg">
-          <h2>Agents</h2>
-          <ul>
-            <li><strong>Akka</strong> - measuring actor instances, their performance, failures, messages, message queues and threads</li>
-            <li><strong>Spray</strong> - measuring the HTTP requests, and bytes transferred</li>
-            <li><strong>Play</strong> - measuring the HTTP requests, controller performance and failures</li>
-          </ul>
-          <aside class="notes">
-            <p>Nota bene that Spray is based on Akka, so the I/O traffic is <em>in addition</em> to everything that the Akka agent measures</p>
-            <p>The agents are essentially a collection of aspects that instrument the interesting methods in their target, and report the information they collected to the configured <em>output</em> module.</p>
-          </aside>
-        </section>
-
-        <section data-background="images/agent.jpg">
-          <h2>Akka Agent</h2>
-          <p>We have some specific instrumenation around some of the useful intractions in the Akka framework, including support for both the Java and Scala APIs</p>
-          <p>&nbsp;</p>
-          <ul>
-            <li>Actor instances</li>
-            <li>Time in <code>receive</code> / <code>onRecieve(Object)</code></li>
-            <li>Mailbox size</li>
-            <li>Message time in mailbox</li>
-            <li>Exceptions</li>
-            <li>Executor / Thread data</li>
-          </ul>
-          <aside class="notes">
-            <p>instrumentation around specific akka interactions, i,e  Actor Count, Avg OnRecieve ...</p>
-          </aside>
-        </section>
-
-         <section data-background="images/agent.jpg">
-          <h2>Play Framework Agent</h2>
-          <p>Instrumenation around some of the useful intractions in the Play Framework, including support for both the Java and Scala APIs</p>
-          <p>&nbsp;</p>
-          <ul>
-            <li>HTTP requests (grouped by route)</li>
-            <li>Exceptions</li>
-          </ul>
-          <aside class="notes">
-            <p>instrumentation around specific Play interactions, i,e  Request Count grouped by Route / Path, Error / Exception count...</p>
-          </aside>
-        </section>
-
-         <section data-background="images/agent.jpg">
-          <h2>Spray Agent</h2>
-          <p>Provides instrumenation for the Spray libraries</p>
-          <p>&nbsp;</p>
-          <ul>
-            <li>HTTP requests</li>
-            <li>Overall request processing time</li>
-            <li>Marshaller / unmarshaller performance</li>
-            <li>Bytes transferred</li>
-          </ul>
-          <aside class="notes">
-            <p>Provide the hooks and instrumenation around around the spray Api, i,e  Request Count grouped by Route / Path, Error / Exception count.  in addtiion to all the metrics you get with the Akka agent...</p>
-          </aside>
-        </section>
-
-        <section data-background="images/output.jpg">
-          <h2>Output modules</h2>
-          <p>The aspects load configurable output modules. We scratched our own itch by implementing the statsd / Datadog output module, but we have two more!</p>
-          <p>&nbsp;</p>
-          <ul>
-            <li>statsd (with <a href="http://www.datadoghq.com/" target="_blank">Datadog</a> extensions)</li>
-            <li>DTrace (on Solaris, dummy elsewhere)</li>
-            <li>Codahale Metrics</li>
-          </ul>
-          <aside class="notes">
-          </aside>
-        </section>
-
-        <section data-background="images/output.jpg">
-          <h2>Statsd</h2>
-          <p>Really simple transport: strings up to 508 bytes long over UDP.</p>
-          <pre><code data-trim>
-aspect ':' value '|' type '|#' tag1 ',' tag2 ',' ...
-          </code></pre>
-          <p>For example, in our application</p>
-          <pre><code data-trim class="no-highlight">
-akka.actor.delivered:50|c|#↩
-  akka://default/user/x,akka.type:default.org...XActor
-akka.actor.delivered.Integer:50|c|#↩
-  akka://default/user/x,akka.type:default.org...XActor
-akka.actor.duration:99|ms|#↩
-  akka://default/user/x,akka.type:default.org...XActor
-          </code></pre>
-          <aside class="notes">
-            <p>statsd is a light-weight UDP-based protocol to send tracing information to anything that can understand the datagrams. The datagrams carry specifically-formatted strings. Hence Datadog (and others) can offer extensions to the standard stasd formats easily.</p>
-            <p>The <code>type</code> can be either 'c' for count—increments and decrements, 'g' for gauge—absolute value, and 'ms' for execution time.</p>
-            <p>We can get away with this—the minimum MTU on the internet is 576, the size of the IPv4 header at most 60 bytes, and the UDP header 8 bytes. This leaves 508 bytes available for the monitoring data.</p>
-          </aside>
-        </section>
-
-        <section data-background="images/output.jpg">
-          <h2>Statsd</h2>
-          <p>Most statsd tools can show very pretty charts.</p>
-          <img src="images/datadog.png"/>
-          <aside class="notes">
-            <p>There are plenty of tools that can listen for the statsd datagrams, and analyse the data. Typically, they have pretty user interfaces, charts, alerts, ...</p>
-          </aside>
-        </section>
-
-        <section data-background="images/output.jpg">
-          <h2>Statsd</h2>
-          <pre><code data-trim class="scala">
-class StatsdActor(remote: InetSocketAddress, 
-                  prefix: String) extends Actor {
-  IO(Udp) ! Udp.SimpleSender
-  def receive: Receive = {
-    case Udp.SimpleSenderReady =>
-      context.become(ready(sender))
-  }
-  def ready(send: ActorRef): Receive = {
-    case stat: StatsdStatistic =>
-      val payload = toByteString(stat, prefix)
-      send ! Udp.Send(payload, remote)
-  }
-}
-          </code></pre>
-          <aside class="notes">
-            <p>In keeping with the asynchronous approach, the I/O that this output module produces is isolated in its own <code>ActorSystem</code>. This means that the output module has as little impact on your application as possible.</p>
-            <p>its also note worthy that the datagrams are sent over UDP so even at a low level there is no blocking as the Ststad client is not waiting for an ack of the message.</p>
-            <p>so in summary, Statsd is lightwieght, simple first impl was only 137 lines long, widly supported, DataDog, Graphite etc.</p>
-          </aside>
-        </section>
-
-        <section data-background="images/output.jpg">
-          <h2>DTrace</h2>
-          <p>DTrace is kernel-level, production-ready, minimal-impact tracing mechanism.</p>
-          <pre><code data-trim class="bash">
-$ sudo dtrace -l
-ID   PROVIDER            MODULE     NAME
- 1     dtrace                       BEGIN
- 2     dtrace                       END
- 3     dtrace                       ERROR
- 4 nfsmapid804          nfsmapid    daemon-domain
- 5 kerberos800    mech_krb5.so.1    krb_ap_rep-make
-   ...
-33 akka2083         java_tracing    all-gauges
-34 akka2083         java_tracing    execution-time
-35 akka2083         java_tracing    all-counters          
-          </code></pre>
-          <aside class="notes">
-            <p>There are ports of DTrace from Solaris to Linux, NetBSD and others. Reactive Monitor adds probes using JVM's tracing APIs, and even though for example OS X includes dtrace, the JVM on OS X does not "talk" to dtrace.</p>
-            <p>DTrace's <em>probes</em> are roughly comparable to pointcuts: that is, they point to a specific location in execution flow. When the execution hits the probe, it fires.</p>
-            <p>One writes D programs that attach to the firing probes and execute C-like code. In the bodies of the probes, you can do arbitrary operations. Imagine, for example, being able to automatically modify the zone's CPUs, memory, and so on! In fact, this is what we're working on with Joyent. So go ahead and take a peek!</p>
-          </aside>
-        </section>
-
-        <section data-background="images/output.jpg">
-          <h2>DTrace</h2>
-          <p>The actual interface relies on the <em>internal</em> tracing API that the Oracle JDK and OpenJDK provides.</p>
-          <pre><code data-trim class="java">
-@ProviderName("akka")
-public interface DtraceCounterProvider 
-    extends com.sun.tracing.Provider {
-
-    @FunctionName("Receive execution time")
-    @ProbeName("execution-time")
-    void executionTime(String name, int length, 
-                       int duration);
-
-    ...
-}
-          </code></pre>
-          <aside class="notes">
-            <p>The annotations and the <code>Provider</code> interface itself are internal APIs; also notice that we have to be careful when sending the <code>String</code>s, and include the string's length and be sure that the character encoding is known. This will all become really important when we take a look at the D script that follows.</p>
-            <p>We then use JDK's tracing provider to get a JDK proxy that conforms to our interface, that—on Solaris—creates the DTrace entries when we call the interface's methods. Outside Solaris, we get a dummy implementation of this interface. We tried this on latest OS X, latest Ubunbu, latest CentOS, and Solaris 11; all with Oracle's JDK, and OpenJDK on OS X.</p>
-          </aside>
-        </section>
-
-        <section data-background="images/output.jpg">
-          <h2>DTrace</h2>
-          <p>The D program needs to copy in data from kernel space to the user space where the program runs.</p>
-          <pre><code data-trim class="D">
-akka$1:::exeucution-time {
-  printf("execution time: %s -> %d", 
-    stringof(copyin(arg0, arg1 + 1)), arg2);
-}
-
-akka$1:::all-counters {
-  printf("counter: %s -> %d", 
-    stringof(copyin(arg0, arg1 + 1)), arg2);
-}
-          </code></pre>
-          <pre><code data-trim class="bash">
-$ sudo dtrace -s script.d `pgrep java`
-          </code></pre>
-          <aside class="notes">
-            <p>Notice in particular the <code>copyin</code> and <code>stringof</code> calls. The first one deals with copying kernel memory from the pointer <code>arg0</code>, taking <code>arg1</code> bytes. This is exactly the place where one needs to be aware of string encoding (anyone fancies using unicode names for actor names?)</p>
-          </aside>
-        </section>
-
-        <section data-background="images/output.jpg">
-          <h2>Codahale Metrics</h2>
-          <p>A metrics library in Java (and Scala) that allows us to deliver measurement types similar to 
-          what statsd can do.</p>
-          <p>Unlike statsd, Metrics is the entire monitoing framework. It processes the information it receives, performs
-          the calculations we want, and exposes the measurements.</p>
-          <aside class="notes">
-            <p>It can expose the data using Ganglia (!!), statsd (!!), console, CSV, JMX, HTTP; all that you have to do is to bring in the specific dependencies, in addition to the <code>output-codahalemetris</code> module from Reactive Monitor</p>
-          </aside>
-        </section>
-
-        <section data-background="images/output.jpg">
-          <h2>Codahale Metrics</h2>
-          <pre><code data-trim class="scala">
-class MetricsCounterInterface 
-  extends CounterInterface with MetricsHandler {
-
-  def registry: MetricRegistry = ...
-  def marshaller: NameMarshaller = ...
-
-  def recordExecutionTime(aspect: String, 
-                          duration: Int, 
-                          tags: String*): Unit =
-    updateExecutionTime(aspect, duration, tags)
-  
-  ...
-}
-          </code></pre>
-        </section>
-
-        <section data-background="images/configuration.jpg">
-          <h2>Configuration</h2>
-          <p>The aspects need configuration for the <em>agent</em>s and <em>output</em>s.</p>
-          <p>&nbsp;</p>
-          <ul>
-            <li>Decide which actors to monitor</li>
-            <li>How to aggregate the monitoring data</li>
-            <li>How to deliver the monitoring data</li>
-          </ul>
-        </section>
-
-        <section data-background="images/configuration.jpg">
-          <h2>Configuration</h2>
-          <p>Typesafe Config-style files at well-known locations configure the agent and output modules.</p>
-          <p>&nbsp;</p>
-          <ul>
-            <li><code>/META-INF/monitor/agent.conf</code> for the agent</li>
-            <li><code>/META-INF/monitor/output.conf</code> for the output</li>
-          </ul>
-        </section>
-
-        <section data-background="images/configuration.jpg">
-          <h2>Configuration</h2>
-          <pre><code data-trim class="javascript">
-org.eigengo.monitor.agent {
-  output.class: "org...StatsdCounterInterface"
-
-  akka {
-    included: [
-      "akka:default.org...SimpleActor",
-      "akka://default/user/x"
-    ]
-    sampling: [
-      { rate: 5, for: [ "akka://default/user/*" ] }
-    ]
-  }
-}          
-          </code></pre>
-        </section>
-
-        <section data-background="images/configuration.jpg">
-          <h2>Configuration</h2>
-          <pre><code data-trim class="javascript">
-org.eigengo.monitor.output.statsd {
-    prefix: ""
-    remoteAddress: "localhost"
-    remotePort: 8125
-    refresh: 5
-    initialDelay: 5
-    constantTags: []
-}
-          </code></pre>
-          <pre><code data-trim class="javascript">
-org.eigengo.monitor.output.codahalemetrics {
-    registry-class: "org...DefaultRegistryProvider"
-    naming-class:   "org...DefaultNameMarshaller"
-    prefix: ""
-    refresh: 5
-}
-          </code></pre>
-        </section>
-
-        <section data-background="images/angrymob.jpg">
-          <h2>Into the battle!</h2>
-          <ul>
-            <li>Dependencies for the agents and output modules you require
-              <pre><code data-trim class="scala">
-"org.eigengo.monitor" % "agent-akka"    % "0.4",
-"org.eigengo.monitor" % "output-statsd" % "0.4"
-              </code></pre>
-            </li>
-            <li>Agent configuration in <code>/META-INF/monitor/agent.conf</code><br/>
-              and—if required—<br/>
-              Output configuration in <code>/META-INF/monitor/output.conf</code></li>
-            <li><code>/META-INF/aop.xml</code> to give configuration to the weaver</li>
-          </ul>
-        </section>
-
-        <section data-background="images/angrymob.jpg">
-          <h1>Demo</h1>
-          <p>Let's add monitoring to statsd &amp; Datadog to an Akka application</p>
-          <img src="images/activatorapp.png"/>
-        </section>
-        
-        <section data-background="images/production.jpg">
-          <h2>War stories?</h2>
-          <br/><br/>
-          <p>What have we learnt in building the Reactive Monitor?</p>
-          <p>&nbsp;</p>
-          <p>What have we learnt in building a large Akka system?</p>
-          <aside class="notes">
-              Well, yes it is possible to Monitor too much, you need to be pragmatic over the metrics you want to record and you should always `sample`.  Nothing comes for free, the more you monitor the more data is sent over the wire the more computation that is performed.  
-
-              But it is a nessarary evil, the visibility and the insight into the app montoring provides is invaluable in production.  
-
-              So one of our clients hired us to write a large Akka system that could serve millions of requests a day, early on in the project we had enough functionlaity to start running some performance tests.
-
-              Im sure this has happended to all of us at some point in the past, your first performance tests just sit there, not really taking hardware resource, essentially just "blocking". 
-             
-              We saw via the monitor mailbox queues growing, mean-time in 'onRecieve()' being too high. arrrrhhhhh...
-          </aside>
-        </section>
-
-        <section data-background="images/production.jpg">
-          <h2>Analysed the architecture</h2>
-          <p>CPU-intensive (XML parsing)</p>
-          <p>Non-reactive / blocking third-party libraries (DB drivers, ....)</p>
-          <p>Reactive libraries (Async HTTP)</p>
-          <aside class="notes">
-              So we looked at the architecture, as in most big systems, we had a mixed bad of tech:
-              CPU-intensive  - Churning through lots of Data, big XML files, Big Data problems
-              Non-reactive - Legacy code, Blocking Libraries database integration etc...
-              lots of Awesome Reactive stuff, Async Http, async db drivers all none blocking.
-              and of cause then Actor system its self.  This all looked good, we had split the functional areas up into Actors or Sets of Actors all seemed nicely cohesive.  
-              Then light bulb momment...
-          </aside>
-        </section>
-        -->
       </div>
 
     </div>
