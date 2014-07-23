@@ -79,15 +79,15 @@
         <section data-background="images/basics.jpg">
           <h2>The basics</h2>
           <ul>
+            <li>Your actors form hierarchies, and you have only a few top–level actors</li>
             <li>Defined supervisor strategies</li>
             <li>When creating actors, set the dispatcher, router and mailbox</li>
-            <li>Your actors form hierarchies, and you have only a few top–level actors</li>
             <li>You do not allow actor's state to escape</li>
           </ul>
           <aside class="notes">
-            <p>You must have supervisor strategies, otherwise, you have no hope of being resilient.</p>
+            <p>The top-level actors are not part of any supervision chain that you control. If the top-level actor fails, the entire system fails. In proper Akka system a parent actor creates and then supervises its children.</p>
+            <p>You must have supervisor strategies, otherwise, you have no hope of being resilient. Of course, being resilient does not mean magically handling any exceptions. It means being able to get to a known and stable state after the error. </p>
             <p>The configuration for the actors (mailboxes, routers, dispatchers, ...) is configured in a well-known place. If the actor configuration needs some logic, have it all in code; if the configuration requires no logic at all, keep it in the configuration file. But do not mix the approaches. <code>system.actorOf(Props[FooActor])</code> is almost always bad.</p>
-            <p>The top-level actors are not part of any supervision chain that you control. If the top-level actor fails, the entire system fails.</p>
             <p>It is often tempting to send back a function that closes over the state as the response from an actor, but that is <em>always</em> a terrible idea. (Ignoring for now the problem of sending the closed-over variables and the function to some <em>remote</em> actor, this sort of horror immediately puts you back into the raw Java concurrency world.)</p>
           </aside>
         </section>
@@ -115,12 +115,12 @@
             <li>Routers allow a number of actors to process the incoming messages</li>
           </ul>
           <aside class="notes">
-            <p>In the Akka world, the dispatchers define the mailbox sharing strategy, and schedule the delivery of the messages between the actors. We have four dispatchers baked into Akka.</p>
+            <p>In the Akka world, the dispatchers define the mailbox sharing strategy, and schedule the delivery of the messages between the actors. We have three dispatchers baked into Akka.</p>
             <ul>
               <li>[The default] Dispatcher sets each actor with its own mailbox; it is shareable amongst other actors; backed by thread pool or F-J pool. Optimised for non-blocking code.</li>
               <li>Pinned dispatcher sets each actor with its own mailbox; non-shareable amongst other actors—creates dedicated thread for each actor; backed by thread pool; optimised for blocking or CPU-bound operations</li>
               <li>Balancing dispatcher sets one mailbox for all actors; shareable only amongst actors of the same kind; backed by thead pool or F-J pool</li>
-            </li>
+            </ul>
             <p>Mailbox holds the messages delivered to the actor. The dispatcher decides how actors share the mailbox, delivers the message to the mailbox, and schedules the actor's <code>receive</code> function. There are about 8 different type of mailboxes; the general theme is that mailboxes can be (bounded or unbounded (bad!)) and (arbitrary or prioritised) and (transitent or persistent). There's plenty of detail in the Akka documentation—the thing we'll mention here, and many more times in the talk, is that unbounded is BAD!</p>
             <p>Router manages and maintains its routees. The dispatcher delivers a message to the router, and depending on the routing strategy, it decides how to deliver it to one of its routees. The strategies are:</p>
             <ul>
@@ -206,7 +206,7 @@
           <aside class="notes">
             <p>Here, we mean integratation with libraries that block threads; that—once they fail, they keep failing; services that you know (or suspect) are not scalable.</p>
             <ul>
-              <li>not responsive &rarr; bulkhead thread-pools and executors</li>
+              <li>not responsive &rarr; bulkhead thread-pools and executors, identify and isolate</li>
               <li>not resilient &rarr; bulkhead failures, define good supervisor strategies</li>
               <li>not scalable &rarr; implement flow control / back pressure reporting or a hard circuit-breaker</li>
             </ul>
@@ -230,36 +230,51 @@
 
         <section data-background="images/notideal1.jpg">
           <h2><strike>Responsive</strike></h2>
-          <p>Blocking. Describe symptoms. Show snippet of code.</p>
+          <ul>
+            <li>The system does not react to the messages as soon as they arrive</li>
+            <li>Blocking I/O</li>
+            <li>Synchronisation</li>
+          </ul>
           <p>Show solution &amp; tuning approach for the specific snippet</p>
           <p>Be asncyronous, real-time, open comms with the user.</p>
           <aside class="notes">
-            <p>jaxb configuration example???- less reponsive / not just IO</p>
+            <p>By <em>react to</em> we mean to send some response within the expected timeout. Even if the response is "I'm too busy" or "Slow down". At least the sender knows that this system is alive, it can deal with it. If the system sends no response (i.e. not responsive), then the sender cannot make any reasonable decisions.</p>
+            <p>In blocking I/O all sorts of horrible things happen. You consume threads, which represent overhead for the kernel, but these threads are not doing anything useful. It's worse: the OS knows that the thread is blocked, and it may decide to put the CPU in a reduced-power state. Once the thread then wakes up (i.e. the data is available), everything (memory access) takes much longer. </p>
+            <p>Second culprit is using synchronisation (notice the British spelling!—do not paste that into your IDE), which attempts to serialise parallel processes. In Akka, think <code>Await.ready</code> or <code>Await.result</code>. This is bad code. Futures zip together, one does not await.</p>
+            <p>For the pointy-haired listeners, if you're not using the cloud machines to their full potential, you're wasting money!</p>
+            <p>One other example from the battlefield: remember that number or string crunching can feel like blocking. In one of our systems, we found badly configured JAXB marshaller. We were needlessly creating and dropping its instances, which ate a lot of CPU time, and it made our system to be less responsive.</p>
+            <p>Time in the <code>receive</code> handler increased, the number of available threads decresed.</p>
           </aside>
         </section>
 
         <section data-background="images/notideal2.jpg">
           <h2><strike>Resilient</strike></h2>
-          <p>Fails dramatically, failures spread / persist. Describe symptoms. Show snippet of code.</p>
-          <p>Show solution &amp; tuning approach for the specific snippet</p>
-          <p>Detect / Isolate / Heal</p>
+          <ul>
+            <li>Failures start and then never stop</li>
+            <li>Failures spread throughout the system</li>
+          </ul>
           <aside class="notes">
-            <p>Hibernate session is danmaged, every subsiquent call will be broken too.</p>
-            <p>recrete the instance</p>
-            <p>error in the Static init block, propegate error up.</p>
-             <p>Get to state you were in before the exception</p>
+            <p>Resilient means the ability to get to state you were in before the exception.</p>
+            <p>Not resilient &rarr; cannot recover from an inconsistent state on its own.</p>
+            <p>Library that once it gives exception, it always gives exception. I.e Hibernate session is danmaged, every subsiquent call will be broken too.</p>
+            Here, a supervisor strategy will probably solve it, maybe re-initalise the the Hibernate session and restart the affected children.</p>
+            <p>Although it could be worse. Maybe the error in the static initialisation block—it runs when the class is loaded into the JVM. Now, even a supervisor strategy cannot save you. (Unless you can do some magic with class loader). So, just propegate the error up. Kill the JVM. Which is fine, you are scalable, running multiple nodes, stateless. Everything should just work. If you are unsure, unleash the chaos army and see what happens.</p>
+            <p>An example of failures spreading to other parts of the system is lazy marshalling, or say JPA. An actor can receive an instance of <code>User</code>, but when it calls its <code>roles</code> accessor, it throws <code>JpaException</code>. You can see that catching exceptions is not a solution, unless you have a pokemon handler. And that's no good, either. Supervise, restart and escalate depending on the problem.</p>
           </aside>
         </section>
 
         <section data-background="images/notideal3.png">
           <h2><strike>Scalable</strike></h2>
-          <p>Throttle / flow control / circuit breaker. Describe symptoms. Show snippet of code.</p>
-           <p>Solution for the specific scenario.</p>
-          <p>Horizontal scalling, new JVMs, embrase the cloud, Imutatble state </p>
+          <ul>
+            <li>Cannot deal with the load you are putting on it</li>
+            <li>Cannot report any back-pressure</li>
+            <li>Costs money for extensive load</li>
+          </ul>
           <aside class="notes">
-            <p>slow down ... slow down ... 503</p>
-            <p>deal with back-pressure, flow limiter so that i will not send more than 10/sec<p>
-            <p>aggregation engine.</p>
+            <p>You are relying on a component (think payment gateway) that you know (perhaps you signed a piece of paper) cannot scale. It is your responsibility to be nice to that component.</p>
+            <p>You need to implement your own flow control, perhaps even a circuit-breaker. A flow control allow you to keep wihtin the component's limits, and to report back to your system if it is exceeding those limits. A circuit breaker is the big-red-button that can stop all requests reaching that component.</p>
+            <p>Did we say you should have some sort of management API for your application? It could be as simple as another set of REST endpoints, or JMX mbeans.</p>
+            <p>Akka (and Akka Streams) gives you the tools, you just have to be aware of what these tools are, and know the right situations to deploy them.</p>
           </aside>
         </section>   
 
