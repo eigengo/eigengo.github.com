@@ -235,8 +235,6 @@
             <li>Blocking I/O</li>
             <li>Synchronisation</li>
           </ul>
-          <p>Show solution &amp; tuning approach for the specific snippet</p>
-          <p>Be asncyronous, real-time, open comms with the user.</p>
           <aside class="notes">
             <p>By <em>react to</em> we mean to send some response within the expected timeout. Even if the response is "I'm too busy" or "Slow down". At least the sender knows that this system is alive, it can deal with it. If the system sends no response (i.e. not responsive), then the sender cannot make any reasonable decisions.</p>
             <p>In blocking I/O all sorts of horrible things happen. You consume threads, which represent overhead for the kernel, but these threads are not doing anything useful. It's worse: the OS knows that the thread is blocked, and it may decide to put the CPU in a reduced-power state. Once the thread then wakes up (i.e. the data is available), everything (memory access) takes much longer. </p>
