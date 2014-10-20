@@ -53,7 +53,174 @@
         </section>
 
         <section>
+          What are we solving?
+          CAP
+        </section>
+
+        <section>
+          CAP
+          <aside class="notes">
+            <ul>
+              <li>Consistency - A read is guaranteed to return the most recent write for a given client.</li>
+              <li>Availability - A non-failing node will return a reasonable response within a reasonable amount of time (no error or timeout).</li>
+              <li>Partition Tolerance - The system will continue to function when network partitions occur.</li>
+            </ul>
+            <p>Given that networks aren't completely reliable, you must tolerate partitions in a distributed system, period. Fortunately, though, you get to choose what to do when a partition does occur. According to the CAP theorem, this means we are left with two options: consistency and availability.</p>
+            <ul>
+              <li>CP: Atomic writes, but could bring timeouts</li>
+              <li>AP: Return the latest thing a node is aware of, which may be stale</li>
+            </ul>
+          </aside>
+        </section>
+
+        <section>
+          A quiz—what is CA?
+          <aside class="notes">
+            <p>Think "traditional" RDBMSs</p>
+          </aside>
+        </section>
+
+        <section>
+          The biggest impediment for scale is shared mutable state (to be precise: contended access to shared mutable state). As soon as you have shared mutable state, you need to guard that state through a gateway of serial access, which means adding coordination and mutual exclusion, and that adds contention—services waiting in line for access the shared state. Contention is the biggest scalability killer.
+        </section>
+
+        <section>
+          My advice would be to start off by trying to make your problem fit an eventually consistent, share-nothing design, with components communicating through asynchronous message-passing and in the few places where you need strong consistency then bite the bullet and pay the price. Then you will end up with an architecture that with very few bottlenecks, great scalability and elasticity characteristics and no single point of failure.
+        </section>
+
+        <section data-background="images/reactive.jpg">
+          <h2>Reactive applications are</h2>
+          <ul>
+            <li>Event-driven</li>
+            <li>Elastic</li>
+            <li>Resilient</li>
+            <li>Responsive</li>
+          </ul>
+        </section>
+
+        <section data-background="images/reactive.jpg">
+          <h2>It's not <em>just good architecture</em></h2>
+          <aside class="notes">
+            <p>The reactive manifesto describes new class of problems that a new class of applications throw at us. We are no longer in control of the inputs that our applications need to process. Think information from mobiles, wearables, and other devices that just keep arriving, and we have to process it. If this sounds too far-fetched, imagine building a new game (or even perhaps some analytics component of a game).</p>
+            <p>And that ignores applications that are business-critical or process sensitive information. Imagine building a biometric surveillance system, which needs to detect dangerous intruders, and notify police / security. Data from the cameras are arriving all the time, and responses have to be sent out in every situation. It is unacceptable for such system to be unavailable.</p>
+            <p>Unfortunately, I cannot say anything about real-time and life-critical systems!</p>
+          </aside>
+        </section>
+
+        <section data-background="images/reactive.jpg">
+          <h2>Event-driven</h2>
+          <ul>
+            <li>Events carry information between application's components</li>
+            <li>Events do not change</li>
+            <li>The event delivery is <em>asynchronous</em> and <em>non-blocking</em></li>
+          </ul>
+          <aside class="notes">
+            <p>(1) Loose coupling between the components. Once an application is event-driven, it becomes
+            easier to implement the remaining reactive traits.</p>
+            <p>(2) Since the events are immutable, it is possible to persist them and replay them in case
+            of system failures. This would not be possible if events were mutable.</p>
+            <p>(3) There are many different asynchronous boundaries. Events represent mechanism to carry
+            information accross these boundaries. The boundary could be
+            <ul>
+              <li>between CPU sockets</li>
+              <li>between threads</li>
+              <li>between network nodes</li>
+            </ul>
+            It is important to be able to cross this boundary as efficiently as possible. Unfortunately, crossing
+            the boundary always involves cost: cache coherency, I/O waits, ...; therefore, it is important to make
+            as much of the computing and I/O power available.</p>
+          </aside>
+        </section>
+
+        <section data-background="images/reactive.jpg">
+          <h2>Elastic</h2>
+          <ul>
+            <li>The ability to flex the number of components in the system according to demand</li>
+            <li>The components can be single CPU cores, individual machines or clusters of machines</li>
+          </ul>
+          <aside class="notes">
+            <p>(1) Remember, no language of framework is going to give you this for free.</p>
+            <p>(2) To do this, one should be event-driven. If one is able to pass data across the asynchronous boundaries, then one is able to scale the systems by simply scheduling the execution of the messages on different CPUs. Additionally, in the actor concurrency model, an actor does not map to a single thread.</p>
+            <p>(2) It is possible to scale by just replicating the same monolithic applications, but that may not be the most efficient use of the computing resources. And, running things on the cloud without using the machines fully is the most expensive hosting platform you'll ever have.</p>
+          </aside>
+        </section>
+
+        <section data-background="images/reactive.jpg">
+          <h2>Resilient</h2>
+          <ul>
+            <li>Ability to recover from errors at the appropriate level</li>
+            <li>Ability to stop errors from spreading throughout the application</li>
+          </ul>
+          <aside class="notes">
+            <p>(1) That does not mean being magically able to handle all exceptions. Recover here means to get back to 
+            a stable state / state before the error ocurred.</p>
+            <p>(1) The errors could be <em>a response that should have arrived in 1000 ms did not arrive</em>, the application should react at the appropriate level. Recall though that all message-passing is asynchronous, which "forces" us to think of the possible edge-cases from the outset.</p>
+            <p>(2) Bulkheading is one such technique, where the application is divided into areas that are independent. Recall again how being event-driven makes this a lot easier.</p>
+          </aside>
+        </section>
+
+        <section data-background="images/reactive.jpg">
+          <h2>Responsive</h2>
+          <ul>
+            <li>Provide timely response even when dealing with failures</li>
+            <li>Release the underlying OS primitives as soon as possible</li>
+          </ul>
+          <aside class="notes">
+            <p>(1) This could be <em>I'm broken</em> delivered in place of the expected message, but delivered nonetheless. It is not acceptable to just hang, and not reply with anything at all.</p>
+            <p>(2) Blocking threads is the source of non-responsiveness. And no, you cannot just arbitrarily increase the number of threads. Each thread is overhead in the kernel space; additionally, thread context switches represent cache coherency probkems, a blocking call might cause the CPU to enter sleep state, the OS might clear the FS caches, ...</p>
+          </aside>
+        </section>
+
+        <section data-background="images/reactive.jpg">
+          <h2>Frameworks &amp; tools</h2>
+          <ul>
+            <li>RxJava (JVM), Akka (JVM), <br/>Reactive Extensions (.NET)</li>
+            <li>Erlang/OTP, Elixir/OTP (Beam)</li>
+          </ul>
+          <hr/>
+          <ul>
+            <li>core.async (JVM), <br/>Akka Streams (JVM)</li>
+            <li>Asynchronous workflows (.NET)</li>
+            <li>Async functions (ECMASCript 6)</li>
+          </ul>
+          <aside class="notes">
+            <p>(1.1) Observable. Note that there is a <em>duality</em> between observable and iterable. You can think of observable as collection in time, and iterable as collection in space. In both cases, you can only go forward, and there may not be an upper bound on the number of values you will observe or iterate over.</p>
+            <p>The manifesto does not prescribe any implementation. You are free to use the Haskell Rx extensions if you like. All that you have to do is to satisfy the four traits of the manifesto. I have slight beef with the fact that the manifesto does not include any TCK. Unlike, say, the reactive streams project, which also aims to be language-agnostic, but provides test compatiblity kit, allowing you to verify that your implementation satisfies the specification.</p>
+          </aside>
+        </section>
+
+        <section>
+          Shit DDD guys say
+          - aggregate roots
+          - ...
+        </section>
+
+        <section>
           Transient -> Durable -> CQRS/ES
+        </section>
+
+        <section>
+          The big guns: Akka Cluster
+          - sharding
+          - activation / passivation
+        </section>
+
+        <section>
+          Operations
+          - Docker
+          - Mesos
+        </section>
+
+        <section>
+          Day to day tooling
+          - Scala, Akka (including -streams, -persistence, -http/Spray)
+          - Slick
+          - Shapeless, Scalaz
+          - Sbt
+        </section>
+
+        <section data-background="images/qa.jpg">
+          <h2>Q&amp;A</h2>
         </section>
           
         <section data-background="images/devops.jpg">

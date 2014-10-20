@@ -66,7 +66,7 @@
           <h2>It's not <em>just good architecture</em></h2>
           <aside class="notes">
             <p>The reactive manifesto describes new class of problems that a new class of applications throw at us. We are no longer in control of the inputs that our applications need to process. Think information from mobiles, wearables, and other devices that just keep arriving, and we have to process it. If this sounds too far-fetched, imagine building a new game (or even perhaps some analytics component of a game).</p>
-            <p>And that ignores applications that are business-critical or process sensitive information. Imagine building a biometric surveillance system (say hi to Andrew), which needs to detect dangerous intruders, and notify police / security. Data from the cameras are arriving all the time, and responses have to be sent out in every situation. It is unacceptable for such system to be unavailable.</p>
+            <p>And that ignores applications that are business-critical or process sensitive information. Imagine building a biometric surveillance system, which needs to detect dangerous intruders, and notify police / security. Data from the cameras are arriving all the time, and responses have to be sent out in every situation. It is unacceptable for such system to be unavailable.</p>
             <p>Unfortunately, I cannot say anything about real-time and life-critical systems!</p>
           </aside>
         </section>
@@ -145,7 +145,7 @@
           <ul>
             <li>core.async (JVM), <br/>Akka Streams (JVM)</li>
             <li>Asynchronous workflows (.NET)</li>
-            <li>Async functions (ECMASCript 7)</li>
+            <li>Async functions (ECMASCript 6)</li>
           </ul>
           <aside class="notes">
             <p>(1.1) Observable. Note that there is a <em>duality</em> between observable and iterable. You can think of observable as collection in time, and iterable as collection in space. In both cases, you can only go forward, and there may not be an upper bound on the number of values you will observe or iterate over.</p>
