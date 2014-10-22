@@ -52,13 +52,43 @@
           </p>
         </section>
 
-        <section>
-          What are we solving?
-          CAP
+        <section data-background="images/intro.jpg">
+          <h2>What are these large systems?</h2>
+          <ul>
+            <li>Are distributed across multiple nodes</li>
+            <li>Need to be elastic</li>
+            <li>Need to be responsive</li>
+            <li>Need to be resilient</li>
+          </ul>
+          
+          <aside class="notes">
+            <p>One distributes the system because the entities it manages are too big to fit into one node, and to achieve resilience &amp; elasticity.</p>
+            <p>Distribution unfortunately brings challenges when it comes to consistency, availability and partition tolerance.</p>
+            <p>The biggest impediment for scale is shared mutable state (to be precise: contended access to shared mutable state). As soon as you have shared mutable state, you need to guard that state through a gateway of serial access, which means adding coordination and mutual exclusion, and that adds contention—services waiting in line for access the shared state. Contention is the biggest scalability killer.</p>
+          </aside>
         </section>
 
-        <section>
-          CAP
+        <section data-background="images/cthulhu.jpg">
+          <h2>Shared mutable state</h2>
+          <ul>
+            <li>Contended shared mutable state model</li>
+            <li>Non-contentded shared mutable state model</li>
+            <li>Eventually-consistent, share-nothing model</li>
+          </ul>
+          <aside class="notes">
+            <p>The biggest impediment for scale is shared mutable state (to be precise: contended access to shared mutable state). As soon as you have shared mutable state, you need to guard that state through a gateway of serial access, which means adding coordination and mutual exclusion, and that adds contention—services waiting in line for access the shared state. Contention is the biggest scalability killer.</p>
+
+            <p>My advice would be to start off by trying to make your problem fit an eventually consistent, share-nothing design, with components communicating through asynchronous message-passing and in the few places where you need strong consistency then bite the bullet and pay the price. Then you will end up with an architecture that with very few bottlenecks, great scalability and elasticity characteristics and no single point of failure.</p>
+          </aside>
+        </section>
+
+        <section data-background="images/cthulhu.jpg">
+          <h2>CAP</h2>
+          <ul>
+            <li>Consistency</li>
+            <li>Availability</li>
+            <li>Partition tolerance</li>
+          </ul>
           <aside class="notes">
             <ul>
               <li>Consistency - A read is guaranteed to return the most recent write for a given client.</li>
@@ -70,22 +100,8 @@
               <li>CP: Atomic writes, but could bring timeouts</li>
               <li>AP: Return the latest thing a node is aware of, which may be stale</li>
             </ul>
+            <p>A quiz—what is CA?—Think "traditional" RDBMSs</p>
           </aside>
-        </section>
-
-        <section>
-          A quiz—what is CA?
-          <aside class="notes">
-            <p>Think "traditional" RDBMSs</p>
-          </aside>
-        </section>
-
-        <section>
-          The biggest impediment for scale is shared mutable state (to be precise: contended access to shared mutable state). As soon as you have shared mutable state, you need to guard that state through a gateway of serial access, which means adding coordination and mutual exclusion, and that adds contention—services waiting in line for access the shared state. Contention is the biggest scalability killer.
-        </section>
-
-        <section>
-          My advice would be to start off by trying to make your problem fit an eventually consistent, share-nothing design, with components communicating through asynchronous message-passing and in the few places where you need strong consistency then bite the bullet and pay the price. Then you will end up with an architecture that with very few bottlenecks, great scalability and elasticity characteristics and no single point of failure.
         </section>
 
         <section data-background="images/reactive.jpg">
@@ -189,20 +205,105 @@
           </aside>
         </section>
 
-        <section>
-          Shit DDD guys say
-          - aggregate roots
-          - ...
+        <section data-background="images/maderakka.jpg">
+          <h2>Akka</h2>
+          <ul>
+            <li>Actor concurrency toolkit and runtime</li>
+            <li>Akka isolates us from the mechanism of message passing and execution</li>
+            <li>Actors handle messages</li>
+            <li>Actors form hierarchies with parents supervising children</li>
+          </ul>
         </section>
 
-        <section>
-          Transient -> Durable -> CQRS/ES
+        <section data-background="images/maderakka.jpg">
+          <h2>Actors everywhere</h2>
+          <pre><code data-trim class="scala">
+class HelloWorldService extends Actor {
+
+  def receive: Receive = {
+    case request: HttpRequest =>
+      val response = HttpResponse(...)
+      sender ! response
+  }
+
+}
+          </code></pre>          
         </section>
 
-        <section>
-          The big guns: Akka Cluster
-          - sharding
-          - activation / passivation
+        <section data-background="images/maderakka.jpg">
+          <h2>Actors everywhere</h2>
+          <pre><code data-trim class="scala">
+class HelloWorldServiceSpec 
+  extends TestKit(ActorSystem())
+  with SpecificationLike with ImplicitSender {
+  val service = TestActorRef[HelloWorldService]
+
+  "Any request" should {
+    "Reply with Hello, world" in {
+      service ! HttpRequest()
+      expectMsgType[HttpResponse].entity 
+        mustEqual HttpEntity("Hello, world")
+    }
+  }
+}
+          </code></pre>
+        </section>
+
+        <section data-background="images/maderakka.jpg">
+          <h2>Actors everywhere</h2>
+          <pre><code data-trim class="scala">
+object HelloWorld extends App {
+  val system = ActorSystem()
+  val service = 
+    system.actorOf(Props[HelloWorldService])
+
+  IO(Http)(system) ! Http.Bind(
+    service, "0.0.0.0", port = 8080)
+
+  Console.readLine()
+  system.shutdown()
+}          
+
+class HelloWorldService extends Actor { ... }
+          </code></pre>
+        </section>
+
+        <section data-background="images/intro.jpg">
+          <h2>Expanding the world</h2>
+          <ul>
+            <li>Multiple load-balanced instances of actor systems, each with its API</li>
+            <li>A cluster of actor systems, each with its API</li>
+          </ul>
+          <aside class="notes">
+            <p>In the first case, you have brushed away the [contended] shared mutable state to some DB. Multiple simple nodes that all connect to
+            the same DB. Think of the scenario where one receives a write request, makes the updates, and replies with the changed state. Once the change hits the DB, all other nodes see that change on read. (T&amp;Cs applying, of course.) Nevertheless, it is very different from the clustered model.</p>
+            <p>In the cluster model, we recognise the nature of distributed systems, and settle for weaker consistency models. A valid request will at some point be processed, but no shared mutable state escapes the application. </p>
+          </aside>
+        </section>
+
+        <section data-background="images/blueprint.jpg">
+          <h2>Terminology</h2>
+          <ul>
+            <li>Commands—inputs that needs validation, and may result in multiple events</li>
+            <li>Events—validated commands that we <i>promise</i> to process</li>
+            <li>Query—a "read command"</li>
+          </ul>
+        </section>
+
+        <section data-background="images/blueprint.jpg">
+          <img src="images/transient.png"/>
+        </section>
+
+        <section data-background="images/blueprint.jpg">
+          <img src="images/es.png"/>
+        </section>
+
+        <section data-background="images/blueprint.jpg">
+          <img src="images/cqrs-es.png"/>
+        </section>
+
+        <section data-background="images/blueprint.jpg">
+          <img src="images/cluster.png"/>
         </section>
 
         <section data-background="images/football.jpg">
@@ -237,18 +338,14 @@ val playerMatchRegion: ActorRef =
         <section data-background="images/football.jpg">
 <pre><code data-trim class="scala">
 val idExtractor: ShardRegion.IdExtractor = {
-  case Score(player, match, goal) ⇒ 
-    (player + match, goal)
-  case stats@Stats(player, match) ⇒ 
-    (player + match, stats)
+  case Score(p, m, g)    ⇒ (p + m, g)
+  case stats@Stats(p, m) ⇒ (p + m, stats)
 }
  
 val shardResolver: ShardRegion.ShardResolver = 
   msg ⇒ msg match {
-    case Score(player, match, goal) ⇒ 
-      player + match
-    case Stats(player, match)       ⇒ 
-      player + match
+    case Score(p, m, g) ⇒ p + m
+    case Stats(p, m)    ⇒ p + m
   }
 </code></pre>
         </section>
@@ -264,25 +361,27 @@ playerMatchRegion !
   Score("Weasley", "Gryffindor v. Ravenclaw", Quaffle)
 playerMatchRegion ! 
   Score("Potter",  "Gryffindor v. Ravenclaw", Snitch)
-
-playerMatchRegion ! 
-  Stats("Potter", "Gryffindor v. Ravenclaw")
-expectMsg Snitch
 </code></pre>
         </section>
 
-        <section>
-          Operations
-          - Docker
-          - Mesos
+        <section data-background="images/blueprint.jpg">
+          <h2>Tooling</h2>
+          <ul>
+            <li>Scala</li>
+            <li>Akka (including -persistence, -cluster, -streams, -persistence, -http)</li>
+            <li>Spray</li>
+            <li>Slick</li>
+            <li>Shapeless, Scalaz</li>
+            <li>Sbt</li>
+          </ul>
         </section>
 
-        <section>
-          Day to day tooling
-          - Scala, Akka (including -streams, -persistence, -http/Spray)
-          - Slick
-          - Shapeless, Scalaz
-          - Sbt
+        <section data-background="images/ops.jpg">
+          <h2>DevOps</h2>
+          <ul>
+            <li>Docker</li>
+            <li>Mesos</li>
+          </ul>
         </section>
 
         <section data-background="images/qa.jpg">
