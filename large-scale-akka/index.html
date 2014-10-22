@@ -205,6 +205,72 @@
           - activation / passivation
         </section>
 
+        <section data-background="images/football.jpg">
+            <pre><code data-trim class="scala">
+class MatchPlayer extends PersistentActor {
+  import ShardRegion.Passivate
+  context.setReceiveTimeout(45.minutes)
+
+  var playerId: PlayerId = _
+  var matchId: MatchId   = _
+  var goals: List[Goal]  = _
+  
+  override val persistenceId: String = ???
+
+  override def receiveCommand: Receive = ???
+}
+            </code></pre>
+        </section>
+
+        <section data-background="images/football.jpg">
+<pre><code data-trim class="scala">
+val playerMatchRegion: ActorRef = 
+  ClusterSharding(system).start(
+    typeName = "MatchPlayer",
+    entryProps = Some(Props[MatchPlayer]),
+    rememberEntries = false,
+    idExtractor = idExtractor,
+    shardResolver = shardResolver)
+</code></pre>
+        </section>
+
+        <section data-background="images/football.jpg">
+<pre><code data-trim class="scala">
+val idExtractor: ShardRegion.IdExtractor = {
+  case Score(player, match, goal) ⇒ 
+    (player + match, goal)
+  case stats@Stats(player, match) ⇒ 
+    (player + match, stats)
+}
+ 
+val shardResolver: ShardRegion.ShardResolver = 
+  msg ⇒ msg match {
+    case Score(player, match, goal) ⇒ 
+      player + match
+    case Stats(player, match)       ⇒ 
+      player + match
+  }
+</code></pre>
+        </section>
+
+        <section data-background="images/quidditch.jpg">
+<pre><code data-trim class="scala">
+val playerMatchRegion: ActorRef = 
+  ClusterSharding(system).shardRegion("PlayerMatch")
+
+playerMatchRegion ! 
+  Score("Weasley", "Gryffindor v. Ravenclaw", Quaffle)
+playerMatchRegion ! 
+  Score("Weasley", "Gryffindor v. Ravenclaw", Quaffle)
+playerMatchRegion ! 
+  Score("Potter",  "Gryffindor v. Ravenclaw", Snitch)
+
+playerMatchRegion ! 
+  Stats("Potter", "Gryffindor v. Ravenclaw")
+expectMsg Snitch
+</code></pre>
+        </section>
+
         <section>
           Operations
           - Docker
