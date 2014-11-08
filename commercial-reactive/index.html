@@ -40,7 +40,7 @@
       <!-- Any section element inside of this container is displayed as a slide -->
       <div class="slides">
         <section data-background="images/intro.jpg">
-          <h1>Large scale Akka</h1>
+          <h1>Modern commercial programming</h1>
           <h3>Architectures and approaches</h3>
           <p>
             <small>
@@ -48,29 +48,29 @@
             </small>
           </p>
           <p>
-            <small><a href="http://www.eigengo.com/large-scale-akka">www.eigengo.com/commercial-reactive</a></small>
+            <small><a href="http://www.eigengo.com/commercial-reactive">www.eigengo.com/commercial-reactive</a></small>
           </p>
         </section>
 
-        <section data-background="images/commercial.jpg">
+        <section data-background="images/intro.jpg">
           <h2>What is commercial programming?</h2>
         </section>
 
-        <section data-background="images/commercial.jpg">
-          <img src="images/commercial1.jpg"/>
+        <section data-background="images/intro.jpg">
+          <img src="images/c2.jpg"/>
         </section>
 
-        <section data-background="images/commercial.jpg">
-          <img src="images/commercial2.jpg"/>
+        <section data-background="images/intro.jpg">
+          <img src="images/c3.jpg"/>
         </section>
 
-        <section data-background="images/commercial.jpg">
-          <img src="images/commercial3.jpg"/>
+        <section data-background="images/intro.jpg">
+          <img src="images/c1.jpg"/>
         </section>
 
-        <section data-background="images/commercial.jpg">
+        <section data-background="images/intro.jpg">
           <h2>Not really—at least at Cake Solutions</h2>
-          <p><em>Interesting</em> projects involve multiple devices sending streams of data.</p>
+          <p><em>Interesting</em> projects involve multiple devices sending streams of data, and then processing the data in <em>interesting</em> ways.</p>
           <aside class="notes">
             <p>So, we have multiple streams of information arriving to our systems. Information that needs to be
             processes as soon as it arrives.</p>
@@ -143,7 +143,7 @@
         <section data-background="images/reactive.jpg">
           <h2>It's not <em>just good architecture</em></h2>
           <aside class="notes">
-            <p>The reactive manifesto describes new class of problems that a new class of applications throw at us. We are no longer in control of the inputs that our applications need to process. Think information from mobiles, wearables, and other devices that just keep arriving, and we have to process it. If this sounds too far-fetched, imagine building a new game (or even perhaps some analytics component of a game).</p>
+            <p>We face a new class of problems that a new class of applications throw at us. We are no longer in control of the inputs that our applications need to process. Think information from mobiles, wearables, and other devices that just keep arriving, and we have to process it. If this sounds too far-fetched, imagine building a new game (or even perhaps some analytics component of a game).</p>
             <p>And that ignores applications that are business-critical or process sensitive information. Imagine building a biometric surveillance system, which needs to detect dangerous intruders, and notify police / security. Data from the cameras are arriving all the time, and responses have to be sent out in every situation. It is unacceptable for such system to be unavailable.</p>
             <p>Unfortunately, I cannot say anything about real-time and life-critical systems!</p>
           </aside>
@@ -235,7 +235,14 @@
           <h2>Akka</h2>
           <ul>
             <li>Actor concurrency toolkit and runtime</li>
-            <li>Akka isolates us from the mechanism of message passing and execution</li>
+            <li>Mechanism of message passing and execution</li>
+            <li>Scala is the preferred language</li>
+          </ul>
+        </section>
+
+        <section data-background="images/madderakka.jpg">
+          <h2>Akka</h2>
+          <ul>
             <li>Actors handle messages</li>
             <li>Actors form hierarchies with parents supervising children</li>
           </ul>
@@ -332,63 +339,11 @@ class HelloWorldService extends Actor { ... }
           <img src="images/cluster.png"/>
         </section>
 
-        <section data-background="images/football.jpg">
-            <pre><code data-trim class="scala">
-class MatchPlayer extends PersistentActor {
-  import ShardRegion.Passivate
-  context.setReceiveTimeout(45.minutes)
-
-  var playerId: PlayerId = _
-  var matchId: MatchId   = _
-  var goals: List[Goal]  = _
-  
-  override val persistenceId: String = ???
-
-  override def receiveCommand: Receive = ???
-}
-            </code></pre>
+        <section data-background="images/angrymob.jpg">
+          <h1>Demo</h1>
+          <p>CQRS/ES</p>
         </section>
 
-        <section data-background="images/football.jpg">
-<pre><code data-trim class="scala">
-val playerMatchRegion: ActorRef = 
-  ClusterSharding(system).start(
-    typeName = "MatchPlayer",
-    entryProps = Some(Props[MatchPlayer]),
-    rememberEntries = false,
-    idExtractor = idExtractor,
-    shardResolver = shardResolver)
-</code></pre>
-        </section>
-
-        <section data-background="images/football.jpg">
-<pre><code data-trim class="scala">
-val idExtractor: ShardRegion.IdExtractor = {
-  case Score(p, m, g)    ⇒ (p + m, g)
-  case stats@Stats(p, m) ⇒ (p + m, stats)
-}
- 
-val shardResolver: ShardRegion.ShardResolver = 
-  msg ⇒ msg match {
-    case Score(p, m, g) ⇒ p + m
-    case Stats(p, m)    ⇒ p + m
-  }
-</code></pre>
-        </section>
-
-        <section data-background="images/quidditch.jpg">
-<pre><code data-trim class="scala">
-val playerMatchRegion: ActorRef = 
-  ClusterSharding(system).shardRegion("PlayerMatch")
-
-playerMatchRegion ! 
-  Score("Weasley", "Gryffindor v. Ravenclaw", Quaffle)
-playerMatchRegion ! 
-  Score("Weasley", "Gryffindor v. Ravenclaw", Quaffle)
-playerMatchRegion ! 
-  Score("Potter",  "Gryffindor v. Ravenclaw", Snitch)
-</code></pre>
-        </section>
 
         <section data-background="images/blueprint.jpg">
           <h2>Tooling</h2>
@@ -417,7 +372,8 @@ playerMatchRegion !
         <section data-background="images/devops.jpg">
           <h2>Thank you!</h2>
           <ul>
-            <li>Slides at <a href="http://www.eigengo.com/large-scale-akka">www.eigengo.com/large-scale-akka</a></li>
+          	<li>Jobs at <a href="http://www.cakesolutions.net">www.cakesolutions.net</a></li>
+            <li>Slides at <a href="http://www.eigengo.com/commercial-reactive">www.eigengo.com/commercial-reactive</a></li>
             <li>Tweets at <a href="https://twitter.com/honzam399">@honzam399</a></li>
           </ul>
         </section>
