@@ -57,13 +57,150 @@
 
         <section>
           <h2>Demo</h2>
-          <p>VIDEO</p>
+          <p>Video VeriSure</p>
+        </section>
+
+        <section>
+          <h2>Demo</h2>
+          <p>Video InstaSure</p>
+        </section>
+
+        <section>
+          <h2>How?</h2>
+          <p>Overall arch</p>
+        </section>
+
+        <section>
+          <h2>How?</h2>
+          <p>Overall arch</p>
+        </section>
+
+        <section>
+          <h2>How?</h2>
+          <p>Orchestration</p>
+        </section>
+
+        <section>
+          <h2>How?</h2>
+          <p>Orchestration</p>
+        </section>
+
+        <section>
+          <h2>How?</h2>
+          <p>Natives</p>
+        </section>
+
+        <section>
+          <h2>How?</h2>
+          <p>Mobile</p>
+        </section>
+
+        <section>
+          <h2>FP: impossible in 5 minutes, miracles in 2 days</h2>
           <aside class="notes">
+            <p>What does FP promise?</p>
           </aside>
         </section>
 
         <section>
-          <h2>What just happened?</h2>
+          <h2>What? (Andrew)</h2>
+          <p>Orchestration - code snippets</p>
+          <p>Basic FP</p>
+          <pre><code data-trim class="scala">
+xs.map(f)
+xs.foldLeft(0)(_ + _)
+          </code></pre>
+        </section>
+
+        <section>
+          <h2>What? (Andrew)</h2>
+          <p>Orchestration - code snippets</p>
+          <p>Advanced FP: types</p>
+          <pre><code data-trim class="scala">
+type ReportT[B] = EitherT[Id, Throwable, B]
+for {
+  is ← load(input)
+  r  ← foo(is)
+} yield r
+          </code></pre>
+        </section>
+
+        <section>
+          <h2>FP doesn't solve all</h2>
+          <aside class="notes">
+            <p>Functional programming and strong types on their own have nothing to say or add to concucrrent systems. We accept
+            that FP generally favours immutability, which aids thinking about the state of the sytem. But take the code from above:
+            it recieves some input over the network, it does some processing, and sends the result potentially over some other
+            network conneciton into the bowels of the system. </p>
+            <p>So, we have nice pure functional code that needs to run in a complete impure world.</p>
+            <p>The biggest impediment to scalable systems is contended access to shared mutable state. FP alone cannot fix that,
+            we need some other approach that can help us. And in our case, this is Akka—the toolkit and runtime for actor concurrency.</p>
+          </aside>
+        </section>
+
+        <section>
+          <h2>What? (Andrew)</h2>
+          <p>Orchestration - actor based concurrency</p>
+          <p>API (chunk processing)</p>
+        </section>
+
+        <section>
+          <h2>What? (Andrew)</h2>
+          <p>Orchestration - actor based concurrency</p>
+          <p>FSM</p>
+        </section>
+
+        <section>
+          <h2>FP and actors don't do mathematics and machine learning</h2>
+          <aside class="notes">
+            <p>It's all lost. FP is great in isolation, actors are OK, but when it comes to soving truly difficult stuff,
+            it's back to mutable and imperative code, preferably in C++</p>
+          </aside>
+        </section>
+
+        <section>
+          <h2>What? (Andrew)</h2>
+          <p>Natives</p>
+        </section>
+
+        <section>
+          <h2>What? (Andrew)</h2>
+          <p>Natives 2</p>
+        </section>
+
+        <section>
+          <h2>Event-driven, elastic, resilient and responsive</h2>
+          <aside class="notes">
+            <p>Reactive</p>
+            <p>That's why we use immutable messages, which we transform using "basic" FP—think <code>map</code>, <code>fold</code>,
+            <code>flatMap</code> (that shit!). Being event-driven (using again immutable messages) helps us in achieving the remaining
+            traits of reactive systems. It means that we find it easy to scale: all it takes is to add processing nodes, which communicate
+            with each other using the messages. We achieve resilience by carefully structuring the components that form the application
+            into hierarchies, where parents supervise their children. In other words, we handle errors at the right place, and by handle
+            we naturally don't mean <code>try { ... } catch { case t: Throwable ...}</code>. Error handling is not about being able
+            to recover from any exception, but to safely get to the state the system was in before the exception. This might involve
+            restarting the failing actor, hierarchy of actors, or the JVM that hosts the actors. It's the same story for the native
+            components. We do not attempt to recover from any old anything, when the component gets to a state that it cannot recover
+            from, it <code>exit(-1)</code>s. Finally, we achieve responsiveness by using strictly non-blocking calls throughout
+            the system.</p>
+          </aside>
+        </section>
+
+        <section>
+          <h2>No getting away from good engineering</h2>
+          <aside class="notes">
+            <p>Testing. Devops.</p>
+          </aside>
+        </section>
+
+        <section>
+          <h2>Demo</h2>
+          <p>Video VeriSure</p>
+        </section>
+
+        <section>
+          <h2>Demo</h2>
+          <p>Video InstaSure</p>
         </section>
 
       </div>
