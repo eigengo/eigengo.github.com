@@ -82,24 +82,24 @@
         </section>
 
         <section>
-          <h2>How?</h2>
-          <p>Orchestration</p>
+          <img src="images/natives.png"/>
         </section>
 
         <section>
-          <h2>How?</h2>
-          <p>Natives</p>
+          <img src="images/ios.png"/>
         </section>
 
         <section>
-          <h2>How?</h2>
-          <p>Mobile</p>
-        </section>
-
-        <section>
-          <h2>FP: impossible in 5 minutes, miracles in 2 days</h2>
+          <h2>FP</h2>
+          <h3>Impossible in 5 minutes, miracles in 8 hours</h3>
           <aside class="notes">
-            <p>What does FP promise?</p>
+            <p>It's easy to start thinking that FP is the solution to all software development problems. As in, "take complicated system,
+            sprinkle with FP and all is done." I accept that this is not always the case, but FP went a long way towards helping us 
+            focus on the truly complex areas without having to worry about the mundane tasks.</p>
+            <p>By mundane tasks I mean mechanical transformations of data—and I're sure you're now thinking <code>map</code>, <code>filter</code>,
+            <code>flatMap</code>. This, together with immutable data structures was helped us in our reasoning about the system. Where possible,
+            we stayed pure, avoiding side-effects in our functions.</p>
+            <p>So, let's now see how we used FP in the bowels of the system.</p>
           </aside>
         </section>
 
@@ -129,13 +129,16 @@ for {
         <section>
           <h2>FP doesn't solve all</h2>
           <aside class="notes">
-            <p>Functional programming and strong types on their own have nothing to say or add to concucrrent systems. We accept
-            that FP generally favours immutability, which aids thinking about the state of the sytem. But take the code from above:
+            <p>Functional programming and strong types on their own have little to say or add to mutating concucrrent systems. We accept
+            that FP generally favours immutability, which aids thinking about the state of the sytem. But consider our system:
             it recieves some input over the network, it does some processing, and sends the result potentially over some other
-            network conneciton into the bowels of the system. </p>
-            <p>So, we have nice pure functional code that needs to run in a complete impure world.</p>
-            <p>The biggest impediment to scalable systems is contended access to shared mutable state. FP alone cannot fix that,
-            we need some other approach that can help us. And in our case, this is Akka—the toolkit and runtime for actor concurrency.</p>
+            network conneciton.</p>
+            <p>So, our nice pure functional code that needs to run in a completely impure world. To make matters even worse,
+            this impure world is concurrent, with many users making changes to the domain. Recall that our domain is 
+            all users with all their faces, and all their transactions.</p>
+            <p>I will shamelessly quote-mine Jonas Boner, who said that the biggest impediment to scalable systems is contended access 
+            to shared mutable state. FP alone cannot fix that, we need some other approach that can help us. And in our case, this is 
+            Akka—the toolkit and runtime for actor concurrency.</p>
           </aside>
         </section>
 
@@ -202,6 +205,20 @@ for {
         <section>
           <h2>Demo</h2>
           <p>Video InstaSure</p>
+        </section>
+
+        <section>
+          <h2>More applications</h2>
+          <p></p>
+        </section>
+
+        <section>
+          <h2>Thank you!</h2>
+          <ul>
+            <li>Other interesting work at <a href="http://www.cakesolutions.net">www.cakesolutions.net</a></li>
+            <li>Slides at <a href="http://www.eigengo.com/fpdays-2014">www.eigengo.com/fpdays-2014</a></li>
+            <li>Tweets at <a href="https://twitter.com/honzam399">@honzam399</a> | <a href="https://twitter.com/andrewcsim">@honzam399</a></li>
+          </ul>
         </section>
 
       </div>
