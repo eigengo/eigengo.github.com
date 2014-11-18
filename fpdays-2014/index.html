@@ -106,7 +106,7 @@
           <ul>
             <li>Scala</li>
             <li>JavaScript</li>
-            <li>C++14</li>
+            <li>C++11</li>
             <li>Objective-C++</li>
             <li>Ruby</li>
           </ul>
@@ -117,7 +117,7 @@
           <ul>
             <li>Scala ⇒ Akka, Spray, Scalaz</li>
             <li>JavaScript ⇒ AngularJS, jQuery</li>
-            <li>C++14 ⇒ CUDA, OpenCV</li>
+            <li>C++11 ⇒ CUDA, OpenCV</li>
             <li>Objective-C++ ⇒ CoreImage, GPUImage</li>
             <li>Ruby ⇒ Ruby on Rails, Puppet</li>
           </ul>
@@ -219,43 +219,91 @@ typedef PVTestResult
 
         <section>
           <h2>Mobile</h2>
-          <video controls>
-            <source src="videos/document.mp4" type="video/mp4">
-            Your browser does not support the video tag.
-          </video>
+          <video data-autoplay src="videos/document.mp4"></video>
         </section>
 
         <section>
           <h2>Mobile</h2>
-          <video controls>
-            <source src="videos/face.mp4" type="video/mp4">
-            Your browser does not support the video tag.
-          </video>
+          <video data-autoplay src="videos/face.mp4"></video>
         </section>
 
         <section>
           <h2>Orchestration</h2>
-          <p>Orchestration - code snippets</p>
-          <p>Basic FP</p>
           <pre><code data-trim class="scala">
-xs.map(f)
-xs.foldLeft(0)(_ + _)
+type Authentication[A] = Either[Rejection, A]
+
+def auth(users: ActorRef, headers: List[HttpHeader])
+        (implicit ec: ExecutionContext): 
+        Future[Authentication[Auth]] = headers
+  .find(_.lowercaseName == "token")
+  .flatMap { token ⇒
+    (users ? token.value).mapTo[Auth].map(Right)
+  }
+  .getOrElse(Future(Left(AuthenticationFailed())))
           </code></pre>
         </section>
 
         <section>
-          <h2>What? (Andrew)</h2>
-          <p>Orchestration - code snippets</p>
-          <p>Advanced FP: types</p>
+          <h2>Orchestration</h2>
           <pre><code data-trim class="scala">
-type ReportT[B] = EitherT[Id, Throwable, B]
+type ErrorMessage = String
+sealed trait Err
+case class ImageError(msg: ErrorMessage) extends Err
+case class OcrError(msg: ErrorMessage) extends Err
+
+def sharpen(image: ByteString): \/[ImageError, Image]
+def ocr(image: ByteString): \/[OcrError, OcrResult]
+
 for {
-  is ← load(input)
-  r  ← foo(is)
-} yield r
+  sharper ← sharpen(image)
+  ocred   ← ocr(sharper)
+} yield ocred
           </code></pre>
         </section>
 
+        <section>
+          <h2>Orchestration</h2>
+          <pre><code data-trim class="scala">
+def runReportT(in: In, pe: Expression, 
+               dse: DataSourceExpression): 
+  EitherT[Id, Throwable, Array[Byte]] = {
+  for {
+    root  ← compileReport(in)
+    pv    ← eval(pe)
+    ps    =  toMap(parametersValues)
+    dsv   ← eval(dse)
+    ds    =  toDataSource(dsv)
+    out   ← fromTryCatch[Id, Array[Byte]] { 
+               runReportToPdf(root, ps, ds) 
+             }
+  } yield out
+}          
+          </code></pre>
+        </section>
+
+<!--
+        <section>
+          <h2>Orchestration</h2>
+          <pre><code data-trim class="scala">
+class pii extends StaticAnnotation {
+  def macroTransform(annottees: Any*) = macro pii.impl
+}
+
+object pii {
+  
+  def impl(c: whitebox.Context)
+          (annottees: c.Expr[Any]*): 
+          c.Expr[Any] = {
+
+    import c.universe._
+    // check that PIIContext exists
+    // add to every lower call
+  }
+  
+}
+          </code></pre>
+        </section>
+-->
         <section>
           <h2>FP alone doesn't solve all</h2>
           <aside class="notes">
@@ -283,7 +331,7 @@ trait ImageStreamingService with Directives {
       post {
         sender() ! RegisterChunkHandler(
           context.actorOf(Props(classOf[Handler], 
-                          proc, id))))
+                                proc, id))))
 
         const(())
       }
@@ -533,13 +581,13 @@ private:
           <h2>Server-side image processing</h2>
           <pre><code data-trim class="cpp">
 class Main : public RabbitRpcServer {
-  public:
-    Main(const std::string queue, ...);
-    virtual ~Main();
-  protected:
-    virtual std::string handleMessage(
-      const AmqpClient::BasicMessage::ptr_t message, 
-      const AmqpClient::Channel::ptr_t channel);
+public:
+  Main(const std::string queue, ...);
+  virtual ~Main();
+protected:
+  virtual std::string handleMessage(
+    const AmqpClient::BasicMessage::ptr_t message, 
+    const AmqpClient::Channel::ptr_t channel);
 }
           </code></pre>
           <aside class="notes">
@@ -579,24 +627,6 @@ class Main : public RabbitRpcServer {
         </section>
 
         <section>
-          <h2>No getting away from good engineering</h2>
-          <aside class="notes">
-            <p>Testing. Devops.</p>
-          </aside>
-        </section>
-
-        <section>
-          <h2>Tooling</h2>
-          <ul>
-            <li>SBT, cmake</li>
-            <li>Jenkins</li>
-            <li>Gatling</li>
-            <li>Puppet</li>
-          </ul>
-        </section>
-
-
-        <section>
           <h2>Demo</h2>
           <p>Video VeriSure</p>
         </section>
@@ -607,16 +637,60 @@ class Main : public RabbitRpcServer {
         </section>
 
         <section>
-          <h2>More applications</h2>
-          <p></p>
+          <h2>No getting away from good engineering</h2>
+          <aside class="notes">
+            <p>Good testing is absolute must. I cannot stress just how important it is be certain that your code works as you expect.
+            Strongly typed FP is certainly a good start, but—at least in the form available in Scala, C++, Ruby et al—is far from
+            being able to say anything about correctness of your software. The simple fact that you can have side-effects without
+            any kind of checks should be worrying!</p>
+          </aside>
         </section>
+
+        <section>
+          <h2>No getting away from humans</h2>
+          <aside class="notes">
+            <p>And their horrible, horrible faces. There were so many times I've seen the nostrils of our users when we
+            were running the initial testing... It now replaces the whale in my nightmares!</p>
+            <p>But what I actually mean are humans on your engineering teams: they have to be ready to take on the challenges
+            of FP, types, distributed systems with open mind and their thinking hats firmly on. My general take on the subject
+            is that difficult systems are difficult to implement regardless of the language. The task is to make as much of
+            the codebase as easy to express and understand and possible. And our experience with FP was certainly that it goes
+            a long way to highlighting the essence of the task. Anecdotally, just how much harder do you think it is to understand the 
+            details of <code>AbstractSingletonProxyFactoryBean</code> compared to <code>EitherT[F[_], A, B]</code>?</p>
+            <p>The next challenge is to be able to demonstrate to your business (be it internal development or your customers) that
+            you have selected a mature technology, that you're not just playing around with cool stuff! My experience is that 
+            today's functional languages are certainly well-accepted in the wild. The ecosystem—the tooling, libraries and frameworks—
+            has also matured. The days of having to sellotape together the old &amp; the new are gone.</p>
+            <p>Finally, one can use FP to attact talent... With that in mind, if you're looking for your next challenge at Cake Solutions,
+            get in touch!</p>
+          </aside>
+        </section>
+
+<!--
+        <section>
+          <h2>No getting away from good engineering</h2>
+          <pre><code data-trim class="scala">
+val image: ByteString = ...
+def launchNuclearMissiles(failsafe: Byte): Unit = {
+  if (System.currentTimeMillis() % failsafe == 0) {
+    Silos.launch()
+  }
+}
+
+image.foreach(launchNuclearMissiles)
+          </code></pre>
+          <aside class="notes">
+            <p>!!!</p>
+          </aside>
+        </section>
+-->
 
         <section>
           <h2>Thank you!</h2>
           <ul>
             <li>Other interesting work at <a href="http://www.cakesolutions.net">www.cakesolutions.net</a></li>
             <li>Slides at <a href="http://www.eigengo.com/fpdays-2014">www.eigengo.com/fpdays-2014</a></li>
-            <li>Tweets at <a href="https://twitter.com/honzam399">@honzam399</a> | <a href="https://twitter.com/andrewcsim">@honzam399</a></li>
+            <li>Tweets at <a href="https://twitter.com/honzam399">@honzam399</a> | <a href="https://twitter.com/andrewcsim">@andrewcsim</a></li>
           </ul>
         </section>
 
