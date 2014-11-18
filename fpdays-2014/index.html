@@ -100,8 +100,8 @@
           <ul>
             <li>Scala</li>
             <li>JavaScript</li>
-            <li>C++11, C++14</li>
-            <li>Objective-C, Objective-C++</li>
+            <li>C++14</li>
+            <li>Objective-C++</li>
             <li>Ruby</li>
           </ul>
         </section>
@@ -111,8 +111,8 @@
           <ul>
             <li>Scala ⇒ Akka, Spray, Scalaz</li>
             <li>JavaScript ⇒ AngularJS, jQuery</li>
-            <li>C++11, C++14 ⇒ CUDA, OpenCV</li>
-            <li>Objective-C, Objective-C++ ⇒ CoreImage, GPUImage</li>
+            <li>C++14 ⇒ CUDA, OpenCV</li>
+            <li>Objective-C++ ⇒ CoreImage, GPUImage</li>
             <li>Ruby ⇒ Ruby on Rails, Puppet</li>
           </ul>
         </section>
@@ -142,7 +142,103 @@
         </section>
 
         <section>
-          <h2>What? (Andrew)</h2>
+          <h2>Mobile</h2>
+          <pre><code data-trim class="objectivec">
+GPUImageHoughTransformLineDetector *houghTransform = 
+  [[GPUImageHoughTransformLineDetector alloc] init];
+GPUImagePicture *gpuImage = 
+  [[GPUImagePicture alloc] initWithCGImage:image];
+[gpuImage addTarget:houghTransform];
+
+[houghTransform setLinesDetectedBlock:
+  ^(GLfloat* lineArray, NSUInteger linesDetected, 
+    CMTime frameTime) {
+    ...
+  }];
+  
+[gpuImage processImage];
+          </code></pre>
+          <aside class="notes">
+            <p>I will not bore you with the callback hell of JavaScript. Instead, I'll show you the pleasure of 
+            Objective-C. (I would wholehartedly vote for Swift if I were starting the project today. Alas, Obj-C it is!)
+            Here is an example of the image processing, applying the hough transform to the frames we receive from the camera.
+            The FP snippet is, of course, the block <code>^(GLfloat* lineArray, NSUInteger linesDetected, CMTime frameTime)</code>.
+            What you may also spot is that the GPUImage processing is asynchronous: that is, we supply the function (block in 
+            Objective-C parlance), which contains the logic we want to perform, and only later on trigger the computation using
+            <code>[gpuImage processImage]</code>.</p>
+            <p>So, in addition to the comfortable concepts of FP, we need to be able to handle asynchronous and non-blocking code,
+            together with the necessary synchronisation code between threads. This is just about doable in a small app running
+            on the mobile, but it would be completely impossible to achieve on the server. But more on that later.</p>
+          </aside>
+        </section>
+
+        <section>
+          <h2>Mobile</h2>
+          <pre><code data-trim class="objectivec">
+typedef enum PVTestResult {
+    Stop = 0,
+    ContinueSucceed,
+    ContinueFail
+} PVTestResult;
+
+typedef PVTestResult (^AllImagesTest)
+  (CMSampleBufferRef, CMTime, uint);
+
+@interface PVTestCase : XCTestCase 
+- (uint)allImagesIn:(PVTestSource *)source 
+  inRealTime:(bool)rt must:(AllImagesTest)test;
+@end
+          </code></pre>
+          <aside class="notes">
+            <p>As good engineers, we of course thoroughly test our code. And we can bring back the FP concepts: here, 
+            for example having a test that checks that all video frames in the given <code>source</code> (possibly played
+            back in real time—that is frames that are not processed in time are skipped—must satisfy some <code>test</code></p>
+          </aside>
+        </section>
+
+        <section>
+          <h2>Mobile</h2>
+          <pre><code data-trim class="objectivec">
+- (void)testDocumentCapture {
+  for (PVTestSource *source in ...) {
+    [self allImagesIn:source inRealTime:true 
+          must:^PVTestResult(CGImageRef frame, ...) {
+      PVDocumentPreflightResult result = 
+        [checker preflight:frame];
+      if (result.pass) {
+          PVAssertSameImage(frame, [source image]);
+          return Stop;
+      }
+      return ContinueFail;
+    }];
+  }
+}
+          </code></pre>
+          <aside class="notes">
+            <p>Usage of our testing framework is quite trivial—though the most difficult task was to collect all the input data.
+            We ended up with thousands of videos and images, collected during our testing phase. As you can expect—the test
+            data set is constantly growing. And with it, test times, but that's a topic for a separate talk! We must press on.</p>
+          </aside>
+        </section>
+
+        <section>
+          <h2>Mobile</h2>
+          <video controls>
+            <source src="videos/document.mp4" type="video/mp4">
+            Your browser does not support the video tag.
+          </video>
+        </section>
+
+        <section>
+          <h2>Mobile</h2>
+          <video controls>
+            <source src="videos/face.mp4" type="video/mp4">
+            Your browser does not support the video tag.
+          </video>
+        </section>
+
+        <section>
+          <h2>Orchestration</h2>
           <p>Orchestration - code snippets</p>
           <p>Basic FP</p>
           <pre><code data-trim class="scala">
@@ -165,7 +261,7 @@ for {
         </section>
 
         <section>
-          <h2>FP doesn't solve all</h2>
+          <h2>FP alone doesn't solve all</h2>
           <aside class="notes">
             <p>Functional programming and strong types on their own have little to say or add to mutating concucrrent systems. We accept
             that FP generally favours immutability, which aids thinking about the state of the sytem. But consider our system:
@@ -181,9 +277,43 @@ for {
         </section>
 
         <section>
-          <h2>What? (Andrew)</h2>
-          <p>Orchestration - actor based concurrency</p>
-          <p>API (chunk processing)</p>
+          <h2>Actor concurrency &amp; FP</h2>
+          <pre><code data-trim class="scala">
+trait ImageStreamingService with Directives {
+  this: Actor ⇒
+  import context.dispatcher
+  def streamingRoute(proc: ActorRef): Route = 
+    path("process" / JavaUUID / "face") { id: UUID ⇒
+      post {
+        sender() ! RegisterChunkHandler(
+          context.actorOf(Props(classOf[Handler], 
+                          proc, id))))
+
+        const(())
+      }
+    }
+}
+          </code></pre>
+        </section>
+
+        <section>
+          <h2>Actor concurrency &amp; FP</h2>
+          <pre><code data-trim class="scala">
+class Handler(proc: ActorRef, id: UUID) extends Actor {
+  var buffer = ByteString()
+  def receive = {
+    case MessageChunk(data, _) ⇒
+      buffer = buffer ++ data
+      if (isComplete(buffer)) {
+        buffer = ByteString.empty
+        proc ! ProcessFaceFrame(id, buffer)
+      }
+    case ChunkedMessageEnd(_, _) ⇒
+      proc ! EndFaceStep(id)
+      context.stop(self)
+  }
+}
+          </code></pre>
         </section>
 
         <section>
@@ -201,13 +331,74 @@ for {
         </section>
 
         <section>
-          <h2>What? (Andrew)</h2>
-          <p>Natives</p>
+          <h2>Mobile</h2>
+          <pre><code data-trim class="objectivec">
+float* buf = ...;
+DSPSplitComplex res = { buf, buf + N/2 };
+FFTSetup fftSetup = 
+  vDSP_create_fftsetup(17, FFT_RADIX2);
+vDSP_fft2d_zrip(fftSetup, 
+  &amp;res, 1, 0, 
+  Log2C, Log2R, 
+  kFFTDirection_Forward);
+          </code></pre>
+          <aside class="notes">
+            <p>Unfortunately, not all code is nicely functional: sometimes, it is necessary to leave the comforts of FP behind,
+            and drop down to the unpleasantness of unmanaged pointers, strange memory layouts, and whatever else the hardware
+            needs. In this particular case, we're using the iPhone's DSP to process portions of the image, and this approach
+            gave us more than 5 x improvement in processing speed, and much lower power consumption.</p>
+          </aside>
         </section>
 
         <section>
-          <h2>What? (Andrew)</h2>
-          <p>Natives 2</p>
+          <h2>Server-side image processing</h2>
+          <pre><code data-trim class="cpp">
+class FaceVerify {
+public:
+  FaceVerify(CoreShared &amp;c, PreCalcWavShared &amp;w);
+  Encoding encodeImage(Image &amp;image, std::string ...);
+private:
+  bool calcJets(PixGrid &amp;PG);
+};
+
+class CoreShared {
+public:
+  CoreShared();
+private:
+  class WaveletGrid { ... };
+  WaveletGrid m_WG[MAX_WAVELET_GRIDS];
+
+  cvm::rmatrix **m_pmDataT;
+  cvm::rmatrix **m_pmCoeffVectsSigT;
+};
+          </code></pre>
+          <aside class="notes">
+            <p>What can I add? We—and this is royal we now—had to abandon all hope of comfortable programming, garbage collectors and
+            other such creature comforts, and get our hands dirty. Nevertheless, our aim was to build the system as a collection of
+            independent and well-defined components with clear communication mechanism between them. And so, all of this rather complex
+            code—with all its tests and training programs that we're not even showing here—are wrapped in code that ultimately receives a
+            message and replies back to the sender. This follows the same pattern as the Actor-based code in Scala, which makes it
+            easier to reason about the system.</p>
+          </aside>
+        </section>
+
+        <section>
+          <h2>Server-side image processing</h2>
+          <pre><code data-trim class="cpp">
+class Main : public RabbitRpcServer {
+  public:
+    Main(const std::string queue, ...);
+    virtual ~Main();
+  protected:
+    virtual std::string handleMessage(
+      const AmqpClient::BasicMessage::ptr_t message, 
+      const AmqpClient::Channel::ptr_t channel);
+}
+          </code></pre>
+          <aside class="notes">
+            <p>Every native component (faceverify, faceextract, document, ...) needs to handle messages arriving to it from
+            RabbitMQ. </p>
+          </aside>
         </section>
 
         <section>
