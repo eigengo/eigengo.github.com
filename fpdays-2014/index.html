@@ -248,16 +248,14 @@ def auth(users: ActorRef, headers: List[HttpHeader])
           <pre><code data-trim class="scala">
 type ErrorMessage = String
 sealed trait Err
-case class ImageError(msg: ErrorMessage) extends Err
-case class OcrError(msg: ErrorMessage) extends Err
+case class ImgErr(msg: ErrorMessage) extends Err
+case class OcrErr(msg: ErrorMessage) extends Err
 
-def sharpen(image: ByteString): \/[ImageError, Image]
-def ocr(image: ByteString): \/[OcrError, OcrResult]
+def sharpen(in: ByteString): Future[\/[ImgErr, Image]]
+def ocr(in: ByteString): Future[\/[OcrErr, OcrResult]]
 
-for {
-  sharper ← sharpen(image)
-  ocred   ← ocr(sharper)
-} yield ocred
+sharpen.flatMap(_.bind(ocr)) 
+// Future[\/[Err, OcrResult]]
           </code></pre>
         </section>
 
@@ -516,6 +514,10 @@ class SessionView extends PersistentView {
         </section>
 
         <section>
+          <img src="images/cluster1.png"/>
+        </section>
+
+        <section>
           <h2>FP and actors don't do mathematics and machine learning</h2>
           <aside class="notes">
             <p>It's all lost. FP is great in isolation, actors are OK, but when it comes to soving truly difficult stuff,
@@ -624,6 +626,10 @@ protected:
             from, it <code>exit(-1)</code>s. Finally, we achieve responsiveness by using strictly non-blocking calls throughout
             the system.</p>
           </aside>
+        </section>
+
+        <section>
+          <img src="images/overall.png"/>
         </section>
 
         <section>
