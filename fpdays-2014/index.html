@@ -124,16 +124,6 @@
         </section>
 
         <section>
-          <h2>Tooling</h2>
-          <ul>
-            <li>SBT, cmake</li>
-            <li>Jenkins</li>
-            <li>Gatling</li>
-            <li>Puppet</li>
-          </ul>
-        </section>
-
-        <section>
           <h2>FP</h2>
           <h3>Impossible in 5 minutes, miracles in 8 hours</h3>
           <aside class="notes">
@@ -187,8 +177,8 @@ typedef enum PVTestResult {
     ContinueFail
 } PVTestResult;
 
-typedef PVTestResult (^AllImagesTest)
-  (CMSampleBufferRef, CMTime, uint);
+typedef PVTestResult 
+        (^AllImagesTest)(CGImageRef, CMTime, uint);
 
 @interface PVTestCase : XCTestCase 
 - (uint)allImagesIn:(PVTestSource *)source 
@@ -288,7 +278,7 @@ for {
 trait ImageStreamingService with Directives {
   this: Actor ⇒
   import context.dispatcher
-  def streamingRoute(proc: ActorRef): Route = 
+  def streamingRoute(sess: ActorRef): Route = 
     path("process" / JavaUUID / "face") { id: UUID ⇒
       post {
         sender() ! RegisterChunkHandler(
@@ -305,17 +295,17 @@ trait ImageStreamingService with Directives {
         <section>
           <h2>Actor concurrency &amp; FP</h2>
           <pre><code data-trim class="scala">
-class Handler(proc: ActorRef, id: UUID) extends Actor {
+class Handler(sess: ActorRef, id: UUID) extends Actor {
   var buffer = ByteString()
   def receive = {
     case MessageChunk(data, _) ⇒
       buffer = buffer ++ data
       if (isComplete(buffer)) {
         buffer = ByteString.empty
-        proc ! ProcessFaceFrame(id, buffer)
+        sess ! ProcessFace(id, buffer)
       }
     case ChunkedMessageEnd(_, _) ⇒
-      proc ! EndFaceStep(id)
+      sess ! End(id)
       context.stop(self)
   }
 }
@@ -323,16 +313,165 @@ class Handler(proc: ActorRef, id: UUID) extends Actor {
         </section>
 
         <section>
-          <h2>What? (Andrew)</h2>
-          <p>Orchestration - actor based concurrency</p>
-          <p>FSM</p>
+          <h2>Actor concurrency &amp; FP</h2>
+          <pre><code data-trim class="scala">
+object Session {
+  case class StartSession(id: UUID, params: Params)
+  case class ProcessFace(id: UUID, frame: ByteString)
+  case class End(id: UUID)
+}
+
+class Session extends PersistentActor {
+  var params: Params = _
+
+  override val persistenceId: String = 
+    s"session-${self.path.name}"
+  override def receiveRecover: Receive = ...
+  override def receiveCommand: Receive = ...
+}
+          </code></pre>
+        </section>
+
+        <section>
+          <h2>Actor concurrency &amp; FP</h2>
+          <pre><code data-trim class="scala">
+object Session {
+  case class StartSession(id: UUID, params: Params)
+  case class ProcessFace(id: UUID, frame: ByteString)
+  case class End(id: UUID)
+  private case object SessionEnd
+
+  val idExtractor: ShardRegion.IdExtractor = {
+    case ProcessFace(id, f)  ⇒ (id.toString, f)
+    case StartSession(id, p) ⇒ (id.toString, p)
+    case EndFaceStep(id)     ⇒ ...
+  }
+}
+
+class Session extends PersistentActor { ... }
+          </code></pre>
+        </section>
+
+        <section>
+          <h2>Actor concurrency &amp; FP</h2>
+          <pre><code data-trim class="scala">
+object Session {
+  case class StartSession(id: UUID, params: Params)
+  case class ProcessFace(id: UUID, frame: ByteString)
+  case class End(id: UUID)
+  private case object SessionEnd
+
+  val idExtractor: ShardRegion.IdExtractor = ...
+  val shardResolver: ShardRegion.ShardResolver = {
+    case ProcessFace(id, _) ⇒ s"${id.hashCode() % 10}"
+    ...
+  }
+}
+
+class Session extends PersistentActor { ... }
+          </code></pre>
+        </section>
+
+        <section>
+          <h2>Actor concurrency &amp; FP</h2>
+          <pre><code data-trim class="scala">
+object Session { ... }
+class Session extends PersistentActor { 
+  var params: Params = _
+  private def notRunning: Receive = {
+    case cmd: Params ⇒ 
+      persist(cmd) { evt ⇒ 
+        params = evt
+        context.become(running)
+      }
+  }
+  private def running: Receive = ...
+
+  override def receiveCommand: Receive = notRunning
+}
+          </code></pre>
+        </section>
+
+        <section>
+          <h2>Actor concurrency &amp; FP</h2>
+          <pre><code data-trim class="scala">
+object Session { ... }
+class Session extends PersistentActor { 
+  var params: Params = _
+  private def notRunning: Receive = ...
+  private def running: Receive = {
+    case cmd: ByteString      ⇒ // magic
+    case cmd: FaceMatchResult ⇒
+      persist(cmd)(const(()))
+    case SessionEnd           ⇒ context.become(ended)
+  }
+
+  override def receiveCommand: Receive = notRunning
+}
+          </code></pre>
+        </section>
+
+        <section>
+          <h2>Actor concurrency &amp; FP</h2>
+          <pre><code data-trim class="scala">
+object SessionView {
+  case class State(params: Params, 
+                   matches: Seq[FaceMatchResult])
+  object State { val empty: State = ... }
+
+  case class GetState(id: UUID)
+  case object SessionGetState
+}
+
+class SessionView extends PersistentView { ... }
+          </code></pre>
+        </section>
+
+        <section>
+          <h2>Actor concurrency &amp; FP</h2>
+          <pre><code data-trim class="scala">
+object SessionView {
+  ...
+  val idExtractor: ShardRegion.IdExtractor = ...
+  val shardResolver: ShardRegion.ShardResolver = ...
+}
+
+class SessionView extends PersistentView {
+  val state: State = State.empty
+  override val persistenceId = 
+    s"session-${self.path.name}"
+  override val viewId = 
+    s"session-view-${self.path.name}"
+  override def receive: Receive = ...
+}
+          </code></pre>
+        </section>
+
+        <section>
+          <h2>Actor concurrency &amp; FP</h2>
+          <pre><code data-trim class="scala">
+object SessionView { ... }
+
+class SessionView extends PersistentView {
+  val state: State = State.empty
+  
+  override def receive: Receive = {
+    case p: Params if isPersistent ⇒
+      state = state.withParams(p)
+    case r: FaceMatchResult if isPersistent ⇒
+      state = state.withFaceMatchResult(r)
+    case SessionGetState ⇒
+      sender() ! state
+  }
+}
+          </code></pre>
         </section>
 
         <section>
           <h2>FP and actors don't do mathematics and machine learning</h2>
           <aside class="notes">
             <p>It's all lost. FP is great in isolation, actors are OK, but when it comes to soving truly difficult stuff,
-            it's back to mutable and imperative code, preferably in C++</p>
+            it's back to mutable and imperative code, in Objective-C++ or C++. </p>
           </aside>
         </section>
 
@@ -349,10 +488,10 @@ vDSP_fft2d_zrip(fftSetup,
   kFFTDirection_Forward);
           </code></pre>
           <aside class="notes">
-            <p>Unfortunately, not all code is nicely functional: sometimes, it is necessary to leave the comforts of FP behind,
-            and drop down to the unpleasantness of unmanaged pointers, strange memory layouts, and whatever else the hardware
-            needs. In this particular case, we're using the iPhone's DSP to process portions of the image, and this approach
-            gave us more than 5 x improvement in processing speed, and much lower power consumption.</p>
+            <p>In portions of our system it was necessary to leave the comforts of FP behind, and drop down to the unpleasantness 
+            of unmanaged pointers, strange memory layouts, and whatever else the hardware needs. In this particular case, 
+            we're using the iPhone's DSP to process portions of the image, and this approach gave us more than 5 x improvement 
+            in processing speed, and much lower power consumption. Did I mention that DSP programming is cool? No? Well, it is!</p>
           </aside>
         </section>
 
@@ -380,11 +519,13 @@ private:
           </code></pre>
           <aside class="notes">
             <p>What can I add? We—and this is royal we now—had to abandon all hope of comfortable programming, garbage collectors and
-            other such creature comforts, and get our hands dirty. Nevertheless, our aim was to build the system as a collection of
-            independent and well-defined components with clear communication mechanism between them. And so, all of this rather complex
-            code—with all its tests and training programs that we're not even showing here—are wrapped in code that ultimately receives a
-            message and replies back to the sender. This follows the same pattern as the Actor-based code in Scala, which makes it
-            easier to reason about the system.</p>
+            other such creature comforts, and get our hands dirty. In this particular snippet—and I promise I won't go into any further
+            details, for you know what I'd have to do if I told you all the secrets—we have the code that processes encodes the incoming
+            image of a face into an <code>Encoding</code>: our biometric faceprint. We can then compare two encodings to ultimately compute
+            confidence level that the faces are of the same person. The confidence computation is a weighing of acceptable false acceptance
+            and false rejection rate. One would like to have both rates 0; unfortunately, both rates are opposite ends of a scale. As one
+            decreases false acceptance rate, false rejection rate rises. The secret ingredient is to realise that biometrics should be one
+            of many instruments to verify the user's identity... but I digress. Let's get back to FP.</p>
           </aside>
         </section>
 
@@ -402,8 +543,20 @@ class Main : public RabbitRpcServer {
 }
           </code></pre>
           <aside class="notes">
-            <p>Every native component (faceverify, faceextract, document, ...) needs to handle messages arriving to it from
-            RabbitMQ. </p>
+            <p>Regardless of how far away we left the world of FP in an individual component, our aim was to build the system as a 
+            collection of independent and well-defined components with clear communication mechanism between them. And so, all of this 
+            rather complex code—with all its tests and training programs that we're not even showing here—are wrapped in code that 
+            ultimately receives a message and replies back to the sender asynchronously. The sender never blocks waiting for a response.</p>
+            <!--
+            <p>In real world, imagine writing your request on a piece of paper, placing it in an envelope together with an envelope for 
+            the response with a one-time-only mailbox.
+            The recipient should do whatever you ask him to do, and then simply place the response in the envelope you provided, and without 
+            thinking simply post it back. When the response arrives into the mailbox, you immediately know which response it is from. You then
+            remove the mailbox</p>
+            -->
+
+            <p>This follows the same pattern as the Actor-based code in Scala, which made it so much easier for us to construct the entire
+            system... A system that is</p>
           </aside>
         </section>
 
@@ -431,6 +584,17 @@ class Main : public RabbitRpcServer {
             <p>Testing. Devops.</p>
           </aside>
         </section>
+
+        <section>
+          <h2>Tooling</h2>
+          <ul>
+            <li>SBT, cmake</li>
+            <li>Jenkins</li>
+            <li>Gatling</li>
+            <li>Puppet</li>
+          </ul>
+        </section>
+
 
         <section>
           <h2>Demo</h2>
