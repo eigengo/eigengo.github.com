@@ -237,7 +237,7 @@ def auth(users: ActorRef, headers: List[HttpHeader])
         Future[Authentication[Auth]] = headers
   .find(_.lowercaseName == "token")
   .fold(
-    _   ⇒ (Future(Left(AuthenticationFailed()))),
+    _   ⇒ Future(Left(AuthenticationFailed())),
     tkn ⇒ (users ? tkn.value).mapTo[Auth].map(Right)
    )
           </code></pre>
