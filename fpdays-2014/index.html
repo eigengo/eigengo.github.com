@@ -236,10 +236,26 @@ def auth(users: ActorRef, headers: List[HttpHeader])
         (implicit ec: ExecutionContext): 
         Future[Authentication[Auth]] = headers
   .find(_.lowercaseName == "token")
-  .flatMap { token ⇒
-    (users ? token.value).mapTo[Auth].map(Right)
-  }
-  .getOrElse(Future(Left(AuthenticationFailed())))
+  .fold(
+    _   ⇒ (Future(Left(AuthenticationFailed()))),
+    tkn ⇒ (users ? tkn.value).mapTo[Auth].map(Right)
+   )
+          </code></pre>
+        </section>
+
+        <section>
+          <h2>Orchestration</h2>
+          <pre><code data-trim class="scala">
+type Authentication[A] = Either[Rejection, A]
+
+def auth(users: ActorRef, headers: List[HttpHeader])
+        (implicit ec: ExecutionContext): 
+        Future[Authentication[Auth]] = headers
+  .find(_.lowercaseName == "token")
+  .fold(
+    const(Future(Left(AuthenticationFailed()))),
+    tkn ⇒ (users ? tkn.value).mapTo[Auth].map(Right)
+   )
           </code></pre>
         </section>
 
@@ -251,14 +267,16 @@ sealed trait Err
 case class ImgErr(msg: ErrorMessage) extends Err
 case class OcrErr(msg: ErrorMessage) extends Err
 
-def sharpen(in: ByteString): Future[\/[ImgErr, Image]]
-def ocr(in: ByteString): Future[\/[OcrErr, OcrResult]]
+def sharpen(in: Image): Future[\/[ImgErr, Image]]
+def ocr(in: Image): Future[\/[OcrErr, OcrResult]]
 
-sharpen.flatMap(_.bind(ocr)) 
+val in: Image = ...
+sharpen(in).flatMap(_.flatMap(ocr)) 
 // Future[\/[Err, OcrResult]]
           </code></pre>
         </section>
 
+<!--
         <section>
           <h2>Orchestration</h2>
           <pre><code data-trim class="scala">
@@ -278,7 +296,7 @@ def runReportT(in: In, pe: Expression,
 }          
           </code></pre>
         </section>
-
+-->
 <!--
         <section>
           <h2>Orchestration</h2>
