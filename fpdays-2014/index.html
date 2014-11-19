@@ -44,7 +44,7 @@
           <p>In finance and healthcare</p>
           <p>
             <small>
-              Andrew Sim <a href="https://twitter.com/andrewcsim">@andrewcsim</a><br/>
+              Andrew Sim <a href="https://twitter.com/andrewcssim">@andrewcssim</a><br/>
               Jan Machacek <a href="https://twitter.com/honzam399">@honzam399</a>
             </small>
           </p>
@@ -57,8 +57,13 @@
 
         <section>
           <h2>Demo</h2>
-          <p>VeriSure</p>
-          <p>InstaSure</p>
+          <p>VeriSure™</p>
+          <p>InstaSure™</p>
+          <aside class="notes">
+            VeriSure™ combines both facial recognition and ID validation in one universal solution, instantly matching the holder with the ID.
+            Image capture is encoded (one-way) prior to the recognition process which is then stored securely in storage.
+            InstaSure™ then allows secure account and system access via facial recognition.
+          </aside>
         </section>
 
         <section>
@@ -252,7 +257,7 @@ case class ImgErr(msg: ErrorMessage) extends Err
 case class OcrErr(msg: ErrorMessage) extends Err
 
 def sharpen(in: ByteString): Future[\/[ImgErr, Image]]
-def ocr(in: ByteString): Future[\/[OcrErr, OcrResult]]
+def ocr(in: Image): Future[\/[OcrErr, OcrResult]]
 
 sharpen.flatMap(_.bind(ocr)) 
 // Future[\/[Err, OcrResult]]
@@ -520,7 +525,7 @@ class SessionView extends PersistentView {
         <section>
           <h2>FP and actors don't do mathematics and machine learning</h2>
           <aside class="notes">
-            <p>It's all lost. FP is great in isolation, actors are OK, but when it comes to soving truly difficult stuff,
+            <p>It's all lost. FP is great in isolation, actors are OK, but when it comes to solving truly difficult stuff,
             it's back to mutable and imperative code, in Objective-C++ or C++. </p>
           </aside>
         </section>
