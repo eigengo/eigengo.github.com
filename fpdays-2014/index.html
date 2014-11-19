@@ -68,12 +68,20 @@
 
         <section>
           <h2>Demo</h2>
-          <p>Video VeriSure</p>
+          <p>VeriSure</p>
+          <video data-autoplay src="videos/verisure.mp4"></video>
         </section>
 
         <section>
           <h2>Demo</h2>
-          <p>Video InstaSure</p>
+          <p>InstaSure</p>
+          <video data-autoplay src="videos/instasure.mp4"></video>
+        </section>
+
+        <section>
+          <h2>Demo</h2>
+          <p>InstaSure</p>
+          <video data-autoplay src="videos/instasure-failed.mp4"></video>
         </section>
 
         <section>
@@ -564,7 +572,7 @@ vDSP_fft2d_zrip(fftSetup,
             <p>In portions of our system it was necessary to leave the comforts of FP behind, and drop down to the unpleasantness 
             of unmanaged pointers, strange memory layouts, and whatever else the hardware needs. In this particular case, 
             we're using the iPhone's DSP to process portions of the image, and this approach gave us more than 5 x improvement 
-            in processing speed, and much lower power consumption. Did I mention that DSP programming is cool? No? Well, it is!</p>
+            in processing speed (on an iPhone 5), and much lower power consumption. Did I mention that DSP programming is cool? No? Well, it is!</p>
           </aside>
         </section>
 
@@ -634,6 +642,27 @@ protected:
         </section>
 
         <section>
+          <h2>Server-side image processing</h2>
+          <pre><code data-trim class="cpp">
+auto processRegion = [](const region *region){ ... };
+
+std::vector< region> regions{r1, r2, ..., rn};
+
+std::transform(regions.begin(), regions.end(), 
+               regions.begin(), processRegion);
+
+// think ``map``
+          </code></pre>
+          <aside class="notes">
+            <p>But who says that we can't have some fun while we are doing C++? C++ 11 makes it slightly easier to write functional programs.
+            Functions are not treated as an object in C++, we come around that by declaring lambdas as a class with ``operate`` method.
+            C++ provides a shortcut to do this, the [] brackets are used to specify the closure for the function.
+
+            ``auto`` is introduced to do type inference.
+          </aside>
+        </section>
+
+        <section>
           <h2>Event-driven, elastic, resilient and responsive</h2>
           <aside class="notes">
             <p>Reactive</p>
@@ -658,11 +687,13 @@ protected:
         <section>
           <h2>Demo</h2>
           <p>Video VeriSure</p>
+          <video data-autoplay src="videos/verisure.mp4"></video>
         </section>
 
         <section>
           <h2>Demo</h2>
           <p>Video InstaSure</p>
+          <video data-autoplay src="videos/instasure.mp4"></video>
         </section>
 
         <section>
