@@ -652,27 +652,6 @@ protected:
         </section>
 
         <section>
-          <h2>Server-side image processing</h2>
-          <pre><code data-trim class="cpp">
-auto processRegion = [](const region *region) { ... };
-
-std::vector&lt;region&gt; regions {r1, r2, ..., rn };
-
-std::transform(regions.begin(), regions.end(), 
-               regions.begin(), processRegion);
-
-// think ``map``
-          </code></pre>
-          <aside class="notes">
-            <p>But who says that we can't have some fun while we are doing C++? C++ 11 makes it slightly easier to write functional programs.
-            Functions are not treated as an object in C++, we come around that by declaring lambdas as a class with ``operate`` method.
-            C++ provides a shortcut to do this, the [] brackets are used to specify the closure for the function.
-
-            ``auto`` is introduced to do type inference.
-          </aside>
-        </section>
-
-        <section>
           <h2>Event-driven, elastic, resilient and responsive</h2>
           <aside class="notes">
             <p>Reactive</p>
