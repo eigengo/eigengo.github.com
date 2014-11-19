@@ -69,7 +69,17 @@
         <section>
           <h2>Demo</h2>
           <p>VeriSure</p>
+        </section>
+
+        <section>
+          <h2>Demo</h2>
+          <p>VeriSure</p>
           <video data-autoplay src="videos/verisure.mp4"></video>
+        </section>
+
+        <section>
+          <h2>Demo</h2>
+          <p>InstaSure</p>
         </section>
 
         <section>
@@ -644,9 +654,9 @@ protected:
         <section>
           <h2>Server-side image processing</h2>
           <pre><code data-trim class="cpp">
-auto processRegion = [](const region *region){ ... };
+auto processRegion = [](const region *region) { ... };
 
-std::vector< region> regions{r1, r2, ..., rn};
+std::vector&lt;region&gt; regions {r1, r2, ..., rn };
 
 std::transform(regions.begin(), regions.end(), 
                regions.begin(), processRegion);
