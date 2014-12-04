@@ -135,82 +135,24 @@
         </section>
 
         <section data-background="images/blueprint.jpg">
-          <h2>Terminology</h2>
-          <ul>
-            <li>Commands—inputs that needs validation, and may result in multiple events</li>
-            <li>Events—validated commands that we <i>promise</i> to process</li>
-            <li>Query—a "read command"</li>
-          </ul>
-        </section>
-
-        <section data-background="images/football.jpg">
-            <pre><code data-trim class="scala">
-class MatchPlayer extends PersistentActor {
-  import ShardRegion.Passivate
-  context.setReceiveTimeout(45.minutes)
-
-  var playerId: PlayerId = _
-  var matchId: MatchId   = _
-  var goals: List[Goal]  = _
-  
-  override val persistenceId: String = ???
-
-  override def receiveCommand: Receive = ???
-}
-            </code></pre>
-        </section>
-
-        <section data-background="images/football.jpg">
-<pre><code data-trim class="scala">
-val playerMatchRegion: ActorRef = 
-  ClusterSharding(system).start(
-    typeName = "MatchPlayer",
-    entryProps = Some(Props[MatchPlayer]),
-    rememberEntries = false,
-    idExtractor = idExtractor,
-    shardResolver = shardResolver)
-</code></pre>
-        </section>
-
-        <section data-background="images/football.jpg">
-<pre><code data-trim class="scala">
-val idExtractor: ShardRegion.IdExtractor = {
-  case Score(p, m, g)    ⇒ (p + m, g)
-  case stats@Stats(p, m) ⇒ (p + m, stats)
-}
- 
-val shardResolver: ShardRegion.ShardResolver = 
-  msg ⇒ msg match {
-    case Score(p, m, g) ⇒ p + m
-    case Stats(p, m)    ⇒ p + m
-  }
-</code></pre>
-        </section>
-
-        <section data-background="images/quidditch.jpg">
-<pre><code data-trim class="scala">
-val playerMatchRegion: ActorRef = 
-  ClusterSharding(system).shardRegion("PlayerMatch")
-
-playerMatchRegion ! 
-  Score("Weasley", "Gryffindor v. Ravenclaw", Quaffle)
-playerMatchRegion ! 
-  Score("Weasley", "Gryffindor v. Ravenclaw", Quaffle)
-playerMatchRegion ! 
-  Score("Potter",  "Gryffindor v. Ravenclaw", Snitch)
-</code></pre>
+          <img src="images/lift-actors.png"/>
+          <aside class="notes">
+          </aside>
         </section>
 
         <section data-background="images/blueprint.jpg">
-          <h2>Tooling</h2>
-          <ul>
-            <li>Scala</li>
-            <li>Akka (-persistence, -cluster, -streams, -persistence, -http)</li>
-            <li>Spray</li>
-            <li>Slick</li>
-            <li>Shapeless, Scalaz</li>
-            <li>Sbt</li>
-          </ul>
+          <img src="images/containerwars.jpg"/>
+          <aside class="notes">
+          </aside>
+        </section>
+
+        <section data-background="images/angrymob.jpg">
+          <h1>Demo</h1>
+          <p>Exercise in Akka cluster</p>
+        </section>
+
+        <section data-background="images/angrymob.jpg">
+          <img src="images/lift-actors.png"/>
         </section>
 
         <section data-background="images/qa.jpg">
@@ -220,8 +162,11 @@ playerMatchRegion !
         <section data-background="images/devops.jpg">
           <h2>Thank you!</h2>
           <ul>
-            <small><a href="http://www.eigengo.com/scala-exchange-2014">www.eigengo.com/scala-exchange-2014</a></small>
+            <li>☞ Jobs at <a href="http://www.cakesolutions.net">www.cakesolutions.net</a> ☜</li>
+            <li>Slides at <a href="http://www.eigengo.com/scala-exchange-2014">www.eigengo.com/scala-exchange-2014</a></li>
+            <li>Code at <a href="http://github.com/eigengo/lift">github.com/eigengo/lift</a></li>
             <li>Tweets at <a href="https://twitter.com/honzam399">@honzam399</a></li>
+          </ul>
           </ul>
         </section>
 
