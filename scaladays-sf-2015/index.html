@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+
+  <head>
+    <meta charset="utf-8">
+    <title>Distributed Akka systems</title>
+    <meta name="description" content="Distributed Akka systems">
+    <meta name="author" content="Jan Machacek">
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Ubuntu%20Mono:regular,bold&subset=Latin">
+    <link rel="stylesheet" href="../reveal.js/css/reveal.css">
+    <link rel="stylesheet" href="../reveal.js/css/theme/default.css" id="theme">
+
+    <!-- For syntax highlighting -->
+    <link rel="stylesheet" href="../reveal.js/lib/css/zenburn.css">
+
+    <!-- If the query includes 'print-pdf', include the PDF print sheet -->
+    <script>
+      if( window.location.search.match( /print-pdf/gi ) ) {
+        var link = document.createElement( 'link' );
+        link.rel = 'stylesheet';
+        link.type = 'text/css';
+        link.href = '../reveal.js/css/print/pdf.css';
+        document.getElementsByTagName( 'head' )[0].appendChild( link );
+      }
+    </script>
+
+    <!--[if lt IE 9]>
+    <script src="lib/js/html5shiv.js"></script>
+    <![endif]-->
+  </head>
+
+  <body>
+
+    <div class="reveal">
+
+      <!-- Any section element inside of this container is displayed as a slide -->
+      <div class="slides">
+        <section data-background="images/intro.jpg">
+          <h1>Exercise in exercise analysis</h1>
+          <p>&nbsp;</p>
+          <p>Jan Macháček <a href="https://twitter.com/honzam399">@honzam399</a></p>
+        </section>
+
+        <section data-background="images/intro.jpg">
+          <h2>What are these large systems?</h2>
+          <ul>
+            <li>Need to be elastic</li>
+            <li>Need to be responsive</li>
+            <li>Need to be resilient</li>
+          </ul>
+          
+          <aside class="notes">
+            <p>One distributes the system because the entities it manages are too big to fit into one node, and to achieve resilience &amp; elasticity.</p>
+            <p>Distribution unfortunately brings challenges when it comes to consistency, availability and partition tolerance.</p>
+            <p>The biggest impediment for scale is shared mutable state (to be precise: contended access to shared mutable state). As soon as you have shared mutable state, you need to guard that state through a gateway of serial access, which means adding coordination and mutual exclusion, and that adds contention—services waiting in line for access the shared state. Contention is the biggest scalability killer.</p>
+          </aside>
+        </section>
+
+        <section data-background="images/intro.jpg">
+          <img src="images/api1.png"/>
+          <aside class="notes">
+            <p>Looking at our kick-ass system from the outside, it is still comfortable. We have mobile and web clients accessing some API—typically a REST API. So, what's the problem? Why do we need to even think about distributed systems?</p>
+          </aside>
+        </section>
+
+        <section data-background="images/intro.jpg">
+          <img src="images/api2.png"/>
+          <aside class="notes">
+            <p>First off, we need to be able to deal with a lot of data being sent to us. The days of patient users are gone. 
+            (Well, they were never here in the first place.) 
+            <p>The devices that our users have can send significant stream of requests to our system. Some of the devices are not that clever (think internet-of-things devices), so they won't back off when our service gets into trouble.</p>
+            <p>Some other application simply require processing all the data immediately as it comes in; any delays or misses make the system useless.</p>
+          </aside>
+        </section>
+
+        <section data-background="images/intro.jpg">
+          <img src="images/api3.png"/>
+          <aside class="notes">
+            <p>To handle the load while remaining responsive, resilient and elastic, we must abandon the request-response world. By request-response, I mean typical CRUD operations you might have done yourselves too. A world where I send a request and receive the result in the response.</p>
+            <p>Instead, we need to move to the world where the system pushes events to us. Some events may arrive as a result of the applications making requests.</p>
+          </aside>
+        </section>
+
+        <section data-background="images/intro.jpg">
+          <h2>How to get there?</h2>
+          <aside class="notes">
+          </aside>
+        </section>
+
+        <section data-background="images/blueprint.jpg">
+          <img src="images/distributed.png"/>
+          <aside class="notes">
+          </aside>
+        </section>
+
+        <section data-background="images/blueprint.jpg">
+          <img src="images/distributed2.png"/>
+          <aside class="notes">
+          </aside>
+        </section>
+
+        <section data-background="images/blueprint.jpg">
+          <img src="images/distributed3.png"/>
+          <aside class="notes">
+          </aside>
+        </section>
+
+        <section data-background="images/blueprint.jpg">
+          <img src="images/distributed4.png"/>
+          <aside class="notes">
+          </aside>
+        </section>
+
+        <section data-background="images/blueprint.jpg">
+          <img src="images/lift.png"/>
+          <aside class="notes">
+          </aside>
+        </section>
+
+        <section data-background="images/blueprint.jpg">
+          <img src="images/lift-server.png"/>
+          <aside class="notes">
+          </aside>
+        </section>
+
+        <section data-background="images/blueprint.jpg">
+          <img src="images/lift-actors.png"/>
+          <aside class="notes">
+          </aside>
+        </section>
+
+<!--
+        <section data-background="images/blueprint.jpg">
+          <img src="images/containerwars.jpg"/>
+          <aside class="notes">
+          </aside>
+        </section>
+-->
+
+        <section data-background="images/angrymob.jpg">
+          <h1>Demo</h1>
+          <p>Exercise in Akka cluster</p>
+        </section>
+
+        <section data-background="images/angrymob.jpg">
+          <video data-autoplay src="videos/lift-app.mp4"></video>
+        </section>
+
+        <section data-background="images/angrymob.jpg">
+          <img src="images/codemonkey.png"/>
+        </section>
+
+        <section data-background="images/angrymob.jpg">
+          <img src="images/lift-actors.png"/>
+        </section>
+
+        <section data-background="images/qa.jpg">
+          <h2>Q&amp;A</h2>
+        </section>
+          
+        <section data-background="images/devops.jpg">
+          <h2>Thank you!</h2>
+          <ul>
+            <!-- <li>Slides at <a href="http://www.eigengo.com/scaladays-sf-2015">www.eigengo.com/scaladays-sf-2015</a></li> -->
+            <li>Code at <a href="http://github.com/eigengo/lift">github.com/eigengo/lift</a></li>
+            <li>Tweets at <a href="https://twitter.com/honzam399">@honzam399</a></li>
+          </ul>
+          </ul>
+        </section>
+
+      </div>
+
+    </div>
+
+    <script src="../reveal.js/lib/js/head.min.js"></script>
+    <script src="../reveal.js/js/reveal.min.js"></script>
+
+    <script>
+
+      Reveal.initialize({
+        controls: false,
+        progress: true,
+        history: false,
+        center: false,
+
+        theme: Reveal.getQueryHash().theme, // available themes are in /css/theme
+        transition: Reveal.getQueryHash().transition || 'fade', // default/cube/page/concave/zoom/linear/fade/none
+
+        // Parallax scrolling
+        // parallaxBackgroundImage: 'https://s3.amazonaws.com/hakim-static/reveal-js/reveal-parallax-1.jpg',
+        // parallaxBackgroundSize: '2100px 900px',
+
+        // Optional libraries used to extend on reveal.js
+        dependencies: [
+          { src: '../reveal.js/lib/js/classList.js', condition: function() { return !document.body.classList; } },
+          { src: '../reveal.js/plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+          { src: '../reveal.js/plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+          { src: '../reveal.js/plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
+          { src: '../reveal.js/plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } },
+          { src: '../reveal.js/plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } }
+        ]
+      });
+
+    </script>
+
+  </body>
+</html>
