@@ -45,13 +45,10 @@
           <p>Jan Macháček <a href="https://twitter.com/honzam399">@honzam399</a></p>
         </section>
 
-        <section data-background="images/intro.jpg">
-          <h2>What are these large systems?</h2>
-          <ul>
-            <li>Need to be elastic</li>
-            <li>Need to be responsive</li>
-            <li>Need to be resilient</li>
-          </ul>
+        <!-- UHK / Chester Devs: What is Akka -->
+        <section data-background="imagesx/madderakka.jpg">
+          <h2>What is Akka?</h2>
+          <p>Akka is a toolkit and runtime for building highly concurrent, distributed, and fault tolerant event-driven applications on the JVM.</p>
           
           <aside class="notes">
             <p>One distributes the system because the entities it manages are too big to fit into one node, and to achieve resilience &amp; elasticity.</p>
@@ -59,6 +56,202 @@
             <p>The biggest impediment for scale is shared mutable state (to be precise: contended access to shared mutable state). As soon as you have shared mutable state, you need to guard that state through a gateway of serial access, which means adding coordination and mutual exclusion, and that adds contention—services waiting in line for access the shared state. Contention is the biggest scalability killer.</p>
           </aside>
         </section>
+
+        <section data-background="imagesx/madderakka.jpg">
+          <h2>Simpler concurrency</h2>
+          <ul>
+            <li>Actors let us write code in a <em>single-threaded illusion</em></li>
+            <li>No locks, <code>synchronized</code> or other primitives needed</li>
+          </ul>
+        </section>
+
+        <section data-background="imagesx/madderakka.jpg">
+          <h2>Simpler distribution</h2>
+          <ul>
+            <li>Everything in Akka is <em>distributed by default</em></li>
+            <li>Akka goes from remote to local by optimization</li>
+          </ul>
+        </section>
+
+        <section data-background="imagesx/madderakka.jpg">
+          <h2>Simpler fault tolerance</h2>
+          <p>Akka decouples communication from failure handling:</p>
+          <ul>
+            <li>Supervisors handle failure</li>
+            <li>Callers need not care (they can't anyway)</li>
+          </ul>
+        </section>
+
+        <!-- UHK / Chester Devs Actor Model -->
+        <section data-background="imagesx/madderakka.jpg">
+          <h2>Anatomy of an Actor I</h2>
+          <img src="imagesx/actor-01.png"/>
+        </section>
+        <section data-background="imagesx/madderakka.jpg">
+          <h2>Anatomy of an Actor II</h2>
+          <img src="imagesx/actor-02.png"/>
+        </section>
+        <section data-background="imagesx/madderakka.jpg">
+          <h2>Anatomy of an Actor III</h2>
+          <img src="imagesx/actor-03.png"/>
+        </section>
+        <section data-background="imagesx/madderakka.jpg">
+          <h2>Actor Lifecycle I</h2>
+          <img src="imagesx/actor-lifecycle-01.png"/>
+        </section>
+        <section data-background="imagesx/madderakka.jpg">
+          <h2>Actor Lifecycle II</h2>
+          <img src="imagesx/actor-lifecycle-02.png"/>
+        </section>
+        <section data-background="imagesx/madderakka.jpg">
+          <h2>Actor Lifecycle III</h2>
+          <img src="imagesx/actor-lifecycle-03.png"/>
+        </section>
+        <section data-background="imagesx/madderakka.jpg">
+          <h2>Actor System</h2>
+          <img src="imagesx/actor-system.png"/>
+        </section>
+
+        <section data-background="imagesx/madderakka.jpg">
+          <h2>Akka</h2>
+          <ul>
+            <li>Actor concurrency toolkit and runtime</li>
+            <li>Akka isolates us from the mechanism of message passing and execution</li>
+            <li>Actors handle messages</li>
+            <li>Actors form hierarchies with parents supervising children</li>
+          </ul>
+        </section>
+
+        <section data-background="imagesx/madderakka.jpg">
+          <h2>Functions</h2>
+          <pre><code data-trim class="scala">
+def fun1(a: Int): Int = a + a
+def fun2(a: Int, b: Int): Int = a * b
+def fun3(a: Int)(b: Int): Int = a * b
+def fun4 = { x: Int ⇒ x + 4 }
+
+fun1(5)
+fun2(1, 2)
+fun3(1)(2)
+fun2(1, _)
+fun3(1)
+fun4(5)
+          </code></pre>
+        </section>
+
+        <section data-background="imagesx/madderakka.jpg">
+          <h2>Partial Functions</h2>
+          <pre><code data-trim class="scala">
+def fun4: Function1[Int, Int] = ...
+
+def pfun: PartialFunction[A, B] = {
+  case SomeA     ⇒ someB
+  case OtherA(p) ⇒ otherB
+  ...
+}
+
+val a: A = ???
+if (pfun.isDefinedAt(a)) pfun(a)
+pfun(a)
+          </code></pre>
+        </section>
+
+        <section data-background="imagesx/madderakka.jpg">
+          <h2>Actors everywhere</h2>
+          <pre><code data-trim class="scala">
+class HelloWorldService extends Actor {
+
+  def receive: Receive = {
+    case request: HttpRequest ⇒
+      val response = HttpResponse(...)
+      sender() ! response
+  }
+
+}
+          </code></pre>          
+        </section>
+
+        <section data-background="imagesx/madderakka.jpg">
+          <h2>Actors everywhere</h2>
+          <pre><code data-trim class="scala">
+class HelloWorldServiceSpec 
+  extends TestKit(ActorSystem())
+  with SpecificationLike with ImplicitSender {
+  val service = TestActorRef[HelloWorldService]
+
+  "Any request" should {
+    "Reply with Hello, world" in {
+      service ! HttpRequest()
+      expectMsgType[HttpResponse].entity 
+        mustEqual HttpEntity("Hello, world")
+    }
+  }
+}
+          </code></pre>
+        </section>
+
+        <section data-background="imagesx/madderakka.jpg">
+          <h2>Actors everywhere</h2>
+          <pre><code data-trim class="scala">
+object HelloWorld extends App {
+  val system = ActorSystem()
+  val service = 
+    system.actorOf(Props[HelloWorldService])
+
+  IO(Http)(system) ! Http.Bind(
+    service, "0.0.0.0", port = 8080)
+
+  Console.readLine()
+  system.shutdown()
+}          
+
+class HelloWorldService extends Actor { ... }
+          </code></pre>
+        </section>
+
+        <section data-background="images/intro.jpg">
+          <h2>Expanding the world</h2>
+          <ul>
+            <li>Load-balanced instances of actor systems, each with its API</li>
+            <li>A cluster of actor systems, each with its API</li>
+          </ul>
+          <aside class="notes">
+            <p>In the first case, you have brushed away the [contended] shared mutable state to some DB. Multiple simple nodes that all connect to
+            the same DB. Think of the scenario where one receives a write request, makes the updates, and replies with the changed state. Once the change hits the DB, all other nodes see that change on read. (T&amp;Cs applying, of course.) Nevertheless, it is very different from the clustered model.</p>
+            <p>In the cluster model, we recognise the nature of distributed systems, and settle for weaker consistency models. A valid request will at some point be processed, but no shared mutable state escapes the application. </p>
+          </aside>
+        </section>
+
+        <section data-background="images/blueprint.jpg">
+          <h2>Terminology</h2>
+          <ul>
+            <li>Commands—inputs that needs validation, and may result in multiple events</li>
+            <li>Events—validated commands that we <i>promise</i> to process</li>
+            <li>Query—a "read command"</li>
+          </ul>
+        </section>
+
+        <section data-background="images/blueprint.jpg">
+          <img src="imagesx/transient.png"/>
+        </section>
+
+        <section data-background="images/blueprint.jpg">
+          <img src="imagesx/es.png"/>
+        </section>
+
+        <section data-background="images/blueprint.jpg">
+          <img src="imagesx/cqrs-es.png"/>
+        </section>
+
+        <section data-background="images/blueprint.jpg">
+          <img src="imagesx/cluster.png"/>
+        </section>
+
+
+        <section data-background="imagesx/sf.jpg">
+        </section>
+
+        <!-- real SD SF from here: -->
 
         <section data-background="images/intro.jpg">
           <img src="images/api1.png"/>
