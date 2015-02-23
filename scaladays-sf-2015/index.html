@@ -118,8 +118,12 @@
           <video data-autoplay src="videos/lift-app.mp4"></video>
         </section>
 
-        <!-- Profile service -->
+        <!-- UserProfileProcessor and UserProfile -->
         <section data-background="images/blueprint.jpg">
+          <section data-background="images/blueprint.jpg">
+            <img src="images/lift-actors-profile.png"/>
+          </section>
+
           <section>
           <pre><code data-trim class="scala">
 trait ProfileService extends Directives 
@@ -168,13 +172,6 @@ implicit class DisjunctUnionFuture(f: Future[_]) {
   
 }          
           </code></pre>
-          </section>
-        </section>
-
-        <!-- UserProfileProcessor and UserProfile -->
-        <section data-background="images/blueprint.jpg">
-          <section data-background="images/blueprint.jpg">
-            <img src="images/lift-actors-profile.png"/>
           </section>
 
           <section>
@@ -424,6 +421,27 @@ trait RootSensorDataDecoder[A]
 
           <section>
           <pre><code data-trim class="scala">
+object RootSensorDataDecoder {
+  
+  def apply(decoders: SensorDataDecoder[SensorData]*): 
+    RootSensorDataDecoder[List[SensorData]] =
+      new RootSensorDataDecoder[List[SensorData]] {
+
+        override def supports(b: BitVector): Boolean = 
+          true
+
+        override def decode(b: BitVector): 
+          String \/ (BitVector, List[SensorData]) = ...
+    }
+}
+          </code></pre>            
+          </section>
+
+          <section>
+          <pre><code data-trim class="scala">
+val rootSensorDataDecoder = 
+  RootSensorDataDecoder(AccelerometerDataDecoder, ...)
+
 def exercising(id: SessionId, 
   sessionProps: SessionProperties): Receive = {
   case ExerciseDataProcessMultiPacket(`id`, packet) ⇒
@@ -432,13 +450,70 @@ def exercising(id: SessionId,
         .decodeAll(p.payload)
         .map(SensorDataWithLocation(p.sourceLocation))
     }
-    val result = t.foldLeft(h.map(x ⇒ List(x)))((r, b) ⇒ r.flatMap(sdwls ⇒ b.map(x ⇒ x :: sdwls)))
-    result.fold({ err ⇒ persist(MultiPacketDecodingFailedEvt(id, err, packet)) { evt ⇒ sender() ! \/.left(err) } },
-                { dec ⇒ persist(ClassifyExerciseEvt(sessionProps, dec)) { evt ⇒ classifier ! evt; sender() ! \/.right(()) }) } })
+    val result = t.foldLeft(h.map(x ⇒ List(x)))䍶
+    result.fold({ err ⇒ ... }, { dec ⇒ ... })
 }
           </code></pre>
           </section>
 
+          <section>
+          <pre><code data-trim class="scala">
+result.fold(
+{ err ⇒ persist(
+  MultiPacketDecodingFailed(id, err, packet)) { evt ⇒ 
+    sender() ! \/.left(err) 
+  } 
+}, 
+{ dec ⇒ persist(
+  ClassifyExerciseEvt(sessionProps, dec)) { evt ⇒ 
+    classifier ! evt
+    sender() ! \/.right(()) 
+  } 
+})
+          </code></pre>
+          </section>
+
+          <section>
+          <pre><code data-trim class="scala">
+def exercising(id: SessionId, 
+  sessionProps: SessionProperties): Receive = {
+  case FullyClassifiedExercise(md, _, exercise) ⇒
+    persist(ExerciseEvt(id, md, exercise))(unit)
+
+  case Tap ⇒
+    persist(ExerciseSetExplicitMarkEvt(id))(unit)
+
+  case NoExercise(metadata) ⇒
+    persist(NoExerciseEvt(id, metadata))(unit)
+
+  case UnclassifiedExercise(_) ⇒
+
+}
+          </code></pre>
+          </section>
+
+          <section data-background="images/blueprint.jpg">
+            <img src="images/lift-actors-exercise.png"/>
+          </section>
+
+          <section>
+          <pre><code data-trim class="scala">
+class UserExercisesSessions extends PersistentView {
+  val userId = UserId(self.path.name)
+  override val viewId = s"ues-$userId"
+  override val persistenceId = s"ue-$userId"
+
+  lazy val queries: Receive = ...
+  lazy val notExercising: Receive = ...
+  def exercising(s: ExerciseSession): Receive = ...
+  def inASet(session: ExerciseSession, 
+             set: ExerciseSet): Receive = ...
+
+  override def receive: Receive = 
+    notExercising.orElse(queries)
+}
+          </code></pre>
+          </section>
         </section>        
 
         <section data-background="images/angrymob.jpg">
