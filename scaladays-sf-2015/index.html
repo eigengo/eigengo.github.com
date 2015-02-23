@@ -115,6 +115,7 @@
         </section>
 
         <section data-background="images/blueprint.jpg">
+          <section>
           <pre><code data-trim class="scala">
 trait ProfileService extends Directives 
   with CommonMarshallers with CommonPathDirectives {
@@ -131,9 +132,9 @@ trait ProfileService extends Directives
 
 }
           </code></pre>
-        </section>
+          </section>
 
-        <section data-background="images/blueprint.jpg">
+          <section>
           <pre><code data-trim class="scala">
 path("user" / UserIdValue) { userId ⇒
   get { complete {
@@ -149,9 +150,9 @@ path("user" / UserIdValue) { userId ⇒
   }
 } 
           </code></pre>
-        </section>
+          </section>
 
-        <section data-background="images/blueprint.jpg">
+          <section>
           <pre><code data-trim class="scala">
 type ErrorMessage = String          
 
@@ -162,6 +163,162 @@ implicit class DisjunctUnionFuture(f: Future[_]) {
   
 }          
           </code></pre>
+          </section>
+        </section>
+
+        <section data-background="images/blueprint.jpg">
+          <section>
+          <pre><code data-trim class="scala">
+class UserProfileProcessor(userProfile: ActorRef) 
+  extends PersistentActor with ActorLogging {
+
+  override def receiveRecover: Receive = ...
+
+  override def receiveCommand: Receive = ...
+
+}
+          </code></pre>
+          </section>
+
+          <section>
+          <pre><code data-trim class="scala">
+var accounts: KnownAccounts = KnownAccounts.empty
+
+override def receiveCommand: Receive = {
+  case UserRegister(email, _) 
+    if accounts.contains(email) ⇒
+    sender() ! \/.left("Username already taken")  
+}
+          </code></pre>
+          </section>
+
+          <section>
+          <pre><code data-trim class="scala">
+var accounts: KnownAccounts = KnownAccounts.empty
+
+override def receiveCommand: Receive = {
+  ...
+  case UserRegister(email, password) ⇒
+    persist(UserRegistered(UserId.randomId(), ...)) { 
+      userRegistered ⇒
+      userProfile ! userRegistered
+      accounts = accounts.withNewAccount(...)
+      saveSnapshot(accounts)
+
+      sender() ! \/.right(userRegistered.userId)
+    }
+}
+          </code></pre>
+          </section>
+
+          <section data-background="images/blueprint.jpg">
+            <img src="images/lift-upp-pubsub.png"/>
+          </section>
+          <section data-background="images/blueprint.jpg">
+            <img src="images/lift-upp-pubsub2.png"/>
+          </section>
+
+          <section>
+          <pre><code data-trim class="scala">
+val mediator = DistributedPubSubExtension(...)
+val topic = "UserProfileProcessor.knownAccounts"
+mediator ! Subscribe(topic, self)
+
+override def receiveCommand: Receive = {
+  case UserRegister(email, password) ⇒
+    persist(UserRegistered(UserId.randomId(), ...)) { 
+      ...
+      mediator ! Publish(topic, KnownAccountAdded(...))
+    }
+  case KnownAccountAdded(email, userId) 
+    if sender() != self ⇒
+    accounts = accounts.withNewAccount(email, userId)
+}
+          </code></pre>
+          </section>
+
+          <section data-background="images/blueprint.jpg">
+            <h2>CAP</h2>
+            <ul>
+            <li>Consistent</li>
+            <li>Available</li>
+            <li>Partition-tolerant</li>
+            </ul>
+          </section>
+
+          <section data-background="images/blueprint.jpg">
+            <img src="images/lift-actors-profile.png"/>
+          </section>
+
+          <section>
+          <pre><code data-trim class="scala">
+val userProfile = ClusterSharding(system).start(
+  typeName = UserProfile.shardName,
+  entryProps = Some(UserProfile.props),
+  idExtractor = UserProfile.idExtractor,
+  shardResolver = UserProfile.shardResolver)
+  
+val userProfileProcessor = system.actorOf(
+  UserProfileProcessor.props(userProfile), 
+  UserProfileProcessor.name)
+          </code></pre>
+          </section>
+
+          <section>
+          <pre><code data-trim class="scala">
+object UserProfile {
+  
+  val idExtractor: ShardRegion.IdExtractor = {
+    case UserRegistered(id, a) ⇒ (id, a)
+    case UserGetAccount(id)    ⇒ (id, GetAccount)
+    ...
+  }
+
+  val shardResolver: ShardRegion.ShardResolver = {
+    case UserRegistered(id, _) ⇒ id.hashCode() % 10
+    case UserGetAccount(id)    ⇒ id.hashCode() % 10
+    ...
+  }
+}
+          </code></pre>
+          </section>
+
+          <section>
+          <pre><code data-trim class="scala">
+class UserProfile extends PersistentActor {
+  private var profile: Profile = _
+  override val persistenceId: String = 
+    s"user-profile-${self.path.name}"
+
+  override def receiveCommand: Receive = notRegistered
+
+  private def notRegistered: Receive = ...
+
+  private def registered: Receive = ...
+
+}
+          </code></pre>
+          </section>
+
+          <section>
+          <pre><code data-trim class="scala">
+private var profile: Profile = _
+
+private def notRegistered: Receive = {
+  case cmd: Account ⇒
+    persist(cmd) { acc ⇒
+      profile = Profile(acc, Devices.empty, None, None)
+      saveSnapshot(profile)
+      context.become(registered)
+    }
+}
+private def registered: Receive = {
+  case GetAccount ⇒ sender() ! profile.account
+  ...
+}
+          </code></pre>
+          </section>
+
         </section>
 
         <section data-background="images/angrymob.jpg">
