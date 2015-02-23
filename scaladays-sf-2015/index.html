@@ -450,7 +450,7 @@ def exercising(id: SessionId,
         .decodeAll(p.payload)
         .map(SensorDataWithLocation(p.sourceLocation))
     }
-    val result = t.foldLeft(h.map(x ⇒ List(x)))䍶
+    val result = t.foldLeft(h.map(List.apply))䍶
     result.fold({ err ⇒ ... }, { dec ⇒ ... })
 }
           </code></pre>
@@ -514,19 +514,73 @@ class UserExercisesSessions extends PersistentView {
 }
           </code></pre>
           </section>
+
+          <section>
+          <pre><code data-trim class="scala">
+var sessions = Sessions.empty
+
+lazy val queries: Receive = {
+  case GetExerciseSessionsSummary(start, end) ⇒
+    sender() ! sessions.summary(start, end)
+  case GetExerciseSessionsDates ⇒
+    sender() ! sessions.dates
+  case GetExerciseSession(sessionId) ⇒
+    sender() ! sessions.get(sessionId)
+}
+          </code></pre>
+          </section>
+
+          <section>
+          <pre><code data-trim class="scala">
+lazy val notExercising: Receive = {
+  case SnapshotOffer(_, offeredSnapshot: Sessions) ⇒
+    exercises = offeredSnapshot
+
+  case SessionStartedEvt(id, sessionProps) ⇒
+    context.become(
+      exercising(ExerciseSession(id, sessionProps))
+
+  case SessionDeletedEvt(sessionId) ⇒
+    exercises = exercises.withoutSession(sessionId)
+    saveSnapshot(exercises)
+}
+          </code></pre>
+          </section>
+
+          <section>
+          <pre><code data-trim class="scala">
+def exercising(session: ExerciseSession): Receive = {
+  ...
+  case SessionEndedEvt(_) ⇒
+    exercises = exercises.withNewSession(session)
+    notificationSender ! DataMessagePayload("{ ... }")
+    saveSnapshot(exercises)
+
+    context.become(notExercising.orElse(queries))
+}
+          </code></pre>
+          </section>
         </section>        
+
+        <section data-background="images/blueprint.jpg">
+          <section>
+            <h2>Classification diagram here</h2>
+          </section>
+
+          
+        </section>
+
+        <section data-background="images/blueprint.jpg">
+          <section>
+            <h2>Spark diagram here</h2>
+          </section>
+
+
+        </section>
 
         <section data-background="images/angrymob.jpg">
           <h1>Demo</h1>
           <p>Exercise in Akka cluster</p>
-        </section>
-
-        <section data-background="images/angrymob.jpg">
-          <img src="images/codemonkey.png"/>
-        </section>
-
-        <section data-background="images/angrymob.jpg">
-          <img src="images/lift-actors.png"/>
         </section>
 
         <section data-background="images/qa.jpg">
