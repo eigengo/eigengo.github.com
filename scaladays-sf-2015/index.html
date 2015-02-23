@@ -114,6 +114,11 @@
           </aside>
         </section>
 
+        <section data-background="images/angrymob.jpg">
+          <video data-autoplay src="videos/lift-app.mp4"></video>
+        </section>
+
+        <!-- Profile service -->
         <section data-background="images/blueprint.jpg">
           <section>
           <pre><code data-trim class="scala">
@@ -166,7 +171,12 @@ implicit class DisjunctUnionFuture(f: Future[_]) {
           </section>
         </section>
 
+        <!-- UserProfileProcessor and UserProfile -->
         <section data-background="images/blueprint.jpg">
+          <section data-background="images/blueprint.jpg">
+            <img src="images/lift-actors-profile.png"/>
+          </section>
+
           <section>
           <pre><code data-trim class="scala">
 class UserProfileProcessor(userProfile: ActorRef) 
@@ -321,13 +331,119 @@ private def registered: Receive = {
 
         </section>
 
+        <!-- UserExercisesProcessor, UserExercisesSessions, UserExercisesSession, UserExercisesStatistics -->
+        <section data-background="images/blueprint.jpg">
+          <section data-background="images/blueprint.jpg">
+            <img src="images/lift-actors-exercise.png"/>
+          </section>
+
+          <section>
+          <pre><code data-trim class="scala">
+class UserExercisesProcessor(notification: ActorRef, 
+  userProfile: ActorRef) extends PersistentActor {
+
+  override def receiveRecover: Receive = ...
+  override def receiveCommand: Receive = notExercising
+
+  def replaying(oldId: SessionId, newId: SessionId, 
+        sessionProps: SessionProperties): Receive = ...
+
+  def exercising(id: SessionId, 
+        sessionProps: SessionProperties): Receive = ...
+
+  def notExercising: Receive = ...
+}
+          </code></pre>
+          </section>
+
+          <section>
+          <pre><code data-trim class="scala">
+def notExercising: Receive = {
+  case ExerciseSessionStart(sessionProps) ⇒
+    persist(SessionStartedEvt(SessionId.randomId(), 
+      sessionProps)) { evt ⇒
+      context.become(
+        exercising(evt.sessionId, sessionProps))
+      sender() ! \/.right(evt.sessionId)
+    }
+  case ExerciseSessionReplayStart(id, sessionProps) ⇒
+    ...
+    context.become(replaying(...))
+  case ExerciseSessionEnd(_) ⇒
+    sender() ! \/.left("Not in session")
+}
+          </code></pre>
+          </section>
+
+          <section>
+          <pre><code data-trim class="scala">
+def exercising(id: SessionId, 
+  sessionProps: SessionProperties): Receive = {
+  case ExerciseSessionEnd(`id`) ⇒
+    persist(SessionEndedEvt(id)) { evt ⇒
+      context.become(notExercising)
+      sender() ! \/.right(())
+    }
+  case ExerciseSessionAbandon(`id`) ⇒
+    context.become(notExercising)
+    sender() ! \/.right(())
+  case ExerciseDataProcessMultiPacket(`id`, packet) ⇒
+    ...
+}
+          </code></pre>
+          </section>
+
+          <section>
+            <h2>Protocol image here</h2>
+          </section>
+
+          <section>
+          <pre><code data-trim class="scala">
+trait SensorDataDecoder[+A] {
+  def supports(b: BitVector): Boolean
+  def decode(b: BitVector): String \/ (BitVector, A)
+}
+          </code></pre>
+          </section>
+
+          <section>
+          <pre><code data-trim class="scala">
+trait RootSensorDataDecoder[A] 
+  extends SensorDataDecoder[A] {
+
+  final def decodeAll(b: BitVector): String \/ A = {
+    decode(bits).flatMap {
+      case (BitVector.empty, v) ⇒ \/.right(v)
+      case (_, _) ⇒ \/.left("Undecoded bits")
+    }
+  }
+
+}
+          </code></pre>            
+          </section>
+
+          <section>
+          <pre><code data-trim class="scala">
+def exercising(id: SessionId, 
+  sessionProps: SessionProperties): Receive = {
+  case ExerciseDataProcessMultiPacket(`id`, packet) ⇒
+    val (h::t) = packet.packets.map { p ⇒
+      rootSensorDataDecoder
+        .decodeAll(p.payload)
+        .map(SensorDataWithLocation(p.sourceLocation))
+    }
+    val result = t.foldLeft(h.map(x ⇒ List(x)))((r, b) ⇒ r.flatMap(sdwls ⇒ b.map(x ⇒ x :: sdwls)))
+    result.fold({ err ⇒ persist(MultiPacketDecodingFailedEvt(id, err, packet)) { evt ⇒ sender() ! \/.left(err) } },
+                { dec ⇒ persist(ClassifyExerciseEvt(sessionProps, dec)) { evt ⇒ classifier ! evt; sender() ! \/.right(()) }) } })
+}
+          </code></pre>
+          </section>
+
+        </section>        
+
         <section data-background="images/angrymob.jpg">
           <h1>Demo</h1>
           <p>Exercise in Akka cluster</p>
-        </section>
-
-        <section data-background="images/angrymob.jpg">
-          <video data-autoplay src="videos/lift-app.mp4"></video>
         </section>
 
         <section data-background="images/angrymob.jpg">
