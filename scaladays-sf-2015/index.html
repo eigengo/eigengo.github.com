@@ -404,7 +404,7 @@ struct __attribute__((__packed__)) header {
     uint8_t count;              
     uint8_t samples_per_second; 
     uint8_t sample_size;        
-    uint8_t __padding;          
+    uint8_t offset_past;          
 };
 
 struct __attribute__((__packed__)) accel_data {
@@ -486,11 +486,11 @@ def exercising(id: SessionId,
   sessionProps: SessionProperties): Receive = {
   case ExerciseDataProcessMultiPacket(`id`, packet) ⇒
     val (h::t) = packet.packets.map { p ⇒
-      rootSensorDataDecoder
-        .decodeAll(p.payload)
+      rootSensorDataDecoder.decodeAll(p.payload)
         .map(SensorDataWithLocation(p.sourceLocation))
-    }
+    }  // h: String \/ SDWL; t: List[String \/ SDWL]
     val result = t.foldLeft(h.map(List.apply))魅
+    // result: String \/ List[SDWL]
     result.fold({ err ⇒ ... }, { dec ⇒ ... })
 }
           </code></pre>
