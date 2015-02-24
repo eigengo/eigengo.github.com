@@ -604,10 +604,210 @@ def exercising(session: ExerciseSession): Receive = {
 
         <section data-background="images/blueprint.jpg">
           <section>
-            <h2>Classification diagram here</h2>
+            <img src="images/lift-uec.png"/>
+          </section>
+          <section>
+            <img src="images/lift-uec2.png"/>
           </section>
 
+          <section>
+            <h2>Background reading</h2>
+            <a href="http://arxiv-web3.library.cornell.edu/abs/1405.0054?context=cs">
+              De Giacomo, De Masellis, Grasso, Maggi, Montali.
+              <em>LTLf and LDLf Monitoring. A Technical Report</em>. CoRR 1405.0054, 2014.
+            </a>
+          </section>
+
+          <section>
+          <pre><code data-trim class="scala">
+class ExerciseModel(...)
+  extends ActorPublisher[(SensorNetValue, ActorRef)] {
+
+  private def model: FlowGraph = ...
+
+  override def preStart() = { model.run() }
+
+  def receive: Receive = {
+    case event: SensorNetValue ⇒
+      if (isActive &amp;&amp; totalDemand > 0) {
+        onNext((event, sender()))
+  }
+}
+          </code></pre>
+          </section>
+
+          <section>
+          <pre><code data-trim class="scala">
+def model: FlowGraph = 
+  if (toWatch.isEmpty) {
+    FlowGraph { implicit builder ⇒
+      Source(ActorPublisher(self)) ~> Sink.ignore
+    }
+  } else {
+    ...
+  }
+          </code></pre>
+          </section>
+
+          <section>
+          <pre><code data-trim class="scala small">
+def model: FlowGraph = ... else 
+  FlowGraph { implicit builder ⇒
+    val split = Unzip[SensorNetValue, ActorRef]
+    val listener = Broadcast[ActorRef]
+    val event = Broadcast[List[BindToSensors]]
+
+    Source(ActorPublisher(self)) ~> split.in
+    split.left ~> 
+    workflow.transform(() ⇒ SlidingWindow[BindToSensors](2)) ~>
+    event
+    split.right ~> listener
+    for (query ← toWatch) {
+      val join = Zip[ClassifiedExercise, ActorRef]
+
+      event ~> evaluate(query) ~> join.left
+      listener ~> join.right
+      join.out ~> Sink.foreach[(ClassifiedExercise, ActorRef)] { 
+        case (exercise, ref) ⇒ ref ! exercise 
+      }
+    }
+  }
+          </code></pre>
+          </section>
+
+          <section>
+          <pre><code data-trim class="scala xsmall">
+def evaluate(query: Query): Flow[List[BindToSensors]] = {
+  var currentState: Query = query
+  var stableState: Option[QueryValue] = None
+  Flow[List[BindToSensors]].mapAsync { sensorData ⇒
+    sensorData match {
+      case _ if stableState.isDefined => stableState.get
+      case List(event) ⇒
+        evaluateQuery(currentState)(event, lastState = true)
+      case List(event, _) ⇒
+        evaluateQuery(currentState)(event, lastState = false)
+    } match {
+      case UnstableValue(nextQuery) ⇒ async {
+          val validQuery = prover.valid(nextQuery)
+          val satisfiableQuery = prover.satisfiable(nextQuery)
+          val simplifiedQuery = prover.simplify(nextQuery)
+
+          if (await(validQuery)) {
+            StableValue(result = true)
+          } else if (await(satisfiableQuery)) {
+            currentState = await(simplifiedQuery)
+            UnstableValue(currentState)
+          } else {
+            StableValue(result = false)
+          }
+        }
+      case value: StableValue ⇒
+        stableState = Some(value)
+        Future(value)
+    }
+  }
+}
+          </code></pre>
+          </section>
           
+          <section>
+          <pre><code data-trim class="scala small">
+trait SMTInterface {
+  import ExerciseModel._
+
+  def simplify(query: Query)(implicit ec: ExecutionContext): 
+        Future[Query]
+
+  def satisfiable(query: Query)(implicit ec: ExecutionContext): 
+        Future[Boolean]
+
+  def valid(query: Query)(implicit ec: ExecutionContext): 
+        Future[Boolean]
+
+}
+          </code></pre>
+          <a href="http://cvc4.cs.nyu.edu/web/">CVC4: the smt solver</a>
+          <pre><code data-trim class="scala small">
+class ExerciseModel(...)(implicit prover: SMTInterface)
+  extends ActorPublisher[(SensorNetValue, ActorRef)] {
+  ...
+}
+          </code></pre>
+          </section>
+
+          <section>
+          <pre><code data-trim class="scala small">
+class StandardExerciseModel(sessionProps: SessionProperties, 
+  tapSensor: SensorDataSourceLocation, toWatch: Set[Query])
+  (implicit prover: SMTInterface)
+  extends ExerciseModel("tap", sessionProps, toWatch)
+  with StandardEvaluation {
+
+  object Tap extends 
+    GestureWorkflows("tap", context.system.settings.config)
+
+  val workflow = ...
+
+}
+          </code></pre>
+          </section>
+
+          <section>
+          <pre><code data-trim class="scala small">
+val workflow = {
+  val in = UndefinedSource[SensorNetValue]
+  val out = UndefinedSink[BindToSensors]
+
+  PartialFlowGraph { implicit builder ⇒
+    val classifier = Tap.identifyEvent
+    val split = Broadcast[SensorNetValue]
+    val merge = Zip[Set[Fact], SensorNetValue]
+
+    in ~> split
+    split ~> Flow[SensorNetValue]
+      .mapConcat(_.toMap(tapSensor)
+                   .find(_.isInstanceOf[AccelerometerValue])
+                   .asInstanceOf[Option[AccelerometerValue]].toList)
+      .via(classifier.map(_.toSet)) ~> merge.left
+    split ~> merge.right
+    merge.out ~> Flow[(Set[Fact], SensorNetValue)].map { 
+      case (facts, data) ⇒ BindToSensors(facts, ..., data) 
+    } ~> out
+  }.toFlow(in, out)
+}
+          </code></pre>
+          </section>
+
+          <section>
+          <pre><code data-trim class="scala small">
+class GestureWorkflows(name: String, config: Config) 
+  extends SVMClassifier {
+  
+  def identifyEvent: Flow[AccelerometerValue, Option[Fact]] =
+    Flow[AccelerometerValue]
+      .transform(() ⇒ SlidingWindow[AccelerometerValue](windowSize))
+      .map { (sample: List[AccelerometerValue]) ⇒
+        if (sample.length == windowSize) {
+          val matchProbability = probabilityOfGestureEvent(sample)
+
+          if (matchProbability >= threshold) {
+            Some(Gesture(name, threshold))
+          } else {
+            Some(Neg(Gesture(name, threshold)))
+          }
+        } else {
+          None
+        }
+      }
+}
+          </code></pre>
+          </section>
+
+          <section>
+            <img src="images/lift-uec2.png"/>
+          </section>
+
         </section>
 
         <section data-background="images/blueprint.jpg">
