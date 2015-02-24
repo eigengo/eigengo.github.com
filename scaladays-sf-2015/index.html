@@ -193,7 +193,7 @@ var accounts: KnownAccounts = KnownAccounts.empty
 
 override def receiveCommand: Receive = {
   case UserRegister(email, _) 
-    if accounts.contains(email) ⇒
+  if accounts.contains(email) ⇒
     sender() ! \/.left("Username already taken")  
 }
           </code></pre>
@@ -238,7 +238,7 @@ override def receiveCommand: Receive = {
       mediator ! Publish(topic, KnownAccountAdded(...))
     }
   case KnownAccountAdded(email, userId) 
-    if sender() != self ⇒
+  if sender() != self ⇒
     accounts = accounts.withNewAccount(email, userId)
 }
           </code></pre>
@@ -282,8 +282,8 @@ object UserProfile {
   }
 
   val shardResolver: ShardRegion.ShardResolver = {
-    case UserRegistered(id, _) ⇒ id.hashCode() % 10
-    case UserGetAccount(id)    ⇒ id.hashCode() % 10
+    case UserRegistered(id, _) ⇒ id.shard()
+    case UserGetAccount(id)    ⇒ id.shard()
     ...
   }
 }
@@ -330,7 +330,7 @@ private def registered: Receive = {
 
         <!-- UserExercisesProcessor, UserExercisesSessions, UserExercisesSession, UserExercisesStatistics -->
         <section data-background="images/blueprint.jpg">
-          <section data-background="images/blueprint.jpg">
+          <section>
             <img src="images/lift-actors-exercise.png"/>
           </section>
 
@@ -391,7 +391,47 @@ def exercising(id: SessionId,
           </section>
 
           <section>
-            <h2>Protocol image here</h2>
+            <img src="images/lift-protocol.png"/>
+          </section>
+          <section>
+            <img src="images/lift-protocol2.png"/>
+          </section>
+
+          <section>
+          <pre><code data-trim class="c">
+struct __attribute__((__packed__)) header {
+    uint8_t type;               
+    uint8_t count;              
+    uint8_t samples_per_second; 
+    uint8_t sample_size;        
+    uint8_t __padding;          
+};
+
+struct __attribute__((__packed__)) accel_data {
+    int16_t x_val : 13;
+    int16_t y_val : 13;
+    int16_t z_val : 13;
+};
+          </code></pre>
+          </section>
+
+          <section>
+          <pre><code data-trim class="scala">
+type E = (Int, Int, Int)         
+val accelData = new CodecPrimitive[E] {
+  val ignore1 = IgnoreCodecPrimitive(1)
+  val int13 = IntCodecPrimitive(13, signed = true, 
+                                ByteOrdering.BigEndian)
+  override val bits = 40
+  override def decode(buffer: BitVector): 
+    String \/ (BitVector, E) = for {
+      (b1, _) ← ignore1.decode(buffer)
+      (b2, z) ← int13.decode(b1)
+      (b3, y) ← int13.decode(b2)
+      (b4, x) ← int13.decode(b3)
+    } yield (b4, (x, y, z))
+}
+          </code></pre>
           </section>
 
           <section>
@@ -450,7 +490,7 @@ def exercising(id: SessionId,
         .decodeAll(p.payload)
         .map(SensorDataWithLocation(p.sourceLocation))
     }
-    val result = t.foldLeft(h.map(List.apply))䍶
+    val result = t.foldLeft(h.map(List.apply))魅
     result.fold({ err ⇒ ... }, { dec ⇒ ... })
 }
           </code></pre>
