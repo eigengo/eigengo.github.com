@@ -670,7 +670,7 @@ class ExerciseModel(𝑸)
 
           <section>
           <pre><code data-trim class="scala small">
-// workflow ~> ∀𝓆∈𝑸.(evaluateQuery ~> makeDecision) ~>
+// workflow ~> ∀𝓆∈𝑸.(evaluateQuery ~> makeDecision) ⇒
 // (nothing)
 def model: FlowGraph = 
   if (toWatch.isEmpty) {
@@ -685,7 +685,7 @@ def model: FlowGraph =
           <section>
           <img src="images/lift-exercisemodel.png"/>
           <pre><code data-trim class="scala small">
-// workflow ~> ∀𝓆𝑸.(evaluateQuery ~> makeDecision) ~>
+// workflow ~> ∀𝓆∈𝑸.(evaluateQuery ~> makeDecision) | |𝑸| = 1 ⇒
 // workflow ~> evaluateQuery(𝓆₁) ~> makeDecision(𝓆₁)
 def model: FlowGraph = 
           </code></pre>
@@ -693,24 +693,24 @@ def model: FlowGraph =
 
           <section>
           <pre><code data-trim class="scala small">
-// workflow ~> ∀𝓆∈𝑸.(evaluateQuery ~> makeDecision) ~>
+// workflow ~> ∀𝓆∈𝑸.(evaluateQuery ~> makeDecision) | |𝑸| = 1 ⇒
 // workflow ~> evaluateQuery(𝓆₁) ~> makeDecision(𝓆₁)
-def model: FlowGraph = ... else FlowGraph { implicit builder =>
+def model: FlowGraph = ... else FlowGraph { implicit builder ⇒
   val split = Unzip[SensorNetValue, ActorRef]
   val join = Zip[Option[ClassifiedExercise], ActorRef]
   val query = toWatch.head
 
   Source(ActorPublisher(self)) ~> split.in
   split.left ~> 
-    workflow.transform(() => SlidingWindow[BindToSensors](2)) ~> 
+    workflow.transform(() ⇒ SlidingWindow[BindToSensors](2)) ~> 
     evaluate(query) ~> makeDecision(query) ~> join.left
   split.right ~> join.right
 
   join.out ~> Flow[(Option[ClassifiedExercise], ActorRef)]
     .filter(_._1.nonEmpty)
-    .map { case (ex, ref) => (ex.get, ref) } ~> 
+    .map { case (ex, ref) ⇒ (ex.get, ref) } ~> 
       Sink.foreach[(ClassifiedExercise, ActorRef)] { 
-        case (exercise, ref) => ref ! exercise 
+        case (exercise, ref) ⇒ ref ! exercise 
       }
 }
           </code></pre>
@@ -723,7 +723,7 @@ def evaluate(query: Query): Flow[List[BindToSensors], QueryValue] = {
   var stableState: Option[QueryValue] = None
   Flow[List[BindToSensors]].mapAsync { sensorData ⇒
     sensorData match {
-      case _ if stableState.isDefined => stableState.get
+      case _ if stableState.isDefined ⇒ stableState.get
       case List(event) ⇒
         evaluateQuery(currentState)(event, lastState = true)
       case List(event, _) ⇒
@@ -789,7 +789,8 @@ class StandardExerciseModel(sessionProps: SessionProperties,
     GestureWorkflows("tap", context.system.settings.config)
 
   val workflow = ...
-  def makeDecision(query: Query) = ...
+  def makeDecision(query: Query) = 
+    Flow[QueryValue].map(_ => Some(TapEvent))
 
 }
           </code></pre>
@@ -861,8 +862,9 @@ class GestureWorkflows(name: String, config: Config)
         </section>
 
         <section data-background="images/angrymob.jpg">
-          <h1>Demo</h1>
-          <p>Exercise in Akka cluster</p>
+          <video data-autoplay src="videos/lift-app.mp4"></video>
+        </section>
+
         </section>
 
         <section data-background="images/qa.jpg">
@@ -873,7 +875,7 @@ class GestureWorkflows(name: String, config: Config)
           <h2>Thank you!</h2>
           <ul>
             <!-- <li>Slides at <a href="http://www.eigengo.com/scaladays-sf-2015">www.eigengo.com/scaladays-sf-2015</a></li> -->
-            <li>Code at <a href="http://github.com/eigengo/lift">github.com/eigengo/lift</a></li>
+            <li><em>All</em> code at <a href="http://github.com/eigengo/lift">github.com/eigengo/lift</a></li>
             <li>Tweets at <a href="https://twitter.com/honzam399">@honzam399</a></li>
           </ul>
           </ul>
