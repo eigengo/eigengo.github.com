@@ -678,7 +678,7 @@ def model: FlowGraph = ... else
 
           <section>
           <pre><code data-trim class="scala xsmall">
-def evaluate(query: Query): Flow[List[BindToSensors]] = {
+def evaluate(query: Query): Future[QueryValue] = {
   var currentState: Query = query
   var stableState: Option[QueryValue] = None
   Flow[List[BindToSensors]].mapAsync { sensorData ⇒
@@ -690,19 +690,19 @@ def evaluate(query: Query): Flow[List[BindToSensors]] = {
         evaluateQuery(currentState)(event, lastState = false)
     } match {
       case UnstableValue(nextQuery) ⇒ async {
-          val validQuery = prover.valid(nextQuery)
-          val satisfiableQuery = prover.satisfiable(nextQuery)
-          val simplifiedQuery = prover.simplify(nextQuery)
+        val validQuery = prover.valid(nextQuery)
+        val satisfiableQuery = prover.satisfiable(nextQuery)
+        val simplifiedQuery = prover.simplify(nextQuery)
 
-          if (await(validQuery)) {
-            StableValue(result = true)
-          } else if (await(satisfiableQuery)) {
-            currentState = await(simplifiedQuery)
-            UnstableValue(currentState)
-          } else {
-            StableValue(result = false)
-          }
+        if (await(validQuery)) {
+          StableValue(result = true)
+        } else if (await(satisfiableQuery)) {
+          currentState = await(simplifiedQuery)
+          UnstableValue(currentState)
+        } else {
+          StableValue(result = false)
         }
+      }
       case value: StableValue ⇒
         stableState = Some(value)
         Future(value)
