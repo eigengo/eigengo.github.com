@@ -670,8 +670,8 @@ class ExerciseModel(𝑸)
 
           <section>
           <pre><code data-trim class="scala small">
-// workflow ~> ∀𝓆∈𝑸.(evaluateQuery ~> makeDecision) ⇒
-// (nothing)
+// workflow ~> ∀𝓆∈𝑸.(evaluateQuery ~> makeDecision) | |𝑸| = 0 ⇒
+// (nothing to do)
 def model: FlowGraph = 
   if (toWatch.isEmpty) {
     FlowGraph { implicit builder ⇒
