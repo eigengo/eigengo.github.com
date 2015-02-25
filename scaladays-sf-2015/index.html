@@ -609,6 +609,9 @@ def exercising(session: ExerciseSession): Receive = {
           <section>
             <img src="images/lift-uec2.png"/>
           </section>
+          <section>
+            <img src="images/lift-sensornet.png"/>
+          </section>
 
           <section>
             <h2>Background reading</h2>
@@ -624,6 +627,44 @@ def exercising(session: ExerciseSession): Receive = {
 class ExerciseModel(...)
   extends ActorPublisher[(SensorNetValue, ActorRef)] {
 
+  def evaluateQuery(query: Query, evt: BindToSensors, 
+        lastState: Boolean): QueryValue
+
+  def makeDecision(query: Query): 
+        Flow[QueryValue, Option[ClassifiedExercise]]
+
+  def workflow: Flow[SensorNetValue, BindToSensors]
+
+  def model: FlowGraph = ...
+
+}
+          </code></pre>
+          </section>
+
+          <section>
+          <pre><code data-trim class="scala">
+class ExerciseModel(...)
+  extends ActorPublisher[(SensorNetValue, ActorRef)] {
+
+  def evaluateQuery(query: Query, evt: BindToSensors, 
+        lastState: Boolean): QueryValue
+  def makeDecision(query: Query): 
+        Flow[QueryValue, Option[ClassifiedExercise]]
+  def workflow: Flow[SensorNetValue, BindToSensors]
+
+  def model: FlowGraph = 𝒲 { 
+    workflow ~> evaluateQuery ~> makeDecision
+  }
+
+}
+          </code></pre>
+          </section>
+
+          <section>
+          <pre><code data-trim class="scala">
+class ExerciseModel(...)
+  extends ActorPublisher[(SensorNetValue, ActorRef)] {
+
   private def model: FlowGraph = ...
 
   override def preStart() = { model.run() }
@@ -632,6 +673,7 @@ class ExerciseModel(...)
     case event: SensorNetValue ⇒
       if (isActive &amp;&amp; totalDemand > 0) {
         onNext((event, sender()))
+      }
   }
 }
           </code></pre>
@@ -652,33 +694,33 @@ def model: FlowGraph =
 
           <section>
           <pre><code data-trim class="scala small">
-def model: FlowGraph = ... else 
-  FlowGraph { implicit builder ⇒
-    val split = Unzip[SensorNetValue, ActorRef]
-    val listener = Broadcast[ActorRef]
-    val event = Broadcast[List[BindToSensors]]
-
-    Source(ActorPublisher(self)) ~> split.in
-    split.left ~> 
+def model: FlowGraph = ... else FlowGraph { implicit builder ⇒
+  val split = Unzip[SensorNetValue, ActorRef]
+  val listener = Broadcast[ActorRef]
+  val event = Broadcast[List[BindToSensors]]
+  Source(ActorPublisher(self)) ~> split.in
+  split.left ~> 
     workflow.transform(() ⇒ SlidingWindow[BindToSensors](2)) ~>
     event
-    split.right ~> listener
-    for (query ← toWatch) {
-      val join = Zip[ClassifiedExercise, ActorRef]
-
-      event ~> evaluate(query) ~> join.left
-      listener ~> join.right
-      join.out ~> Sink.foreach[(ClassifiedExercise, ActorRef)] { 
-        case (exercise, ref) ⇒ ref ! exercise 
-      }
-    }
+  split.right ~> listener
+  for (query ← toWatch) {
+    val join = Zip[Option[ClassifiedExercise], ActorRef]
+    event ~> evaluate(query) ~> join.left
+    listener ~> join.right
+    join.out ~> Flow[(Option[ClassifiedExercise], ActorRef)]
+      .filter(_._1.nonEmpty)
+      .map { case (ex, ref) ⇒ (ex.get, ref) } ~> 
+        Sink.foreach[(ClassifiedExercise, ActorRef)] { 
+          case (exercise, ref) => ref ! exercise 
+        }
   }
+}
           </code></pre>
           </section>
 
           <section>
           <pre><code data-trim class="scala xsmall">
-def evaluate(query: Query): Future[QueryValue] = {
+def evaluate(query: Query): Flow[List[BindToSensors], QueryValue] = {
   var currentState: Query = query
   var stableState: Option[QueryValue] = None
   Flow[List[BindToSensors]].mapAsync { sensorData ⇒
@@ -749,6 +791,7 @@ class StandardExerciseModel(sessionProps: SessionProperties,
     GestureWorkflows("tap", context.system.settings.config)
 
   val workflow = ...
+  def makeDecision(query: Query) = ...
 
 }
           </code></pre>
