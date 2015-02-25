@@ -623,37 +623,22 @@ def exercising(session: ExerciseSession): Receive = {
           </section>
 
           <section>
-          <pre><code data-trim class="scala">
-class ExerciseModel(...)
-  extends ActorPublisher[(SensorNetValue, ActorRef)] {
-
-  def evaluateQuery(query: Query, evt: BindToSensors, 
-        lastState: Boolean): QueryValue
-
-  def makeDecision(query: Query): 
-        Flow[QueryValue, Option[ClassifiedExercise]]
-
-  def workflow: Flow[SensorNetValue, BindToSensors]
-
-  def model: FlowGraph = ...
-
-}
-          </code></pre>
+          <img src="images/lift-exercisemodel.png"/>
           </section>
 
           <section>
           <pre><code data-trim class="scala">
-class ExerciseModel(...)
+class ExerciseModel(𝑸)
   extends ActorPublisher[(SensorNetValue, ActorRef)] {
 
-  def evaluateQuery(query: Query, evt: BindToSensors, 
+  def workflow: Flow[SensorNetValue, BindToSensors]
+  def evaluateQuery(query: Query)(evt: BindToSensors, 
         lastState: Boolean): QueryValue
   def makeDecision(query: Query): 
         Flow[QueryValue, Option[ClassifiedExercise]]
-  def workflow: Flow[SensorNetValue, BindToSensors]
 
   def model: FlowGraph = 𝒲 { 
-    workflow ~> evaluateQuery ~> makeDecision
+    workflow ~> ∀𝓆∈𝑸.(evaluateQuery ~> makeDecision)
   }
 
 }
@@ -661,11 +646,15 @@ class ExerciseModel(...)
           </section>
 
           <section>
+            <img src="images/lift-uec2.png"/>
+          </section>
+
+          <section>
           <pre><code data-trim class="scala">
-class ExerciseModel(...)
+class ExerciseModel(𝑸)
   extends ActorPublisher[(SensorNetValue, ActorRef)] {
 
-  private def model: FlowGraph = ...
+  private def model: FlowGraph = ... // 𝒲
 
   override def preStart() = { model.run() }
 
@@ -680,40 +669,49 @@ class ExerciseModel(...)
           </section>
 
           <section>
-          <pre><code data-trim class="scala">
+          <pre><code data-trim class="scala small">
+// workflow ~> ∀𝓆∈𝑸.(evaluateQuery ~> makeDecision) ~>
+// (nothing)
 def model: FlowGraph = 
   if (toWatch.isEmpty) {
     FlowGraph { implicit builder ⇒
       Source(ActorPublisher(self)) ~> Sink.ignore
     }
-  } else {
-    ...
   }
+
+          </code></pre>
+          </section>
+
+          <section>
+          <img src="images/lift-exercisemodel.png"/>
+          <pre><code data-trim class="scala small">
+// workflow ~> ∀𝓆𝑸.(evaluateQuery ~> makeDecision) ~>
+// workflow ~> evaluateQuery(𝓆₁) ~> makeDecision(𝓆₁)
+def model: FlowGraph = 
           </code></pre>
           </section>
 
           <section>
           <pre><code data-trim class="scala small">
-def model: FlowGraph = ... else FlowGraph { implicit builder ⇒
+// workflow ~> ∀𝓆∈𝑸.(evaluateQuery ~> makeDecision) ~>
+// workflow ~> evaluateQuery(𝓆₁) ~> makeDecision(𝓆₁)
+def model: FlowGraph = ... else FlowGraph { implicit builder =>
   val split = Unzip[SensorNetValue, ActorRef]
-  val listener = Broadcast[ActorRef]
-  val event = Broadcast[List[BindToSensors]]
+  val join = Zip[Option[ClassifiedExercise], ActorRef]
+  val query = toWatch.head
+
   Source(ActorPublisher(self)) ~> split.in
   split.left ~> 
-    workflow.transform(() ⇒ SlidingWindow[BindToSensors](2)) ~>
-    event
-  split.right ~> listener
-  for (query ← toWatch) {
-    val join = Zip[Option[ClassifiedExercise], ActorRef]
-    event ~> evaluate(query) ~> join.left
-    listener ~> join.right
-    join.out ~> Flow[(Option[ClassifiedExercise], ActorRef)]
-      .filter(_._1.nonEmpty)
-      .map { case (ex, ref) ⇒ (ex.get, ref) } ~> 
-        Sink.foreach[(ClassifiedExercise, ActorRef)] { 
-          case (exercise, ref) => ref ! exercise 
-        }
-  }
+    workflow.transform(() => SlidingWindow[BindToSensors](2)) ~> 
+    evaluate(query) ~> makeDecision(query) ~> join.left
+  split.right ~> join.right
+
+  join.out ~> Flow[(Option[ClassifiedExercise], ActorRef)]
+    .filter(_._1.nonEmpty)
+    .map { case (ex, ref) => (ex.get, ref) } ~> 
+      Sink.foreach[(ClassifiedExercise, ActorRef)] { 
+        case (exercise, ref) => ref ! exercise 
+      }
 }
           </code></pre>
           </section>
@@ -799,7 +797,7 @@ class StandardExerciseModel(sessionProps: SessionProperties,
 
           <section>
           <pre><code data-trim class="scala small">
-val workflow = {
+val workflow = /* 𝒲 */ {
   val in = UndefinedSource[SensorNetValue]
   val out = UndefinedSink[BindToSensors]
 
@@ -819,7 +817,7 @@ val workflow = {
       case (facts, data) ⇒ BindToSensors(facts, ..., data) 
     } ~> out
   }.toFlow(in, out)
-}
+} // ~> ∀𝓆∈𝑸.(evaluateQuery ~> makeDecision)
           </code></pre>
           </section>
 
