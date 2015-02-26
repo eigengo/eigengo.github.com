@@ -75,6 +75,8 @@
         <section data-background="images/intro.jpg">
           <h2>How to get there?</h2>
           <aside class="notes">
+            CQRS/ES: commands, events. CQRS is the only way I know how to successfully deliver such as system.
+            It is an argument from ignorance, I accept, but I give it nonetheless.
           </aside>
         </section>
 
@@ -105,12 +107,20 @@
         <section data-background="images/blueprint.jpg">
           <img src="images/lift-architecture.png"/>
           <aside class="notes">
+            Mention more stuff about Spark. Not only recommendations, but also ability to re-run the
+            classification. Remember, all history is available. Statistics, exercise programmes,
+            physio therapy; combined with some other user behaviour aspects.
+
+            Corss-user classification.
           </aside>
         </section>
 
         <section data-background="images/blueprint.jpg">
           <img src="images/lift-actors.png"/>
           <aside class="notes">
+            UserExercisesProcesor does XXX,
+            UserProfileProcessor does XXX,
+            ...
           </aside>
         </section>
 
@@ -159,6 +169,10 @@ path("user" / UserIdValue) { userId ⇒
   }
 } 
           </code></pre>
+          <aside class="notes">
+            The response is (in some cases) irrelevant: all that it'd say is
+            whatever we had the last time.            
+          </aside>
           </section>
 
           <section>
@@ -242,6 +256,9 @@ override def receiveCommand: Receive = {
     accounts = accounts.withNewAccount(email, userId)
 }
           </code></pre>
+          <aside class="notes">
+            PubSub is Publish-Subscribe.
+          </aside>
           </section>
 
           <section data-background="images/blueprint.jpg">
@@ -251,6 +268,10 @@ override def receiveCommand: Receive = {
             <li>Available</li>
             <li>Partition-tolerant</li>
             </ul>
+            <aside class="notes">
+              A and C are not completely exclusive. It is possible to tune consistency levels, e.g.
+              casual, read-your-own-writes, and so on.
+            </aside>
           </section>
 
           <section data-background="images/blueprint.jpg">
@@ -608,6 +629,16 @@ def exercising(session: ExerciseSession): Receive = {
           </section>
           <section>
             <img src="images/lift-uec3.png"/>
+            <aside class="notes">
+              Data science terminology: data point, ...
+            </aside>
+          </section>
+          <section>
+            <img src="images/lift-uec3-0.png"/>
+            <aside class="notes">
+              Triangle: UserExercisesClassifier
+              Trapezoid: ExerciseModel
+            </aside>
           </section>
           <section>
             <img src="images/lift-uec2.png"/>
@@ -634,10 +665,10 @@ class UserExercisesClassifier(modelProps: Props) extends Actor {
     case ClassifyExerciseEvt(sensorData) ⇒
       val sm: Map[SensorDataSourceLocation, List[List[SensorData]]] = 
         sensorData.groupBy(魅)
-      val bs = blockSize(sensorMap)
+      val bs = blockSize(sm)
 
       (0 until bs).foreach { block ⇒
-        val sensorEvent = sensorMap.map(魅)
+        val sensorEvent = sm.map(魅)
 
         model.tell(SensorNet(sensorEvent), sender())
       }
