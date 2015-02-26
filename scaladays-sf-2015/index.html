@@ -607,10 +607,10 @@ def exercising(session: ExerciseSession): Receive = {
             <img src="images/lift-uec.png"/>
           </section>
           <section>
-            <img src="images/lift-uec2.png"/>
+            <img src="images/lift-uec3.png"/>
           </section>
           <section>
-            <img src="images/lift-sensornet.png"/>
+            <img src="images/lift-uec2.png"/>
           </section>
 
           <section>
@@ -620,6 +620,30 @@ def exercising(session: ExerciseSession): Receive = {
               <em>LTLf and LDLf Monitoring. A Technical Report</em>. CoRR 1405.0054, 2014.
             </a>
             <img src="images/lift-protocol2.png"/>
+          </section>
+
+          <section>
+          <pre><code data-trim class="scala small">
+class UserExercisesClassifier(modelProps: Props) extends Actor {
+
+  val model = context.actorOf(modelProps)
+
+  def blockSize(in: Map[SensorDataSourceLocation, 魅]): Int = ...
+
+  def receive: Receive = {
+    case ClassifyExerciseEvt(sensorData) ⇒
+      val sm: Map[SensorDataSourceLocation, List[List[SensorData]]] = 
+        sensorData.groupBy(魅)
+      val bs = blockSize(sensorMap)
+
+      (0 until bs).foreach { block ⇒
+        val sensorEvent = sensorMap.map(魅)
+
+        model.tell(SensorNet(sensorEvent), sender())
+      }
+  }
+}
+          </code></pre>
           </section>
 
           <section>
@@ -692,6 +716,10 @@ def model: FlowGraph =
           </section>
 
           <section>
+            <img src="images/lift-uec3-1.png"/>
+          </section>
+
+          <section>
           <pre><code data-trim class="scala small">
 // workflow ~> ∀𝓆∈𝑸.(evaluateQuery ~> makeDecision) | |𝑸| = 1 ⇒
 // workflow ~> evaluateQuery(𝓆₁) ~> makeDecision(𝓆₁)
@@ -714,6 +742,10 @@ def model: FlowGraph = ... else FlowGraph { implicit builder ⇒
       }
 }
           </code></pre>
+          </section>
+
+          <section>
+            <img src="images/lift-uec3-2.png"/>
           </section>
 
           <section>
@@ -775,6 +807,10 @@ class ExerciseModel(...)(implicit prover: SMTInterface)
   ...
 }
           </code></pre>
+          </section>
+
+          <section>
+            <img src="images/lift-uec3-3.png"/>
           </section>
 
           <section>
@@ -848,7 +884,7 @@ class GestureWorkflows(name: String, config: Config)
           </section>
 
           <section>
-            <img src="images/lift-uec2.png"/>
+            <img src="images/lift-uec3.png"/>
           </section>
 
         </section>
