@@ -330,6 +330,14 @@ body {
 
 	box-shadow: 0px 0px 6px rgba(0,0,0,0.3);
 }
+.reveal code.small {
+	font-size: 0.8em;
+	line-height: 1.0em;
+}
+.reveal code.xsmall {
+	font-size: 0.60em;
+	line-height: 0.9em;
+}
 .reveal code {
 	font-family: "Ubuntu Mono";
 }

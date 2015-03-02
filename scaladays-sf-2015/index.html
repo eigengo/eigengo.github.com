@@ -3,8 +3,8 @@
 
   <head>
     <meta charset="utf-8">
-    <title>Distributed Akka systems</title>
-    <meta name="description" content="Distributed Akka systems">
+    <title>Exercise in exercise analysis</title>
+    <meta name="description" content="Exercise in exercise analysis">
     <meta name="author" content="Jan Machacek">
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -45,212 +45,6 @@
           <p>Jan Macháček <a href="https://twitter.com/honzam399">@honzam399</a></p>
         </section>
 
-        <!-- UHK / Chester Devs: What is Akka -->
-        <section data-background="imagesx/madderakka.jpg">
-          <h2>What is Akka?</h2>
-          <p>Akka is a toolkit and runtime for building highly concurrent, distributed, and fault tolerant event-driven applications on the JVM.</p>
-          
-          <aside class="notes">
-            <p>One distributes the system because the entities it manages are too big to fit into one node, and to achieve resilience &amp; elasticity.</p>
-            <p>Distribution unfortunately brings challenges when it comes to consistency, availability and partition tolerance.</p>
-            <p>The biggest impediment for scale is shared mutable state (to be precise: contended access to shared mutable state). As soon as you have shared mutable state, you need to guard that state through a gateway of serial access, which means adding coordination and mutual exclusion, and that adds contention—services waiting in line for access the shared state. Contention is the biggest scalability killer.</p>
-          </aside>
-        </section>
-
-        <section data-background="imagesx/madderakka.jpg">
-          <h2>Simpler concurrency</h2>
-          <ul>
-            <li>Actors let us write code in a <em>single-threaded illusion</em></li>
-            <li>No locks, <code>synchronized</code> or other primitives needed</li>
-          </ul>
-        </section>
-
-        <section data-background="imagesx/madderakka.jpg">
-          <h2>Simpler distribution</h2>
-          <ul>
-            <li>Everything in Akka is <em>distributed by default</em></li>
-            <li>Akka goes from remote to local by optimization</li>
-          </ul>
-        </section>
-
-        <section data-background="imagesx/madderakka.jpg">
-          <h2>Simpler fault tolerance</h2>
-          <p>Akka decouples communication from failure handling:</p>
-          <ul>
-            <li>Supervisors handle failure</li>
-            <li>Callers need not care (they can't anyway)</li>
-          </ul>
-        </section>
-
-        <!-- UHK / Chester Devs Actor Model -->
-        <section data-background="imagesx/madderakka.jpg">
-          <h2>Anatomy of an Actor I</h2>
-          <img src="imagesx/actor-01.png"/>
-        </section>
-        <section data-background="imagesx/madderakka.jpg">
-          <h2>Anatomy of an Actor II</h2>
-          <img src="imagesx/actor-02.png"/>
-        </section>
-        <section data-background="imagesx/madderakka.jpg">
-          <h2>Anatomy of an Actor III</h2>
-          <img src="imagesx/actor-03.png"/>
-        </section>
-        <section data-background="imagesx/madderakka.jpg">
-          <h2>Actor Lifecycle I</h2>
-          <img src="imagesx/actor-lifecycle-01.png"/>
-        </section>
-        <section data-background="imagesx/madderakka.jpg">
-          <h2>Actor Lifecycle II</h2>
-          <img src="imagesx/actor-lifecycle-02.png"/>
-        </section>
-        <section data-background="imagesx/madderakka.jpg">
-          <h2>Actor Lifecycle III</h2>
-          <img src="imagesx/actor-lifecycle-03.png"/>
-        </section>
-        <section data-background="imagesx/madderakka.jpg">
-          <h2>Actor System</h2>
-          <img src="imagesx/actor-system.png"/>
-        </section>
-
-        <section data-background="imagesx/madderakka.jpg">
-          <h2>Akka</h2>
-          <ul>
-            <li>Actor concurrency toolkit and runtime</li>
-            <li>Akka isolates us from the mechanism of message passing and execution</li>
-            <li>Actors handle messages</li>
-            <li>Actors form hierarchies with parents supervising children</li>
-          </ul>
-        </section>
-
-        <section data-background="imagesx/madderakka.jpg">
-          <h2>Functions</h2>
-          <pre><code data-trim class="scala">
-def fun1(a: Int): Int = a + a
-def fun2(a: Int, b: Int): Int = a * b
-def fun3(a: Int)(b: Int): Int = a * b
-def fun4 = { x: Int ⇒ x + 4 }
-
-fun1(5)
-fun2(1, 2)
-fun3(1)(2)
-fun2(1, _)
-fun3(1)
-fun4(5)
-          </code></pre>
-        </section>
-
-        <section data-background="imagesx/madderakka.jpg">
-          <h2>Partial Functions</h2>
-          <pre><code data-trim class="scala">
-def fun4: Function1[Int, Int] = ...
-
-def pfun: PartialFunction[A, B] = {
-  case SomeA     ⇒ someB
-  case OtherA(p) ⇒ otherB
-  ...
-}
-
-val a: A = ???
-if (pfun.isDefinedAt(a)) pfun(a)
-pfun(a)
-          </code></pre>
-        </section>
-
-        <section data-background="imagesx/madderakka.jpg">
-          <h2>Actors everywhere</h2>
-          <pre><code data-trim class="scala">
-class HelloWorldService extends Actor {
-
-  def receive: Receive = {
-    case request: HttpRequest ⇒
-      val response = HttpResponse(...)
-      sender() ! response
-  }
-
-}
-          </code></pre>          
-        </section>
-
-        <section data-background="imagesx/madderakka.jpg">
-          <h2>Actors everywhere</h2>
-          <pre><code data-trim class="scala">
-class HelloWorldServiceSpec 
-  extends TestKit(ActorSystem())
-  with SpecificationLike with ImplicitSender {
-  val service = TestActorRef[HelloWorldService]
-
-  "Any request" should {
-    "Reply with Hello, world" in {
-      service ! HttpRequest()
-      expectMsgType[HttpResponse].entity 
-        mustEqual HttpEntity("Hello, world")
-    }
-  }
-}
-          </code></pre>
-        </section>
-
-        <section data-background="imagesx/madderakka.jpg">
-          <h2>Actors everywhere</h2>
-          <pre><code data-trim class="scala">
-object HelloWorld extends App {
-  val system = ActorSystem()
-  val service = 
-    system.actorOf(Props[HelloWorldService])
-
-  IO(Http)(system) ! Http.Bind(
-    service, "0.0.0.0", port = 8080)
-
-  Console.readLine()
-  system.shutdown()
-}          
-
-class HelloWorldService extends Actor { ... }
-          </code></pre>
-        </section>
-
-        <section data-background="images/intro.jpg">
-          <h2>Expanding the world</h2>
-          <ul>
-            <li>Load-balanced instances of actor systems, each with its API</li>
-            <li>A cluster of actor systems, each with its API</li>
-          </ul>
-          <aside class="notes">
-            <p>In the first case, you have brushed away the [contended] shared mutable state to some DB. Multiple simple nodes that all connect to
-            the same DB. Think of the scenario where one receives a write request, makes the updates, and replies with the changed state. Once the change hits the DB, all other nodes see that change on read. (T&amp;Cs applying, of course.) Nevertheless, it is very different from the clustered model.</p>
-            <p>In the cluster model, we recognise the nature of distributed systems, and settle for weaker consistency models. A valid request will at some point be processed, but no shared mutable state escapes the application. </p>
-          </aside>
-        </section>
-
-        <section data-background="images/blueprint.jpg">
-          <h2>Terminology</h2>
-          <ul>
-            <li>Commands—inputs that needs validation, and may result in multiple events</li>
-            <li>Events—validated commands that we <i>promise</i> to process</li>
-            <li>Query—a "read command"</li>
-          </ul>
-        </section>
-
-        <section data-background="images/blueprint.jpg">
-          <img src="imagesx/transient.png"/>
-        </section>
-
-        <section data-background="images/blueprint.jpg">
-          <img src="imagesx/es.png"/>
-        </section>
-
-        <section data-background="images/blueprint.jpg">
-          <img src="imagesx/cqrs-es.png"/>
-        </section>
-
-        <section data-background="images/blueprint.jpg">
-          <img src="imagesx/cluster.png"/>
-        </section>
-
-
-        <section data-background="imagesx/sf.jpg">
-        </section>
-
         <!-- real SD SF from here: -->
 
         <section data-background="images/intro.jpg">
@@ -281,6 +75,8 @@ class HelloWorldService extends Actor { ... }
         <section data-background="images/intro.jpg">
           <h2>How to get there?</h2>
           <aside class="notes">
+            CQRS/ES: commands, events. CQRS is the only way I know how to successfully deliver such as system.
+            It is an argument from ignorance, I accept, but I give it nonetheless.
           </aside>
         </section>
 
@@ -303,52 +99,839 @@ class HelloWorldService extends Actor { ... }
         </section>
 
         <section data-background="images/blueprint.jpg">
-          <img src="images/distributed4.png"/>
-          <aside class="notes">
-          </aside>
-        </section>
-
-        <section data-background="images/blueprint.jpg">
           <img src="images/lift.png"/>
           <aside class="notes">
           </aside>
         </section>
 
         <section data-background="images/blueprint.jpg">
-          <img src="images/lift-server.png"/>
+          <img src="images/lift-architecture.png"/>
           <aside class="notes">
+            Mention more stuff about Spark. Not only recommendations, but also ability to re-run the
+            classification. Remember, all history is available. Statistics, exercise programmes,
+            physio therapy; combined with some other user behaviour aspects.
+
+            Corss-user classification.
           </aside>
         </section>
 
         <section data-background="images/blueprint.jpg">
           <img src="images/lift-actors.png"/>
           <aside class="notes">
+            UserExercisesProcesor does XXX,
+            UserProfileProcessor does XXX,
+            ...
           </aside>
-        </section>
-
-<!--
-        <section data-background="images/blueprint.jpg">
-          <img src="images/containerwars.jpg"/>
-          <aside class="notes">
-          </aside>
-        </section>
--->
-
-        <section data-background="images/angrymob.jpg">
-          <h1>Demo</h1>
-          <p>Exercise in Akka cluster</p>
         </section>
 
         <section data-background="images/angrymob.jpg">
           <video data-autoplay src="videos/lift-app.mp4"></video>
         </section>
 
-        <section data-background="images/angrymob.jpg">
-          <img src="images/codemonkey.png"/>
+        <!-- UserProfileProcessor and UserProfile -->
+        <section data-background="images/blueprint.jpg">
+          <section data-background="images/blueprint.jpg">
+            <img src="images/lift-actors-profile.png"/>
+          </section>
+
+          <section>
+          <pre><code data-trim class="scala">
+trait ProfileService extends Directives 
+  with CommonMarshallers with CommonPathDirectives {
+
+  def userProfileRoute(userProfile: ActorRef, 
+                       userProfileProcessor: ActorRef)
+                      (implicit _: ExecutionContext) =
+    path("user") ~ 
+    path("user" / UserIdValue) ~ 
+    path("user" / UserIdValue / "check") ~
+    path("user" / UserIdValue / "image") ~
+    path("user" / UserIdValue / "device" / "ios") ~
+    path("user" / UserIdValue / "device" / "android") 
+
+}
+          </code></pre>
+          </section>
+
+          <section>
+          <pre><code data-trim class="scala">
+path("user" / UserIdValue) { userId ⇒
+  get { complete {
+    (userProfile ? UserGetPublicProfile(userId))
+      .mapTo[PublicProfile]
+    }
+  } ~ 
+  post { handleWith { publicProfile: PublicProfile ⇒
+    (userProfileProcessor ? 
+      UserSetPublicProfile(userId, publicProfile))
+      .mapRight[Unit]
+    }
+  }
+} 
+          </code></pre>
+          <aside class="notes">
+            The response is (in some cases) irrelevant: all that it'd say is
+            whatever we had the last time.            
+          </aside>
+          </section>
+
+          <section>
+          <pre><code data-trim class="scala">
+type ErrorMessage = String          
+
+implicit class DisjunctUnionFuture(f: Future[_]) {
+
+  def mapRight[B]: Future[\/[ErrorMessage, B]] = 
+    f.mapTo[\/[ErrorMessage, B]]
+  
+}          
+          </code></pre>
+          </section>
+
+          <section>
+          <pre><code data-trim class="scala">
+class UserProfileProcessor(userProfile: ActorRef) 
+  extends PersistentActor with ActorLogging {
+
+  override def receiveRecover: Receive = ...
+
+  override def receiveCommand: Receive = ...
+
+}
+          </code></pre>
+          </section>
+
+          <section>
+          <pre><code data-trim class="scala">
+var accounts: KnownAccounts = KnownAccounts.empty
+
+override def receiveCommand: Receive = {
+  case UserRegister(email, _) 
+  if accounts.contains(email) ⇒
+    sender() ! \/.left("Username already taken")  
+}
+          </code></pre>
+          </section>
+
+          <section>
+          <pre><code data-trim class="scala">
+var accounts: KnownAccounts = KnownAccounts.empty
+
+override def receiveCommand: Receive = {
+  ...
+  case UserRegister(email, password) ⇒
+    persist(UserRegistered(UserId.randomId(), ...)) { 
+      userRegistered ⇒
+      userProfile ! userRegistered
+      accounts = accounts.withNewAccount(...)
+      saveSnapshot(accounts)
+
+      sender() ! \/.right(userRegistered.userId)
+    }
+}
+          </code></pre>
+          </section>
+
+          <section data-background="images/blueprint.jpg">
+            <img src="images/lift-upp-pubsub.png"/>
+          </section>
+          <section data-background="images/blueprint.jpg">
+            <img src="images/lift-upp-pubsub2.png"/>
+          </section>
+
+          <section>
+          <pre><code data-trim class="scala">
+val mediator = DistributedPubSubExtension(...)
+val topic = "UserProfileProcessor.knownAccounts"
+mediator ! Subscribe(topic, self)
+
+override def receiveCommand: Receive = {
+  case UserRegister(email, password) ⇒
+    persist(UserRegistered(UserId.randomId(), ...)) { 
+      ...
+      mediator ! Publish(topic, KnownAccountAdded(...))
+    }
+  case KnownAccountAdded(email, userId) 
+  if sender() != self ⇒
+    accounts = accounts.withNewAccount(email, userId)
+}
+          </code></pre>
+          <aside class="notes">
+            PubSub is Publish-Subscribe.
+          </aside>
+          </section>
+
+          <section data-background="images/blueprint.jpg">
+            <h2>CAP</h2>
+            <ul>
+            <li>Consistent</li>
+            <li>Available</li>
+            <li>Partition-tolerant</li>
+            </ul>
+            <aside class="notes">
+              A and C are not completely exclusive. It is possible to tune consistency levels, e.g.
+              casual, read-your-own-writes, and so on.
+            </aside>
+          </section>
+
+          <section data-background="images/blueprint.jpg">
+            <img src="images/lift-actors-profile.png"/>
+          </section>
+
+          <section>
+          <pre><code data-trim class="scala">
+val userProfile = ClusterSharding(system).start(
+  typeName = UserProfile.shardName,
+  entryProps = Some(UserProfile.props),
+  idExtractor = UserProfile.idExtractor,
+  shardResolver = UserProfile.shardResolver)
+  
+val userProfileProcessor = system.actorOf(
+  UserProfileProcessor.props(userProfile), 
+  UserProfileProcessor.name)
+          </code></pre>
+          </section>
+
+          <section>
+          <pre><code data-trim class="scala">
+object UserProfile {
+  
+  val idExtractor: ShardRegion.IdExtractor = {
+    case UserRegistered(id, a) ⇒ (id, a)
+    case UserGetAccount(id)    ⇒ (id, GetAccount)
+    ...
+  }
+
+  val shardResolver: ShardRegion.ShardResolver = {
+    case UserRegistered(id, _) ⇒ id.shard()
+    case UserGetAccount(id)    ⇒ id.shard()
+    ...
+  }
+}
+          </code></pre>
+          </section>
+
+          <section>
+          <pre><code data-trim class="scala">
+class UserProfile extends PersistentActor {
+  private var profile: Profile = _
+  override val persistenceId: String = 
+    s"user-profile-${self.path.name}"
+
+  override def receiveCommand: Receive = notRegistered
+
+  private def notRegistered: Receive = ...
+
+  private def registered: Receive = ...
+
+}
+          </code></pre>
+          </section>
+
+          <section>
+          <pre><code data-trim class="scala">
+private var profile: Profile = _
+
+private def notRegistered: Receive = {
+  case cmd: Account ⇒
+    persist(cmd) { acc ⇒
+      profile = Profile(acc, Devices.empty, None, None)
+      saveSnapshot(profile)
+      context.become(registered)
+    }
+}
+private def registered: Receive = {
+  case GetAccount ⇒ sender() ! profile.account
+  ...
+}
+          </code></pre>
+          </section>
+
+        </section>
+
+        <!-- UserExercisesProcessor, UserExercisesSessions, UserExercisesSession, UserExercisesStatistics -->
+        <section data-background="images/blueprint.jpg">
+          <section>
+            <img src="images/lift-actors-exercise.png"/>
+          </section>
+
+          <section>
+          <pre><code data-trim class="scala">
+class UserExercisesProcessor(notification: ActorRef, 
+  userProfile: ActorRef) extends PersistentActor {
+
+  override def receiveRecover: Receive = ...
+  override def receiveCommand: Receive = notExercising
+
+  def replaying(oldId: SessionId, newId: SessionId, 
+        sessionProps: SessionProperties): Receive = ...
+
+  def exercising(id: SessionId, 
+        sessionProps: SessionProperties): Receive = ...
+
+  def notExercising: Receive = ...
+}
+          </code></pre>
+          </section>
+
+          <section>
+          <pre><code data-trim class="scala">
+def notExercising: Receive = {
+  case ExerciseSessionStart(sessionProps) ⇒
+    persist(SessionStartedEvt(SessionId.randomId(), 
+      sessionProps)) { evt ⇒
+      context.become(
+        exercising(evt.sessionId, sessionProps))
+      sender() ! \/.right(evt.sessionId)
+    }
+  case ExerciseSessionReplayStart(id, sessionProps) ⇒
+    ...
+    context.become(replaying(...))
+  case ExerciseSessionEnd(_) ⇒
+    sender() ! \/.left("Not in session")
+}
+          </code></pre>
+          </section>
+
+          <section>
+          <pre><code data-trim class="scala">
+def exercising(id: SessionId, 
+  sessionProps: SessionProperties): Receive = {
+  case ExerciseSessionEnd(`id`) ⇒
+    persist(SessionEndedEvt(id)) { evt ⇒
+      context.become(notExercising)
+      sender() ! \/.right(())
+    }
+  case ExerciseSessionAbandon(`id`) ⇒
+    context.become(notExercising)
+    sender() ! \/.right(())
+  case ExerciseDataProcessMultiPacket(`id`, packet) ⇒
+    ...
+}
+          </code></pre>
+          </section>
+
+          <section>
+            <img src="images/lift-protocol.png"/>
+          </section>
+          <section>
+            <img src="images/lift-protocol2.png"/>
+          </section>
+
+          <section>
+          <pre><code data-trim class="c">
+struct __attribute__((__packed__)) header {
+    uint8_t type;               
+    uint8_t count;              
+    uint8_t samples_per_second; 
+    uint8_t sample_size;        
+    uint8_t offset_past;          
+};
+
+struct __attribute__((__packed__)) accel_data {
+    int16_t x_val : 13;
+    int16_t y_val : 13;
+    int16_t z_val : 13;
+};
+          </code></pre>
+          </section>
+
+          <section>
+          <pre><code data-trim class="scala">
+type E = (Int, Int, Int)         
+val accelData = new CodecPrimitive[E] {
+  val ignore1 = IgnoreCodecPrimitive(1)
+  val int13 = IntCodecPrimitive(13, signed = true, 
+                                ByteOrdering.BigEndian)
+  override val bits = 40
+  override def decode(buffer: BitVector): 
+    String \/ (BitVector, E) = for {
+      (b1, _) ← ignore1.decode(buffer)
+      (b2, z) ← int13.decode(b1)
+      (b3, y) ← int13.decode(b2)
+      (b4, x) ← int13.decode(b3)
+    } yield (b4, (x, y, z))
+}
+          </code></pre>
+          </section>
+
+          <section>
+          <pre><code data-trim class="scala">
+trait SensorDataDecoder[+A] {
+  def supports(b: BitVector): Boolean
+  def decode(b: BitVector): String \/ (BitVector, A)
+}
+          </code></pre>
+          </section>
+
+          <section>
+          <pre><code data-trim class="scala">
+trait RootSensorDataDecoder[A] 
+  extends SensorDataDecoder[A] {
+
+  final def decodeAll(b: BitVector): String \/ A = {
+    decode(bits).flatMap {
+      case (BitVector.empty, v) ⇒ \/.right(v)
+      case (_, _) ⇒ \/.left("Undecoded bits")
+    }
+  }
+
+}
+          </code></pre>            
+          </section>
+
+          <section>
+          <pre><code data-trim class="scala">
+object RootSensorDataDecoder {
+  
+  def apply(decoders: SensorDataDecoder[SensorData]*): 
+    RootSensorDataDecoder[List[SensorData]] =
+      new RootSensorDataDecoder[List[SensorData]] {
+
+        override def supports(b: BitVector): Boolean = 
+          true
+
+        override def decode(b: BitVector): 
+          String \/ (BitVector, List[SensorData]) = ...
+    }
+}
+          </code></pre>            
+          </section>
+
+          <section>
+          <pre><code data-trim class="scala">
+val rootSensorDataDecoder = 
+  RootSensorDataDecoder(AccelerometerDataDecoder, ...)
+
+def exercising(id: SessionId, 
+  sessionProps: SessionProperties): Receive = {
+  case ExerciseDataProcessMultiPacket(`id`, packet) ⇒
+    val (h::t) = packet.packets.map { p ⇒
+      rootSensorDataDecoder.decodeAll(p.payload)
+        .map(SensorDataWithLocation(p.sourceLocation))
+    }  // h: String \/ SDWL; t: List[String \/ SDWL]
+    val result = t.foldLeft(h.map(List.apply))魅
+    // result: String \/ List[SDWL]
+    result.fold({ err ⇒ ... }, { dec ⇒ ... })
+}
+          </code></pre>
+          </section>
+
+          <section>
+          <pre><code data-trim class="scala">
+result.fold(
+{ err ⇒ persist(
+  MultiPacketDecodingFailed(id, err, packet)) { evt ⇒ 
+    sender() ! \/.left(err) 
+  } 
+}, 
+{ dec ⇒ persist(
+  ClassifyExerciseEvt(sessionProps, dec)) { evt ⇒ 
+    classifier ! evt
+    sender() ! \/.right(()) 
+  } 
+})
+          </code></pre>
+          </section>
+
+          <section>
+          <pre><code data-trim class="scala">
+def exercising(id: SessionId, 
+  sessionProps: SessionProperties): Receive = {
+  case FullyClassifiedExercise(md, _, exercise) ⇒
+    persist(ExerciseEvt(id, md, exercise))(unit)
+
+  case Tap ⇒
+    persist(ExerciseSetExplicitMarkEvt(id))(unit)
+
+  case NoExercise(metadata) ⇒
+    persist(NoExerciseEvt(id, metadata))(unit)
+
+  case UnclassifiedExercise(_) ⇒
+
+}
+          </code></pre>
+          </section>
+
+          <section data-background="images/blueprint.jpg">
+            <img src="images/lift-actors-exercise.png"/>
+          </section>
+
+          <section>
+          <pre><code data-trim class="scala">
+class UserExercisesSessions extends PersistentView {
+  val userId = UserId(self.path.name)
+  override val viewId = s"ues-$userId"
+  override val persistenceId = s"ue-$userId"
+
+  lazy val queries: Receive = ...
+  lazy val notExercising: Receive = ...
+  def exercising(s: ExerciseSession): Receive = ...
+  def inASet(session: ExerciseSession, 
+             set: ExerciseSet): Receive = ...
+
+  override def receive: Receive = 
+    notExercising.orElse(queries)
+}
+          </code></pre>
+          </section>
+
+          <section>
+          <pre><code data-trim class="scala">
+var sessions = Sessions.empty
+
+lazy val queries: Receive = {
+  case GetExerciseSessionsSummary(start, end) ⇒
+    sender() ! sessions.summary(start, end)
+  case GetExerciseSessionsDates ⇒
+    sender() ! sessions.dates
+  case GetExerciseSession(sessionId) ⇒
+    sender() ! sessions.get(sessionId)
+}
+          </code></pre>
+          </section>
+
+          <section>
+          <pre><code data-trim class="scala">
+lazy val notExercising: Receive = {
+  case SnapshotOffer(_, offeredSnapshot: Sessions) ⇒
+    exercises = offeredSnapshot
+
+  case SessionStartedEvt(id, sessionProps) ⇒
+    context.become(
+      exercising(ExerciseSession(id, sessionProps))
+
+  case SessionDeletedEvt(sessionId) ⇒
+    exercises = exercises.withoutSession(sessionId)
+    saveSnapshot(exercises)
+}
+          </code></pre>
+          </section>
+
+          <section>
+          <pre><code data-trim class="scala">
+def exercising(session: ExerciseSession): Receive = {
+  ...
+  case SessionEndedEvt(_) ⇒
+    exercises = exercises.withNewSession(session)
+    notificationSender ! DataMessagePayload("{ ... }")
+    saveSnapshot(exercises)
+
+    context.become(notExercising.orElse(queries))
+}
+          </code></pre>
+          </section>
+        </section>        
+
+        <section data-background="images/blueprint.jpg">
+          <section>
+            <img src="images/lift-uec.png"/>
+          </section>
+          <section>
+            <img src="images/lift-uec3.png"/>
+            <aside class="notes">
+              Data science terminology: data point, ...
+            </aside>
+          </section>
+          <section>
+            <img src="images/lift-uec3-0.png"/>
+            <aside class="notes">
+              Triangle: UserExercisesClassifier
+              Trapezoid: ExerciseModel
+            </aside>
+          </section>
+          <section>
+            <img src="images/lift-uec2.png"/>
+          </section>
+
+          <section>
+            <h2>Background reading</h2>
+            <a href="http://arxiv-web3.library.cornell.edu/abs/1405.0054?context=cs">
+              De Giacomo, De Masellis, Grasso, Maggi, Montali.
+              <em>LTLf and LDLf Monitoring. A Technical Report</em>. CoRR 1405.0054, 2014.
+            </a>
+            <img src="images/lift-protocol2.png"/>
+          </section>
+
+          <section>
+          <pre><code data-trim class="scala small">
+class UserExercisesClassifier(modelProps: Props) extends Actor {
+
+  val model = context.actorOf(modelProps)
+
+  def blockSize(in: Map[SensorDataSourceLocation, 魅]): Int = ...
+
+  def receive: Receive = {
+    case ClassifyExerciseEvt(sensorData) ⇒
+      val sm: Map[SensorDataSourceLocation, List[List[SensorData]]] = 
+        sensorData.groupBy(魅)
+      val bs = blockSize(sm)
+
+      (0 until bs).foreach { block ⇒
+        val sensorEvent = sm.map(魅)
+
+        model.tell(SensorNet(sensorEvent), sender())
+      }
+  }
+}
+          </code></pre>
+          </section>
+
+          <section>
+          <img src="images/lift-exercisemodel.png"/>
+          </section>
+
+          <section>
+          <pre><code data-trim class="scala">
+class ExerciseModel(𝑸)
+  extends ActorPublisher[(SensorNetValue, ActorRef)] {
+
+  def workflow: Flow[SensorNetValue, BindToSensors]
+  def evaluateQuery(query: Query)(evt: BindToSensors, 
+        lastState: Boolean): QueryValue
+  def makeDecision(query: Query): 
+        Flow[QueryValue, Option[ClassifiedExercise]]
+
+  def model: FlowGraph = 𝒲 { 
+    workflow ~> ∀𝓆∈𝑸.(evaluateQuery ~> makeDecision)
+  }
+
+}
+          </code></pre>
+          </section>
+
+          <section>
+            <img src="images/lift-uec2.png"/>
+          </section>
+
+          <section>
+          <pre><code data-trim class="scala">
+class ExerciseModel(𝑸)
+  extends ActorPublisher[(SensorNetValue, ActorRef)] {
+
+  private def model: FlowGraph = ... // 𝒲
+
+  override def preStart() = { model.run() }
+
+  def receive: Receive = {
+    case event: SensorNetValue ⇒
+      if (isActive &amp;&amp; totalDemand > 0) {
+        onNext((event, sender()))
+      }
+  }
+}
+          </code></pre>
+          </section>
+
+          <section>
+          <pre><code data-trim class="scala small">
+// workflow ~> ∀𝓆∈𝑸.(evaluateQuery ~> makeDecision) | |𝑸| = 0 ⇒
+// (nothing to do)
+def model: FlowGraph = 
+  if (toWatch.isEmpty) {
+    FlowGraph { implicit builder ⇒
+      Source(ActorPublisher(self)) ~> Sink.ignore
+    }
+  }
+
+          </code></pre>
+          </section>
+
+          <section>
+          <img src="images/lift-exercisemodel.png"/>
+          <pre><code data-trim class="scala small">
+// workflow ~> ∀𝓆∈𝑸.(evaluateQuery ~> makeDecision) | |𝑸| = 1 ⇒
+// workflow ~> evaluateQuery(𝓆₁) ~> makeDecision(𝓆₁)
+def model: FlowGraph = 
+          </code></pre>
+          </section>
+
+          <section>
+            <img src="images/lift-uec3-1.png"/>
+          </section>
+
+          <section>
+          <pre><code data-trim class="scala small">
+// workflow ~> ∀𝓆∈𝑸.(evaluateQuery ~> makeDecision) | |𝑸| = 1 ⇒
+// workflow ~> evaluateQuery(𝓆₁) ~> makeDecision(𝓆₁)
+def model: FlowGraph = ... else FlowGraph { implicit builder ⇒
+  val split = Unzip[SensorNetValue, ActorRef]
+  val join = Zip[Option[ClassifiedExercise], ActorRef]
+  val query = toWatch.head
+
+  Source(ActorPublisher(self)) ~> split.in
+  split.left ~> 
+    workflow.transform(() ⇒ SlidingWindow[BindToSensors](2)) ~> 
+    evaluate(query) ~> makeDecision(query) ~> join.left
+  split.right ~> join.right
+
+  join.out ~> Flow[(Option[ClassifiedExercise], ActorRef)]
+    .filter(_._1.nonEmpty)
+    .map { case (ex, ref) ⇒ (ex.get, ref) } ~> 
+      Sink.foreach[(ClassifiedExercise, ActorRef)] { 
+        case (exercise, ref) ⇒ ref ! exercise 
+      }
+}
+          </code></pre>
+          </section>
+
+          <section>
+            <img src="images/lift-uec3-2.png"/>
+          </section>
+
+          <section>
+          <pre><code data-trim class="scala xsmall">
+def evaluate(query: Query): Flow[List[BindToSensors], QueryValue] = {
+  var currentState: Query = query
+  var stableState: Option[QueryValue] = None
+  Flow[List[BindToSensors]].mapAsync { sensorData ⇒
+    sensorData match {
+      case _ if stableState.isDefined ⇒ stableState.get
+      case List(event) ⇒
+        evaluateQuery(currentState)(event, lastState = true)
+      case List(event, _) ⇒
+        evaluateQuery(currentState)(event, lastState = false)
+    } match {
+      case UnstableValue(nextQuery) ⇒ async {
+        val validQuery = prover.valid(nextQuery)
+        val satisfiableQuery = prover.satisfiable(nextQuery)
+        val simplifiedQuery = prover.simplify(nextQuery)
+
+        if (await(validQuery)) {
+          StableValue(result = true)
+        } else if (await(satisfiableQuery)) {
+          currentState = await(simplifiedQuery)
+          UnstableValue(currentState)
+        } else {
+          StableValue(result = false)
+        }
+      }
+      case value: StableValue ⇒
+        stableState = Some(value)
+        Future(value)
+    }
+  }
+}
+          </code></pre>
+          </section>
+          
+          <section>
+          <pre><code data-trim class="scala small">
+trait SMTInterface {
+  import ExerciseModel._
+
+  def simplify(query: Query)(implicit ec: ExecutionContext): 
+        Future[Query]
+
+  def satisfiable(query: Query)(implicit ec: ExecutionContext): 
+        Future[Boolean]
+
+  def valid(query: Query)(implicit ec: ExecutionContext): 
+        Future[Boolean]
+
+}
+          </code></pre>
+          <a href="http://cvc4.cs.nyu.edu/web/">CVC4: the smt solver</a>
+          <pre><code data-trim class="scala small">
+class ExerciseModel(...)(implicit prover: SMTInterface)
+  extends ActorPublisher[(SensorNetValue, ActorRef)] {
+  ...
+}
+          </code></pre>
+          </section>
+
+          <section>
+            <img src="images/lift-uec3-3.png"/>
+          </section>
+
+          <section>
+          <pre><code data-trim class="scala small">
+class StandardExerciseModel(sessionProps: SessionProperties, 
+  tapSensor: SensorDataSourceLocation, toWatch: Set[Query])
+  (implicit prover: SMTInterface)
+  extends ExerciseModel("tap", sessionProps, toWatch)
+  with StandardEvaluation {
+
+  object Tap extends 
+    GestureWorkflows("tap", context.system.settings.config)
+
+  val workflow = ...
+  def makeDecision(query: Query) = 
+    Flow[QueryValue].map(_ => Some(TapEvent))
+
+}
+          </code></pre>
+          </section>
+
+          <section>
+          <pre><code data-trim class="scala small">
+val workflow = /* 𝒲 */ {
+  val in = UndefinedSource[SensorNetValue]
+  val out = UndefinedSink[BindToSensors]
+
+  PartialFlowGraph { implicit builder ⇒
+    val classifier = Tap.identifyEvent
+    val split = Broadcast[SensorNetValue]
+    val merge = Zip[Set[Fact], SensorNetValue]
+
+    in ~> split
+    split ~> Flow[SensorNetValue]
+      .mapConcat(_.toMap(tapSensor)
+                   .find(_.isInstanceOf[AccelerometerValue])
+                   .asInstanceOf[Option[AccelerometerValue]].toList)
+      .via(classifier.map(_.toSet)) ~> merge.left
+    split ~> merge.right
+    merge.out ~> Flow[(Set[Fact], SensorNetValue)].map { 
+      case (facts, data) ⇒ BindToSensors(facts, ..., data) 
+    } ~> out
+  }.toFlow(in, out)
+} // ~> ∀𝓆∈𝑸.(evaluateQuery ~> makeDecision)
+          </code></pre>
+          </section>
+
+          <section>
+          <pre><code data-trim class="scala small">
+class GestureWorkflows(name: String, config: Config) 
+  extends SVMClassifier {
+  
+  def identifyEvent: Flow[AccelerometerValue, Option[Fact]] =
+    Flow[AccelerometerValue]
+      .transform(() ⇒ SlidingWindow[AccelerometerValue](windowSize))
+      .map { (sample: List[AccelerometerValue]) ⇒
+        if (sample.length == windowSize) {
+          val matchProbability = probabilityOfGestureEvent(sample)
+
+          if (matchProbability >= threshold) {
+            Some(Gesture(name, threshold))
+          } else {
+            Some(Neg(Gesture(name, threshold)))
+          }
+        } else {
+          None
+        }
+      }
+}
+          </code></pre>
+          </section>
+
+          <section>
+            <img src="images/lift-uec3.png"/>
+          </section>
+
+        </section>
+
+        <section data-background="images/blueprint.jpg">
+          <section>
+            <h2>Spark diagram here</h2>
+          </section>
+
+
         </section>
 
         <section data-background="images/angrymob.jpg">
-          <img src="images/lift-actors.png"/>
+          <video data-autoplay src="videos/lift-app.mp4"></video>
+        </section>
+
         </section>
 
         <section data-background="images/qa.jpg">
@@ -359,7 +942,7 @@ class HelloWorldService extends Actor { ... }
           <h2>Thank you!</h2>
           <ul>
             <!-- <li>Slides at <a href="http://www.eigengo.com/scaladays-sf-2015">www.eigengo.com/scaladays-sf-2015</a></li> -->
-            <li>Code at <a href="http://github.com/eigengo/lift">github.com/eigengo/lift</a></li>
+            <li><em>All</em> code at <a href="http://github.com/eigengo/lift">github.com/eigengo/lift</a></li>
             <li>Tweets at <a href="https://twitter.com/honzam399">@honzam399</a></li>
           </ul>
           </ul>
