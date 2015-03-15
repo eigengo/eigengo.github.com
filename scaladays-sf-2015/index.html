@@ -984,6 +984,31 @@ object SuggestionPipeline {
           </section>
 
           <section>
+            <pre><code data-trim class="scala small">
+def pipeline(events: RawInputData, 
+  useHistory: Int, predictDays: Int): PredictionPipeline = { user ⇒
+
+  val inputData: NormalizedInputData = preProcess(...)
+  val normalizedUseHistory = Math.min(useHistory, |inputData| - 1)
+
+  val muscleKeyGroupsTrainingData = inputData
+    .map(_._1)
+    .sliding(normalizedUseHistory + 1)
+    .map(e ⇒ LabeledPoint(e.head, Vectors.dense(e.tail)))
+
+  val intensityTrainingData = inputData
+    .map(...).sliding(...).map(...)
+
+  val muscleKeyGroupModel = 
+    NaiveBayes.train(muscleKeyGroupsTrainingData)
+    
+  val intensityModel = 
+    LinearRegressionWithSGD.train(intensityTrainingData, 100)
+}
+            </code></pre>
+          </section>
+
+          <section>
             <pre><code data-trim class="scala">
 class JobManager(
     override val master: String,
