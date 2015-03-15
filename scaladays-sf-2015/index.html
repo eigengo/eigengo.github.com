@@ -539,13 +539,11 @@ def exercising(id: SessionId,
   case FullyClassifiedExercise(md, _, exercise) ⇒
     persist(ExerciseEvt(id, md, exercise))(unit)
 
-  case Tap ⇒
-    persist(ExerciseSetExplicitMarkEvt(id))(unit)
+  case NoMovement ⇒
+  	persist(NoMovement(id))(unit)
 
   case NoExercise(metadata) ⇒
     persist(NoExerciseEvt(id, metadata))(unit)
-
-  case UnclassifiedExercise(_) ⇒
 
 }
           </code></pre>
@@ -922,7 +920,6 @@ class GestureWorkflows(name: String, config: Config)
           <section>
             <h2>Spark diagram here</h2>
           </section>
-
 
         </section>
 
