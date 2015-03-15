@@ -540,7 +540,7 @@ def exercising(id: SessionId,
     persist(ExerciseEvt(id, md, exercise))(unit)
 
   case NoMovement ⇒
-  	persist(NoMovement(id))(unit)
+    persist(NoMovement(id))(unit)
 
   case NoExercise(metadata) ⇒
     persist(NoExerciseEvt(id, metadata))(unit)
@@ -918,9 +918,122 @@ class GestureWorkflows(name: String, config: Config)
 
         <section data-background="images/blueprint.jpg">
           <section>
-            <h2>Spark diagram here</h2>
+            <img src="images/lift-spark.png"/>
           </section>
 
+          <section>
+            <pre><code data-trim class="scala">
+class SuggestionsJob 
+  extends Batch[Unit, Unit] 
+  with HttpClient 
+  with ExerciseMarshallers {
+
+  override def name: String = "Exercise suggestions"
+
+  override def execute(sc: SparkContext, ...): 
+    Future[Either[String, Unit]] = ???
+
+}
+            </code></pre>
+          </section>
+
+          <section>
+            <pre><code data-trim class="scala">
+val result = Try {
+  val sessionEndedBefore = 35m // in milliseconds
+  val historySize = 5
+  val futureSize = 3
+
+  val events = sc.eventTable().cache()
+
+  getEligibleUsers(events, sessionEndedBefore)
+    .collect()
+    .map(pipeline(events, historySize, futureSize))
+    .map { case (userId, suggestions) ⇒
+      submitResult(userId, suggestions, config)
+    }
+}
+            </code></pre>
+            <aside class="notes">
+              <p>Spark job suggesting exercises based on various parameters. It reads history from the journal, uses trainer's (human, no less!) hints and recommended exercise programmes.</p>
+              <p>The OSS version uses a naive bayes classifier used for muscle groups and linear regression for intensities.</p>
+              <p>Training data are N previous sessions</p>
+              <p>Testing data for today+1 are N previous sessions</p>
+              <p>Testing data for today+2 are N-1 previous sessions and 1 prediction</p>
+            </aside>
+          </section>
+
+          <section>
+            <pre><code data-trim class="scala">
+object SuggestionPipeline {
+  type PredictionPipeline = String ⇒ 
+    (String, DenormalizedPredictorResult)
+
+  type RawInputData = RDD[(JournalKey, Any)]
+  type FilteredInputData = RDD[SessionStartedEvt]
+  type NormalizedInputData = RDD[(Double, Double)]
+  type PredictorResult = Seq[(Double, Double, Date)]
+  type DenormalizedPredictorResult = 
+    Seq[(String, Double, Date)]
+
+}
+            </code></pre>
+            <aside class="notes">
+              For each user do <code>RawInputData</code> => <code>FilteredInputData</code> => <code>NormalizedInputData</code> => <code>Predictor</code> => <code>PredictorResult</code> => <code>DenormalizedPredictorResult</code>
+            </aside>
+          </section>
+
+          <section>
+            <pre><code data-trim class="scala">
+class JobManager(
+    override val master: String,
+    override val config: Config)
+  extends Actor 
+  with Driver 
+  with ActorLogging 
+  with PipeToSupport {
+
+  override def receive: Receive = {
+    case BatchJobSubmit('Suggestions) ⇒
+      submit(Job[SuggestionsJob], ()).pipeTo(self)
+  }
+
+}
+            </code></pre>
+          </section>
+
+          <section>
+            <pre><code data-trim class="scala xsmall">
+trait Driver {
+
+  def config: Config
+
+  def master: String
+
+  private val sc = sparkContext("Spark Driver",  (c, conf) ⇒ {
+    conf.set("spark.cassandra.connection.host", c.getString("cassandra.host"))
+    .set("spark.cassandra.journal.keyspace", "akka")
+    .set("spark.cassandra.journal.table", "messages")
+  })
+
+  private def sparkContext(name: String, 
+    additionalConfig: (Config, SparkConf) ⇒ SparkConf) = {
+    val conf = new SparkConf()
+      .setAppName(name)
+      .setMaster(master)
+
+    val sc = new SparkContext(additionalConfig(config, conf))
+    sc.addJar("/app/spark-assembly-1.0.0-SNAPSHOT.jar")
+    sc
+  }
+
+  def submit[P, R](job: Batch[P, R], jobParam: P): Future[Either[String, R]] = {
+    job.execute(sc, config, jobParam)
+  }
+
+}
+            </code></pre>
+          </section>
         </section>
 
         <section data-background="images/angrymob.jpg">
