@@ -53,7 +53,7 @@
         </section>
 
         <!-- real SD SF from here: -->
-
+<!--
         <section data-background="images/intro.jpg">
           <img src="images/api1.png"/>
           <aside class="notes">
@@ -86,7 +86,7 @@
             It is an argument from ignorance, I accept, but I give it nonetheless.
           </aside>
         </section>
-<!--
+
         <section data-background="images/blueprint.jpg">
           <img src="images/distributed.png"/>
           <aside class="notes">
@@ -1004,6 +1004,32 @@ def pipeline(events: RawInputData,
     
   val intensityModel = 
     LinearRegressionWithSGD.train(intensityTrainingData, 100)
+
+  ...
+}
+            </code></pre>
+          </section>
+
+          <section>
+            <pre><code data-trim class="scala small">
+for (i ← 0 to predictDays - 1) {
+  val historyTestData = indexedInputData
+    .filter(_._2 > inputDataSize - normalizedUseHistory - 1 + i)
+  val e = ((0.5, 0.5))
+  val padWithPredictions = normalizedUseHistory - |historyTestData|
+  val paddedTestData = 
+    historyTestData.map(_._1).collect() ++
+    predictions.take(Math.min(predictions.size, padWithPredictions))
+      .map(x => (x._1, x._2)) ++
+    Array.fill(Math.min(0, padWithPredictions - |predictions|))(e)
+
+  val predictedMuscleGroups = 
+    muscleKeyGroupModel.predict(dense(paddedTestData.map(_._1)))
+  val predictedIntensity = 
+    intensityModel.predict(dense(paddedTestData.map(_._2)))
+
+  predictions = predictions :: 
+    ((predictedMuscleGroups, predictedIntensity, addDays(now, i + 1)))
 }
             </code></pre>
           </section>
