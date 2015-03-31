@@ -143,7 +143,7 @@ extern "C" {
 ...
 static struct { ... } context;
 ...
-int gfs_start(sample_callback_t callback, uint8_t frequency) {
+int ad_start(sample_callback_t callback, uint8_t frequency) {
     if (context.callback != NULL) return E_ALREADY_RUNNING;
 
     context.callback = callback;
@@ -292,10 +292,8 @@ struct User {
     var age: Int?
     
     static func empty() -> PublicProfile {
-      return PublicProfile(firstName: "", 
-                           lastName:  "", 
-                           weight:    nil, 
-                           age:       nil)
+      return PublicProfile(firstName: "",  lastName: "", 
+                           weight:    nil, age:     nil)
     }
   }
 }
@@ -322,7 +320,6 @@ extension User.PublicProfile {
                                         "lastName":  lastName]
     params["age"] = age?
     params["weight"] = weight?
-    
     return params
   }
 
