@@ -53,7 +53,7 @@
         <section data-background="images/intro.jpg">
           <h1>Exercise analysis</h1>
           <p>&nbsp;</p>
-          <p>Jan Macháček <a href="https://twitter.com/honzam399">@honzam399</a> | 
+          <p>Jan Macháček <a href="https://twitter.com/honzam399">@honzam399</a><br/>
              Martin Zapletal <a href="https://twitter.com/zapletal_martin">@zapletal_martin</a></p>
         </section>
 
@@ -73,17 +73,19 @@
           </section>
 
           <section>
-            <h2>Watch</h2>
-            <img src="images/pebble-acceleration.png" height="550em" class="transparent"/>
+            <img src="images/pebble-components.png" />
           </section>
 
           <section>
-            <h2>Watch</h2>
-            <img src="images/pebble-acceleration-data.png" height="550em" class="transparent"/>
+            <img src="images/pebble-acceleration.png" height="550em" />
           </section>
 
           <section>
-            <h2>Hello, C &amp; C++</h2>
+            <img src="images/pebble-acceleration-data.png" height="550em" />
+          </section>
+
+          <section>
+            <h2>Sane Pebble applications</h2>
             <ul>
               <li>Core components in C, tests in C++</li>
               <li><em>Multi-platform</em>: buildable &amp; testable outside Pebble</li>
@@ -93,12 +95,14 @@
           </section>
 
           <section>
-            <h2>Hello, C &amp; C++</h2>
+            <img src="images/pebble-components-l.png" />
+          </section>
+
+          <section>
             <img src="images/components-pebble.png" height="550em"/>
           </section>
 
           <section>
-            <h2>Structures</h2>
             <pre><code data-trim class="c small">
 struct __attribute__((__packed__)) header {
     uint8_t  type;
@@ -117,7 +121,6 @@ struct __attribute__((__packed__)) threed_data {
           </code></pre>
         </section>
         <section>
-          <h2>Functions</h2>
           <pre><code data-trim class="c small">
 typedef void (*sample_callback_t)(uint8_t* buf, uint16_t size);
 
@@ -137,24 +140,23 @@ extern "C" {
           </section>
 
         <section>
-          <h2>Portable implementation</h2>
           <pre><code data-trim class="c small">
 #include "ad.h"
-...
 static struct { ... } context;
-...
-int ad_start(sample_callback_t callback, uint8_t frequency) {
-    if (context.callback != NULL) return E_ALREADY_RUNNING;
 
+void accel_data_handler(AccelRawData *data, uint32_t num_samples, 
+                        uint64_t timestamp) { 
+  ...
+}
+
+int ad_start(sample_callback_t callback, uint8_t frequency) {
     context.callback = callback;
     context.samples_per_second = (uint8_t) frequency;
     context.buffer = malloc(BUFFER_SIZE);
-
     if (context.buffer == NULL) return E_MEM;
 
     ad_write_header();
-    accel_raw_data_service_subscribe(NUM_SAMPLES, 
-                                     accel_data_handler);
+    accel_raw_data_service_subscribe(N_SAMPLES, accel_data_handler);
     accel_service_set_sampling_rate((AccelSamplingRate)frequency);
 
     return 0;
@@ -163,7 +165,6 @@ int ad_start(sample_callback_t callback, uint8_t frequency) {
           </section>
 
         <section>
-          <h2>Portable implementation</h2>
           <pre><code data-trim class="cpp small">
 #include &lt;gtest/gtest.h&gt; 
 #include "ad.h"
@@ -183,7 +184,6 @@ public:
         </section>
 
         <section>
-          <h2>Portable implementation</h2>
           <pre><code data-trim class="cpp small">
 TEST_F(ad_test, perfectly_aligned) {
     std::vector&lt;AccelRawData&gt; mock_data;
@@ -210,7 +210,62 @@ TEST_F(ad_test, perfectly_aligned) {
         </section>
 
         <section>
-          <h2>Pebble code</h2>
+          <pre><code data-trim class="c small">
+#pragma once
+#include "gfs.h"
+#include "queue.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+  sample_callback_t am_start();
+  void am_stop();
+  int am_count();
+  ...
+  
+#ifdef __cplusplus
+}
+#endif
+          </code></pre>
+        </section>
+
+        <section>
+          <pre><code data-trim class="c xsmall">
+void _am_outbox_sent(DictionaryIterator *it, void *ctx) { ... }
+
+void _am_outbox_failed(DictionaryIterator *it, AppMessageResult r, void* ctx) { ... }
+
+void _am_sample_callback(uint8_t* buffer, uint16_t size) {
+    queue_add(_am_message_queue, buffer, size);
+    _send_next_message();
+}
+
+void _send_next_message() {
+  uint8_t* buffer; uint16_t size;
+  queue_peek(_am_message_queue, &amp;buffer, &amp;size);
+  int queueLength = queue_length(_am_message_queue);
+  
+  DictionaryIterator* message;
+  app_message_outbox_begin(&amp;message);
+  dict_write_data(message, 0xface0fb0, buffer, size);
+  dict_write_end(message);
+  app_message_outbox_send();
+}
+
+sample_callback_t am_start() {
+    _am_message_queue = queue_create();
+    
+    app_message_open(APP_MESSAGE_INBOX_SIZE_MINIMUM, APP_MESSAGE_OUTBOX_SIZE_MINIMUM);
+    app_message_register_outbox_sent(_am_outbox_sent);
+    app_message_register_outbox_failed(_am_outbox_failed);
+
+    return &amp;_am_sample_callback;
+}
+          </code></pre>
+        </section>
+
+        <section>
           <pre><code data-trim class="c small">
 static void init(void) {
     window = window_create();
@@ -233,8 +288,12 @@ int main(void) {
     app_event_loop();
     deinit();
 }
-          </code></pre>
-        </section>
+            </code></pre>
+          </section>
+
+          <section>
+            <img src="images/pebble-components-l.png" />
+          </section>
 
         </section>
 
@@ -245,17 +304,18 @@ int main(void) {
           </section>
 
           <section>
-            <h2>Collect</h2>
+            <img src="images/mobile-components.png" class="transparent"/>
+          </section>
+
+          <section>
             <img src="images/mobile-devices.png" class="transparent"/>
           </section>
 
           <section>
-            <h2>Enrich</h2>
             <img src="images/mobile-devices-2.png" class="transparent"/>
           </section>
 
           <section>
-            <h2>Fix-up</h2>
             <img src="images/mobile-devices-fused.png" class="transparent"/>
           </section>
 
@@ -339,7 +399,7 @@ enum MuvrServerURLs : MuvrServerRequestConvertible {
   case ExerciseSessionSubmitData(userId: NSUUID, sessionId: NSUUID)
   ...
     
-  var Request: LiftServerRequest { get { let r: MuvrServerRequest = {
+  var Request: MuvrServerRequest { get { let r: MuvrServerRequest = {
     switch self {
       case .UserGetPublicProfile(let userId): 
         return MuvrServerRequest(path: "/user/\(userId.UUIDString)", 
@@ -420,6 +480,10 @@ class HomeController : UIViewController, ... {
           </section>
 
           <section>
+            <img src="images/mobile-components-l.png" class="transparent"/>
+          </section>
+
+          <section>
             <pre><code data-trim class="swift small">
 class PebbleDeviceSession : DeviceSession {
   private var updateHandler: AnyObject?
@@ -488,6 +552,65 @@ void decode_threed_data(const void* buffer,
             </code></pre>
           </section>
 
+          <section>
+            <pre><code data-trim class="swift xsmall">
+class MultiDeviceSession : DeviceSession, 
+  DeviceSessionDelegate, DeviceDelegate, SensorDataGroupBufferDelegate {
+  // the stats are combined for all devices
+  private let combinedStats = DeviceSessionStats&lt;DeviceSessionStatsTypes.KeyWithLocation&gt;()
+  // our special deviceId is all 0s
+  private let multiDeviceId = DeviceId(UUIDString: "00000000-0000-0000-0000-000000000000")!
+
+  private var deviceInfos: [DeviceId : ConnectedDeviceInfo] = [:]
+  private var devices: [ConnectedDevice] = []
+
+  func start() -> Void { for d in devices { d.start() } }
+
+  func deviceSession(session: DeviceSession, sensorDataReceivedFrom deviceId: DeviceId, 
+    atDeviceTime time: CFAbsoluteTime, data: NSData) {
+    sensorDataGroupBuffer
+      .decodeAndAdd(data, fromDeviceId: deviceId, maximumGap: 0.3, gapValue: 0)
+    
+    combinedStats.merge(session.getStats()) { k in
+        let location = ...
+        return DeviceSessionStatsTypes.KeyWithLocation(
+          sensorKind: k.sensorKind, deviceId: k.deviceId, location: location)
+    }
+  }
+}
+            </code></pre>
+          </section>
+
+          <section>
+            <pre><code data-trim class="swift small">
+class LiveSessionController: UIPageViewController, 
+  ExerciseSessionSettable, DeviceSessionDelegate, 
+  DeviceDelegate, MultiDeviceSessionDelegate {
+  private var multi: MultiDeviceSession?
+
+  func setExerciseSession(session: ExerciseSession) {
+    self.exerciseSession = session
+    multi = MultiDeviceSession(delegate: self, 
+              deviceDelegate: self, deviceSessionDelegate: self)
+    multi!.start()
+    UIApplication.sharedApplication().idleTimerDisabled = true
+  }
+
+  func deviceSession(session: DeviceSession, 
+    sensorDataReceivedFrom deviceId: DeviceId, 
+    atDeviceTime: CFAbsoluteTime, data: NSData) {
+    if let x = exerciseSession {
+      x.submitData(data, f: const(()))
+    } 
+  }
+}
+            </code></pre>
+          </section>
+
+          <section>
+            <img src="images/mobile-components-l.png" class="transparent"/>
+          </section>
+
         </section>
 
         <section>
@@ -527,7 +650,7 @@ void decode_threed_data(const void* buffer,
 
         <section data-background="images/facepalm.jpg">
           <section>
-            <h1>All wrong</h1>
+            <h1>It's all wrong</h1>
           </section>
         </section>
 
