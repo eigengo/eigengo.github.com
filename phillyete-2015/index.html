@@ -446,8 +446,9 @@ public enum Result&lt;V&gt; {
 
   func cata&lt;B>(l: NSError -> B, r: V -> B) -> B {
     switch self {
-    case let Error(e): return l(e)
-    case let Value(v):return r(v.value)
+      case let Error(e): return l(e)
+      case let Value(v): return r(v.value)
+    }
   }
 
   func flatMap&lt;S&gt;(f: V -> Result&lt;S&gt;) -> Result&lt;S&gt; { ... }
