@@ -33,6 +33,10 @@
     font-size: 0.55em;
     line-height: 1.3em;
     }
+
+    img.transparent {
+      background: rgba(0,0,0,0);
+    }
     </style>
 
     <!--[if lt IE 9]>
@@ -47,70 +51,248 @@
       <!-- Any section element inside of this container is displayed as a slide -->
       <div class="slides">
         <section data-background="images/intro.jpg">
-          <h1>Exercise in exercise analysis</h1>
+          <h1>Exercise analysis</h1>
           <p>&nbsp;</p>
-          <p>Jan Macháček <a href="https://twitter.com/honzam399">@honzam399</a></p>
+          <p>Jan Macháček <a href="https://twitter.com/honzam399">@honzam399</a> | 
+             Martin Zapletal <a href="https://twitter.com/zapletal_martin">@zapletal_martin</a></p>
         </section>
 
-        <!-- real SD SF from here: -->
+        <section data-background="images/blueprint.jpg">
+          <img src="images/components.png"/>
+          <aside class="notes">
+          </aside>
+        </section>
+
+        <section>
+          <section>
+            <h2>Watch</h2>
+            <img src="images/pebble.png" height="550em" class="transparent"/>
+          </section>
+
+          <section>
+            <h2>Watch</h2>
+            <img src="images/pebble-acceleration.png" height="550em" class="transparent"/>
+          </section>
+
+          <section>
+            <h2>Watch</h2>
+            <img src="images/pebble-acceleration-data.png" height="550em" class="transparent"/>
+          </section>
+
+          <section>
+            <h2>Hello, C &amp; C++</h2>
+            <ul>
+              <li>Core components in C, tests in C++</li>
+              <li><em>Multi-platform</em>: buildable &amp; testable outside Pebble</li>
+              <li>Smallest possible Pebble-only code</li>
+              <li>Sane development tools (e.g. CLion, emacs)</li>
+            </ul>
+          </section>
+
+          <section>
+            <h2>Hello, C &amp; C++</h2>
+            <img src="images/components-pebble.png" height="550em"/>
+          </section>
+
+          <section>
+            <h2>Structures</h2>
+            <pre><code data-trim class="c small">
+struct __attribute__((__packed__)) header {
+    uint8_t  type;
+    uint8_t  count;
+    uint8_t  samples_per_second;
+    uint8_t  sample_size;
+    uint8_t  time_offset;
+};
+
+struct __attribute__((__packed__)) threed_data {
+    int16_t x_val : 13;
+    int16_t y_val : 13;
+    int16_t z_val : 13;
+    uint8_t valid : 1;
+};
+          </code></pre>
+        </section>
+        <section>
+          <h2>Functions</h2>
+          <pre><code data-trim class="c small">
+typedef void (*sample_callback_t)(uint8_t* buf, uint16_t size);
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+  int ad_start(sample_callback_t callback, uint8_t frequency);
+  int ad_stop();
+  void ad_update_padding(void* header, uint8_t padding);
+
+#ifdef __cplusplus
+}
+#endif
+
+            </code></pre>
+          </section>
+
+        <section>
+          <h2>Portable implementation</h2>
+          <pre><code data-trim class="c small">
+#include "ad.h"
+...
+static struct { ... } context;
+...
+int gfs_start(sample_callback_t callback, uint8_t frequency) {
+    if (context.callback != NULL) return E_ALREADY_RUNNING;
+
+    context.callback = callback;
+    context.samples_per_second = (uint8_t) frequency;
+    context.buffer = malloc(BUFFER_SIZE);
+
+    if (context.buffer == NULL) return E_MEM;
+
+    ad_write_header();
+    accel_raw_data_service_subscribe(NUM_SAMPLES, 
+                                     accel_data_handler);
+    accel_service_set_sampling_rate((AccelSamplingRate)frequency);
+
+    return 0;
+}
+            </code></pre>
+          </section>
+
+        <section>
+          <h2>Portable implementation</h2>
+          <pre><code data-trim class="c small">
+#include &lt;gtest/gtest.h&gt; 
+#include "ad.h"
+#include "mock.h"
+
+using namespace pebble::mock;
+
+class ad_test : public testing::Test {
+protected:
+    static uint8_t *buffer;
+    static uint16_t size;
+public:
+    static void ad_callback(uint8_t *b, uint16_t s);
+    virtual ~ad_test();
+};
+          </code></pre>
+        </section>
+
+        <section>
+          <h2>Portable implementation</h2>
+          <pre><code data-trim class="c small">
+TEST_F(gfs_test, perfectly_aligned) {
+    std::vector&lt;AccelRawData&gt; mock_data;
+    AccelRawData a = { .x = 1000, .y = 5000, .z = -5000 };
+    for (int i = 0; i &lt; 8; ++i) mock_data.push_back(a);
+
+    ad_start(ad_test::ad_callback, 100);
+    for (int i = 0; i &lt; 25; ++i) Pebble::accelService &lt;&lt; mock_data;
+
+    ASSERT_TRUE(ad_test::buffer != nullptr);
+    auto h = reinterpret_cast&lt;header *&gt;(ad_test::buffer);
+    EXPECT_EQ(h->type, HEADER_TYPE /* 0xad */);
+    EXPECT_EQ(h->count, 124);
+    EXPECT_EQ(h->samples_per_second, 100);
+
+    auto data = reinterpret_cast&lt;threed_data *&gt;(
+                  ad_test::buffer + sizeof(header));
+    for (int i = 0; i &lt; h-&gt;count; ++i) { ...}
+
+    gfs_stop();
+
+}
+          </code></pre>
+        </section>
+
+        <section>
+          <h2>Pebble code</h2>
+          <pre><code data-trim class="c small">
+static void init(void) {
+    window = window_create();
+    window_set_window_handlers(window, (WindowHandlers) { ... });
+    window_stack_push(window, true /* Animated */);
+    window_set_background_color(window, GColorBlack);
+
+    ad_start(am_start(), 100);
+}
+
+static void deinit(void) {
+    ad_stop();
+    am_stop();
+
+    window_destroy(window);
+}
+
+int main(void) {
+    init();
+    app_event_loop();
+    deinit();
+}
+          </code></pre>
+        </section>
+
+        </section>
+
+        <section>
+          <section>
+            <h2>Mobile</h2>
+            <img src="images/mobile.png" height="500px" class="transparent"/>
+          </section>
+
+        </section>
+
+        <section>
+          <section>
+            <h2>Akka</h2>
+            <img src="images/akka.png" height="500px" class="transparent"/>
+          </section>
+
+        </section>
+
+        <section>
+          <section>
+            <h2>Spark</h2>
+            <img src="images/spark.png" height="500px" class="transparent"/>
+          </section>
+
+        </section>
+
+        <section data-background="images/everythingfine.jpg">
+          <h2>So, tell me again</h2>
+          <h2>&nbsp;</h2>
+          <h2>&nbsp;</h2>
+          <h2>&nbsp;</h2>
+          <h2>&nbsp;</h2>
+          <h2>&nbsp;</h2>
+          <h2>how everything's fine in production!</h2>
+        </section>
+        <section data-background="images/fail1.jpg"></section>
+        <section data-background="images/fail2.jpg"></section>
+        <section data-background="images/fail3.jpg"></section>
+        <section data-background="images/fail4.jpg"></section>
+        <section data-background="images/fail5.jpg"></section>
+        <section data-background="images/fail6.jpg"></section>
+        <section data-background="images/fail7.jpg"></section>
+        <section data-background="images/fail8.jpg"></section>
+        <section data-background="images/fail9.jpg"></section>
+
+        <section data-background="images/facepalm.jpg">
+          <section>
+            <h1>All wrong</h1>
+          </section>
+        </section>
+
+        <section>
+          <section>
+            <h1>What to do instead?</h1>
+            <p>Distributed lambda with feedback</p> 
+          </section>
+        </section>
+
+
 <!--
-        <section data-background="images/intro.jpg">
-          <img src="images/api1.png"/>
-          <aside class="notes">
-            <p>Looking at our kick-ass system from the outside, it is still comfortable. We have mobile and web clients accessing some API—typically a REST API. So, what's the problem? Why do we need to even think about distributed systems?</p>
-          </aside>
-        </section>
-
-        <section data-background="images/intro.jpg">
-          <img src="images/api2.png"/>
-          <aside class="notes">
-            <p>First off, we need to be able to deal with a lot of data being sent to us. The days of patient users are gone. 
-            (Well, they were never here in the first place.) 
-            <p>The devices that our users have can send significant stream of requests to our system. Some of the devices are not that clever (think internet-of-things devices), so they won't back off when our service gets into trouble.</p>
-            <p>Some other application simply require processing all the data immediately as it comes in; any delays or misses make the system useless.</p>
-          </aside>
-        </section>
-
-        <section data-background="images/intro.jpg">
-          <img src="images/api3.png"/>
-          <aside class="notes">
-            <p>To handle the load while remaining responsive, resilient and elastic, we must abandon the request-response world. By request-response, I mean typical CRUD operations you might have done yourselves too. A world where I send a request and receive the result in the response.</p>
-            <p>Instead, we need to move to the world where the system pushes events to us. Some events may arrive as a result of the applications making requests.</p>
-          </aside>
-        </section>
-
-        <section data-background="images/intro.jpg">
-          <h2>How to get there?</h2>
-          <aside class="notes">
-            CQRS/ES: commands, events. CQRS is the only way I know how to successfully deliver such as system.
-            It is an argument from ignorance, I accept, but I give it nonetheless.
-          </aside>
-        </section>
-
-        <section data-background="images/blueprint.jpg">
-          <img src="images/distributed.png"/>
-          <aside class="notes">
-          </aside>
-        </section>
-
-        <section data-background="images/blueprint.jpg">
-          <img src="images/distributed2.png"/>
-          <aside class="notes">
-          </aside>
-        </section>
-
-        <section data-background="images/blueprint.jpg">
-          <img src="images/distributed3.png"/>
-          <aside class="notes">
-          </aside>
-        </section>
--->
-        <section data-background="images/blueprint.jpg">
-          <img src="images/lift.png"/>
-          <aside class="notes">
-          </aside>
-        </section>
-
         <section data-background="images/blueprint.jpg">
           <img src="images/lift-architecture.png"/>
           <aside class="notes">
@@ -126,7 +308,6 @@
           <video data-autoplay src="videos/lift-app.mp4"></video>
         </section>
 
-        <!-- UserProfileProcessor and UserProfile -->
         <section data-background="images/blueprint.jpg">
           <section data-background="images/blueprint.jpg">
             <img src="images/lift-actors-profile.png"/>
@@ -347,7 +528,6 @@ private def registered: Receive = {
 
         </section>
 
-        <!-- UserExercisesProcessor, UserExercisesSessions, UserExercisesSession, UserExercisesStatistics -->
         <section data-background="images/blueprint.jpg">
           <section>
             <img src="images/lift-actors-exercise.png"/>
@@ -1086,7 +1266,7 @@ trait Driver {
             </code></pre>
           </section>
         </section>
-
+-->
         <section data-background="images/angrymob.jpg">
           <video data-autoplay src="videos/lift-app.mp4"></video>
         </section>
@@ -1101,9 +1281,9 @@ trait Driver {
           <h2>Thank you!</h2>
           <ul>
             <li>☞ Jobs at <a href="http://www.cakesolutions.net/careers">www.cakesolutions.net/careers</a>&nbsp;&nbsp;☜</li>
-            <li>Slides at <a href="http://www.eigengo.com/scaladays-sf-2015">www.eigengo.com/scaladays-sf-2015</a></li>
+            <li>Slides at <a href="http://www.eigengo.com/scaladays-sf-2015">www.eigengo.com/phillyete-2015</a></li>
             <li><em>All</em> code at <a href="http://github.com/muvr/open-muvr">github.com/muvr/open-muvr</a></li>
-            <li>Tweets at <a href="https://twitter.com/honzam399">@honzam399</a></li>
+            <li>Tweets at <a href="https://twitter.com/honzam399">@honzam399</a>, <a href="https://twitter.com/zapletal_martin">@zapletal_martin</a></li>
           </ul>
           </ul>
         </section>
