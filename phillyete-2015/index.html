@@ -182,7 +182,7 @@ public:
         <section>
           <h2>Portable implementation</h2>
           <pre><code data-trim class="c small">
-TEST_F(gfs_test, perfectly_aligned) {
+TEST_F(ad_test, perfectly_aligned) {
     std::vector&lt;AccelRawData&gt; mock_data;
     AccelRawData a = { .x = 1000, .y = 5000, .z = -5000 };
     for (int i = 0; i &lt; 8; ++i) mock_data.push_back(a);
@@ -200,7 +200,7 @@ TEST_F(gfs_test, perfectly_aligned) {
                   ad_test::buffer + sizeof(header));
     for (int i = 0; i &lt; h-&gt;count; ++i) { ...}
 
-    gfs_stop();
+    ad_stop();
 
 }
           </code></pre>
