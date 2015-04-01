@@ -799,10 +799,6 @@ def exercising(id: SessionId,
 
           <section>
               <h2>Apache Spark</h2>
-              
-              TODO: Some intro what is Spark?
-              TODO: Spark Cluster!
-              TODO: Distributed, fault tolerant, scalable ML!
               <br/>
               <img src="images/spark.png"  height="500em">
           </section>
@@ -810,10 +806,36 @@ def exercising(id: SessionId,
 
           <section>
             <img src="images/lift-spark.png">
+            <aside class="notes">
+              <ul>
+                <li>
+                  Spark is a distributed, scalable, fault tolerant data processing framework.
+                </li>
+                <li>
+                  External to the application, communication through some interface. To reduce load, allow more complex algorithms run asynchronously, separate scaling etc.
+                </li>
+                <li>
+                  We use it for data analytics, such as suggestions/recommendations, classification of users, mining of interesting patterns. Another important use case is to prepare models for real time classification.
+                </li>
+              </ul>
+            </aside>  
           </section>
 
           <section>
             <img src="images/sparkcassandra.png">
+            <aside class="notes">
+              <ul>
+                <li>
+                  Spark runs in a cluster that may be separate from the akka/ cassandra cluster.
+                </li>
+                <li>
+                  Depends on the query patterns and use cases.
+                </li>
+                <li>
+                  Cassandra operational database. Can handle large loads, but can not handle complicated queries.
+                </li>
+              </ul>
+            </aside>
           </section>
 
           <section>
@@ -954,7 +976,7 @@ getEligibleUsers(events, sessionEndedBefore)
               <li>Network inherently unreliable</li>
               <li>Large amounts of data sent on network</li>
               <li>Usability problems</li>
-              <li>Mobile battery drain</li>
+              <li>Device battery drain</li>
               <li>Insufficient feedback on machine learning results</li>
             </ul>
           </section>
@@ -980,6 +1002,14 @@ getEligibleUsers(events, sessionEndedBefore)
 
           <section>
             <img src="images/components-right2.png">
+            <aside class="notes">
+              <ul>
+                <li>Three changes </li>
+                <li>1) Mobile device now used as part of speed layer for obvious advantages</li>
+                <li>2) Batch layer now updates model and sends updates not only to akka but also to the device </li>
+                <li>3) We use classification in both mobile, akka on different levels and use it to improve model in batch layer later </li>
+              </ul>
+            </aside>
           </section>            
 
           <section>
