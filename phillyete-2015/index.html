@@ -810,7 +810,10 @@ def exercising(id: SessionId,
 
           <section>
             <img src="images/lift-spark.png">
+          </section>
 
+          <section>
+            <img src="images/sparkcassandra.png">
           </section>
 
           <section>
@@ -860,7 +863,7 @@ val intensityPredictor = new LinearRegression()
 
 
           <section>
-            <pre><code data-trim class="scala small">
+            <pre><code data-trim class="scala xsmall">
               class IntensityFeatureExtractor extends Transformer {
   import IntensityFeatureExtractor._
 
@@ -881,7 +884,9 @@ val intensityPredictor = new LinearRegression()
   }
   
   override def transformSchema(schema: StructType, paramMap: ParamMap): StructType =
-    StructType(Array(StructField("intensityLabel", DoubleType, true), StructField("intensityFeatures", VectorType.VectorUDT, true)))
+    StructType(Array(
+      StructField("intensityLabel", DoubleType, true), 
+      StructField("intensityFeatures", VectorType.VectorUDT, true)))
 }
             </code></pre>
           </section>
