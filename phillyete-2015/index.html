@@ -137,9 +137,9 @@ typedef void (*sample_callback_t)(uint8_t* buf, uint16_t size);
 extern "C" {
 #endif
 
-  int ad_start(sample_callback_t callback, uint8_t frequency);
-  int ad_stop();
-  void ad_update_padding(void* header, uint8_t padding);
+    int ad_start(sample_callback_t callback, uint8_t frequency);
+    int ad_stop();
+    void ad_update_padding(void* header, uint8_t padding);
 
 #ifdef __cplusplus
 }
@@ -155,7 +155,7 @@ static struct { ... } context;
 
 void accel_data_handler(AccelRawData *data, uint32_t num_samples, 
                         uint64_t timestamp) { 
-  ...
+    ...
 }
 
 int ad_start(sample_callback_t callback, uint8_t frequency) {
@@ -228,10 +228,10 @@ TEST_F(ad_test, perfectly_aligned) {
 extern "C" {
 #endif
 
-  sample_callback_t am_start();
-  void am_stop();
-  int am_count();
-  ...
+    sample_callback_t am_start();
+    void am_stop();
+    int am_count();
+    ...
   
 #ifdef __cplusplus
 }
@@ -251,15 +251,15 @@ void _am_sample_callback(uint8_t* buffer, uint16_t size) {
 }
 
 void _send_next_message() {
-  uint8_t* buffer; uint16_t size;
-  queue_peek(_am_message_queue, &amp;buffer, &amp;size);
-  int queueLength = queue_length(_am_message_queue);
-  
-  DictionaryIterator* message;
-  app_message_outbox_begin(&amp;message);
-  dict_write_data(message, 0xface0fb0, buffer, size);
-  dict_write_end(message);
-  app_message_outbox_send();
+    uint8_t* buffer; uint16_t size;
+    queue_peek(_am_message_queue, &amp;buffer, &amp;size);
+    int queueLength = queue_length(_am_message_queue);
+    
+    DictionaryIterator* message;
+    app_message_outbox_begin(&amp;message);
+    dict_write_data(message, 0xface0fb0, buffer, size);
+    dict_write_end(message);
+    app_message_outbox_send();
 }
 
 sample_callback_t am_start() {
@@ -1140,7 +1140,7 @@ class PebbleDeviceSession : DeviceSession {
   private func appMessagesReceiveUpdateHandler(watch: PBWatch!, 
     data: [NSObject : AnyObject]!) -> Bool {    
     if let x = data[adKey] as? NSData {  
-      Preclassification.pushBack(x, atLocation: Wrist)
+      Preclassification.pushBack(x, atLocation: .Wrist)
     } else if data[deadKey] != nil {
       stop()
     }
