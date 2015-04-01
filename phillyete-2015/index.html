@@ -69,7 +69,7 @@
         <section>
           <section>
             <h2>Watch</h2>
-            <img src="images/pebble.png" height="550em" class="transparent"/>
+            <img src="images/pebble.png" height="550em" />
           </section>
 
           <section>
@@ -86,12 +86,21 @@
 
           <section>
             <h2>Sane Pebble applications</h2>
+            <p>
+            <ul>
+              <li>Responsive</li>
+              <li>Resilient</li>
+            </ul>
+            </p>
+            <hr/>
+            <p>
             <ul>
               <li>Core components in C, tests in C++</li>
               <li><em>Multi-platform</em>: buildable &amp; testable outside Pebble</li>
               <li>Smallest possible Pebble-only code</li>
               <li>Sane development tools (e.g. CLion, emacs)</li>
             </ul>
+            </p>
           </section>
 
           <section>
@@ -300,23 +309,23 @@ int main(void) {
         <section>
           <section>
             <h2>Mobile</h2>
-            <img src="images/mobile.png" height="550em" class="transparent"/>
+            <img src="images/mobile.png" height="550em" />
           </section>
 
           <section>
-            <img src="images/mobile-components.png" class="transparent"/>
+            <img src="images/mobile-components.png" />
           </section>
 
           <section>
-            <img src="images/mobile-devices.png" class="transparent"/>
+            <img src="images/mobile-devices.png" />
           </section>
 
           <section>
-            <img src="images/mobile-devices-2.png" class="transparent"/>
+            <img src="images/mobile-devices-2.png" />
           </section>
 
           <section>
-            <img src="images/mobile-devices-fused.png" class="transparent"/>
+            <img src="images/mobile-devices-fused.png" />
           </section>
 
           <section>
@@ -353,7 +362,7 @@ struct User {
     
     static func empty() -> PublicProfile {
       return PublicProfile(firstName: "",  lastName: "", 
-                           weight:    nil, age:     nil)
+                           weight:    nil, age:      nil)
     }
   }
 }
@@ -481,7 +490,7 @@ class HomeController : UIViewController, ... {
           </section>
 
           <section>
-            <img src="images/mobile-components-l.png" class="transparent"/>
+            <img src="images/mobile-components-l.png"/>
           </section>
 
           <section>
@@ -609,7 +618,7 @@ class LiveSessionController: UIPageViewController,
           </section>
 
           <section>
-            <img src="images/mobile-components-l.png" class="transparent"/>
+            <img src="images/mobile-components-l.png"/>
           </section>
 
         </section>
@@ -617,7 +626,154 @@ class LiveSessionController: UIPageViewController,
         <section>
           <section>
             <h2>Akka</h2>
-            <img src="images/akka.png" height="500px" class="transparent"/>
+            <img src="images/akka.png" height="500px" />
+          </section>
+
+          <section>
+            <img src="images/components-akka.png"/>
+          </section>
+          <section>
+            <img src="images/lift-architecture.png" height="550em"/>
+          </section>
+          <section>
+            <img src="images/lift-uec3.png"/>
+          </section>
+
+          <section>
+            <pre><code data-trim class="scala">
+trait ProfileService extends Directives 
+  with CommonMarshallers with CommonPathDirectives {
+
+  def userProfileRoute(userProfile: ActorRef, 
+                       userProfileProcessor: ActorRef)
+                      (implicit _: ExecutionContext) =
+    path("user") ~ 
+    path("user" / UserIdValue) ~ 
+    path("user" / UserIdValue / "check") ~
+    path("user" / UserIdValue / "image") ~
+    path("user" / UserIdValue / "device" / "ios") ~
+    path("user" / UserIdValue / "device" / "android") 
+
+}
+            </code></pre> 
+          </section>
+
+          <section>
+            <pre><code data-trim class="scala">
+class UserProfileProcessor(userProfile: ActorRef) 
+  extends PersistentActor with ActorLogging {
+
+  override def receiveRecover: Receive = ...
+
+  override def receiveCommand: Receive = ...
+
+}
+            </code></pre>
+          </section>
+
+          <section>
+          <pre><code data-trim class="scala">
+var accounts: KnownAccounts = KnownAccounts.empty
+
+override def receiveCommand: Receive = {
+  case UserRegister(email, _) 
+  if accounts.contains(email) ⇒
+    sender() ! \/.left("Username already taken")  
+}
+          </code></pre>
+          </section>
+
+          <section>
+          <pre><code data-trim class="scala">
+var accounts: KnownAccounts = KnownAccounts.empty
+
+override def receiveCommand: Receive = {
+  ...
+  case UserRegister(email, password) ⇒
+    persist(UserRegistered(UserId.randomId(), ...)) { 
+      userRegistered ⇒
+      userProfile ! userRegistered
+      accounts = accounts.withNewAccount(...)
+      saveSnapshot(accounts)
+
+      sender() ! \/.right(userRegistered.userId)
+    }
+}
+          </code></pre>
+          </section>
+
+          <section>
+          <pre><code data-trim class="scala">
+class UserProfile extends PersistentActor {
+  private var profile: Profile = _
+  override val persistenceId: String = 
+    s"user-profile-${self.path.name}"
+
+  override def receiveCommand: Receive = notRegistered
+
+  private def notRegistered: Receive = ...
+
+  private def registered: Receive = ...
+
+}
+          </code></pre>
+          </section>
+
+          <section>
+          <pre><code data-trim class="scala">
+private var profile: Profile = _
+
+private def notRegistered: Receive = {
+  case cmd: Account ⇒
+    persist(cmd) { acc ⇒
+      profile = Profile(acc, Devices.empty, None, None)
+      saveSnapshot(profile)
+      context.become(registered)
+    }
+}
+private def registered: Receive = {
+  case GetAccount ⇒ sender() ! profile.account
+  ...
+}
+          </code></pre>
+          </section>
+
+          <section>
+          <pre><code data-trim class="scala">
+class UserExercisesProcessor(notification: ActorRef, 
+  userProfile: ActorRef) extends PersistentActor {
+
+  override def receiveRecover: Receive = ...
+  override def receiveCommand: Receive = notExercising
+
+  def replaying(oldId: SessionId, newId: SessionId, 
+        sessionProps: SessionProperties): Receive = ...
+
+  def exercising(id: SessionId, 
+        sessionProps: SessionProperties): Receive = ...
+
+  def notExercising: Receive = ...
+}
+          </code></pre>
+          </section>
+
+          <section>
+          <pre><code data-trim class="scala">
+def exercising(id: SessionId, 
+  sessionProps: SessionProperties): Receive = {
+  case ExerciseDataProcessMultiPacket(`id`, packet) ⇒
+    ...
+
+  case ClassifiedExercise(md, _, exercise) ⇒
+    persist(ExerciseEvt(id, md, exercise))(unit)
+
+  case NoMovement ⇒
+    persist(NoMovement(id))(unit)
+
+  case NoExercise(metadata) ⇒
+    persist(NoExerciseEvt(id, metadata))(unit)
+}
+          </code></pre>
           </section>
 
         </section>
@@ -625,7 +781,7 @@ class LiveSessionController: UIPageViewController,
         <section>
           <section>
             <h2>Spark</h2>
-            <img src="images/spark.png" height="500px" class="transparent"/>
+            <img src="images/spark.png" height="550em" />
           </section>
 
         </section>
