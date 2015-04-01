@@ -137,9 +137,9 @@ typedef void (*sample_callback_t)(uint8_t* buf, uint16_t size);
 extern "C" {
 #endif
 
-  int ad_start(sample_callback_t callback, uint8_t frequency);
-  int ad_stop();
-  void ad_update_padding(void* header, uint8_t padding);
+    int ad_start(sample_callback_t callback, uint8_t frequency);
+    int ad_stop();
+    void ad_update_padding(void* header, uint8_t padding);
 
 #ifdef __cplusplus
 }
@@ -155,7 +155,7 @@ static struct { ... } context;
 
 void accel_data_handler(AccelRawData *data, uint32_t num_samples, 
                         uint64_t timestamp) { 
-  ...
+    ...
 }
 
 int ad_start(sample_callback_t callback, uint8_t frequency) {
@@ -200,7 +200,7 @@ TEST_F(ad_test, perfectly_aligned) {
     for (int i = 0; i &lt; 8; ++i) mock_data.push_back(a);
 
     ad_start(ad_test::ad_callback, 100);
-    for (int i = 0; i &lt; 25; ++i) Pebble::accelService &lt;&lt; mock_data;
+    for (int i = 0; i &lt; 25; ++i) Pebble::accel_service &lt;&lt; mock_data;
 
     ASSERT_TRUE(ad_test::buffer != nullptr);
     auto h = reinterpret_cast&lt;header *&gt;(ad_test::buffer);
@@ -210,10 +210,10 @@ TEST_F(ad_test, perfectly_aligned) {
 
     auto data = reinterpret_cast&lt;threed_data *&gt;(
                   ad_test::buffer + sizeof(header));
+
     for (int i = 0; i &lt; h-&gt;count; ++i) { ...}
 
     ad_stop();
-
 }
           </code></pre>
         </section>
@@ -228,10 +228,10 @@ TEST_F(ad_test, perfectly_aligned) {
 extern "C" {
 #endif
 
-  sample_callback_t am_start();
-  void am_stop();
-  int am_count();
-  ...
+    sample_callback_t am_start();
+    void am_stop();
+    int am_count();
+    ...
   
 #ifdef __cplusplus
 }
@@ -251,15 +251,15 @@ void _am_sample_callback(uint8_t* buffer, uint16_t size) {
 }
 
 void _send_next_message() {
-  uint8_t* buffer; uint16_t size;
-  queue_peek(_am_message_queue, &amp;buffer, &amp;size);
-  int queueLength = queue_length(_am_message_queue);
-  
-  DictionaryIterator* message;
-  app_message_outbox_begin(&amp;message);
-  dict_write_data(message, 0xface0fb0, buffer, size);
-  dict_write_end(message);
-  app_message_outbox_send();
+    uint8_t* buffer; uint16_t size;
+    queue_peek(_am_message_queue, &amp;buffer, &amp;size);
+    int queueLength = queue_length(_am_message_queue);
+    
+    DictionaryIterator* message;
+    app_message_outbox_begin(&amp;message);
+    dict_write_data(message, 0xface0fb0, buffer, size);
+    dict_write_end(message);
+    app_message_outbox_send();
 }
 
 sample_callback_t am_start() {
@@ -854,7 +854,7 @@ val intensityFeatureExtractor = new IntensityFeatureExtractor()
 val intensityPredictor = new LinearRegression()
     .setLabelCol("label")
     .setFeaturesCol("features")
-   .setPredictionCol("predictions")
+    .setPredictionCol("predictions")
             </code></pre>
             <aside class="notes">
               Possible to build complex machine learning pipelines similar to data science languages such as Matlab, R
@@ -864,26 +864,22 @@ val intensityPredictor = new LinearRegression()
 
           <section>
             <pre><code data-trim class="scala xsmall">
-              class IntensityFeatureExtractor extends Transformer {
-  import IntensityFeatureExtractor._
+class IntensityFeatureExtractor extends Transformer {
 
-  override def transform(dataset: DataFrame, paramMap: ParamMap): DataFrame = {
-    import dataset.sqlContext.implicits._
-
+  override def transform(dataset: DataFrame, 
+                         paramMap: ParamMap): DataFrame = {
     val useHistory = paramMap.get(useHistoryParam).get
-
-    val labelAndFeatures = dataset
+    dataset
       .select("sessionProps.intendedIntensity")
       .rdd
       .map(_.getDouble(0))
       .sliding(useHistory + 1)
       .map(x => (x.head, Vectors.dense(x.tail)))
       .toDF("intensityLabel", "intensityFeatures")
-
-    labelAndFeatures
   }
   
-  override def transformSchema(schema: StructType, paramMap: ParamMap): StructType =
+  override def transformSchema(schema: StructType, 
+    paramMap: ParamMap): StructType =
     StructType(Array(
       StructField("intensityLabel", DoubleType, true), 
       StructField("intensityFeatures", VectorType.VectorUDT, true)))
@@ -903,10 +899,10 @@ import sqlContext.implicits._
 val events = sc.eventTable().cache().toDF()
 
 val pipeline = new Pipeline().setStages(Array(
- userFilter,
- normalizer,
- intensityFeatureExtractor,
- intensityPredictor
+  userFilter,
+  normalizer,
+  intensityFeatureExtractor,
+  intensityPredictor
 ))
 
 getEligibleUsers(events, sessionEndedBefore)
@@ -927,6 +923,10 @@ getEligibleUsers(events, sessionEndedBefore)
 
         </section>
 
+        <section data-background="images/angrymob.jpg">
+          <video data-autoplay src="videos/lift-app.mp4"></video>
+        </section>
+
         <section data-background="images/everythingfine.jpg">
           <h2>So, tell me again</h2>
           <h2>&nbsp;</h2>
@@ -945,6 +945,7 @@ getEligibleUsers(events, sessionEndedBefore)
         <section data-background="images/fail7.jpg"></section>
         <section data-background="images/fail8.jpg"></section>
         <section data-background="images/fail9.jpg"></section>
+        <section data-background="images/faila.jpg"></section>
 
         <section data-background="images/facepalm.jpg">
           <section>
@@ -952,9 +953,8 @@ getEligibleUsers(events, sessionEndedBefore)
             <ul>
               <li>Network inherently unreliable</li>
               <li>Large amounts of data sent on network</li>
-              <li>Data loss</li>
+              <li>Usability problems</li>
               <li>Mobile battery drain</li>
-              <li>Difficult immediate feedback</li>
               <li>Insufficient feedback on machine learning results</li>
             </ul>
           </section>
@@ -967,7 +967,7 @@ getEligibleUsers(events, sessionEndedBefore)
           </section>
 
           <section>
-            <img src="images/components-lambda.png">
+            <img src="images/components-lambda.png" height="550em">
           </section>            
 
           <section>
@@ -1144,7 +1144,7 @@ class PebbleDeviceSession : DeviceSession {
   private func appMessagesReceiveUpdateHandler(watch: PBWatch!, 
     data: [NSObject : AnyObject]!) -> Bool {    
     if let x = data[adKey] as? NSData {  
-      Preclassification.pushBack(x, atLocation: Wrist)
+      Preclassification.pushBack(x, atLocation: .Wrist)
     } else if data[deadKey] != nil {
       stop()
     }
@@ -1154,12 +1154,9 @@ class PebbleDeviceSession : DeviceSession {
             </code></pre>
           </section>
 
-        </section>
-
-        <section data-background="images/angrymob.jpg">
-          <video data-autoplay src="videos/lift-app.mp4"></video>
-        </section>
-
+          <section>
+            <img src="images/components-right2.png">
+          </section>            
         </section>
 
         <section data-background="images/qa.jpg">
