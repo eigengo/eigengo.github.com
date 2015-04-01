@@ -952,6 +952,79 @@ getEligibleUsers(events, sessionEndedBefore)
             <h1>What to do instead?</h1>
             <p>Distributed lambda with feedback</p> 
           </section>
+          <!-- Diagrams here -->
+
+          <section>
+            <h2>More on the phone</h2>
+            <p>
+            <ul>
+              <li>Responsive</li>
+              <li>Resilient</li>
+            </ul>
+            </p>
+            <hr/>
+            <p>
+            <ul>
+              <li>Core components in C++</li>
+              <li><em>Multi-platform</em>: buildable &amp; testable independently</li>
+              <li>Smallest possible device-only code</li>
+              <li>Sane development tools (e.g. AppCode, CLion, emacs)</li>
+            </ul>
+            </p>
+          </section>
+
+          <section>
+            <pre><code data-trim class="matlab small">
+function [freq, period, power] = sigfft(xs)
+    Y = fft(relNums);
+    Y(1) = [];
+    n = length(Y);
+    power = abs(Y(1:floor(n/2))).^2;
+    nyquist = 1/2;
+    freq = (1:n/2)/(n/2)*nyquist;
+    period = 1./freq;
+    index = power == max(power);
+    freq = period(index);
+end
+
+M = readtable('all_4.csv');
+ads  = table2array(FM);
+time = 1:height(FM);
+[freq, period, power] = sigfft(ads);
+
+hold on;
+plot(time, ads);
+plot(period, power);
+hold off;
+            </code></pre>
+          </section>
+
+          <section>
+            <pre><code data-trim class="cpp small">
+raw_sensor_data decode_single_packet(const uint8_t *buffer);
+
+class sensor_data_fuser {
+public:
+  void push_back(
+    const uint8_t *buffer, 
+    const sensor_location location, 
+    const sensor_time_t received_at);
+
+  virtual void exercise_block_ended(
+    const std::vector&lt;fused_sensor_data&gt; data, 
+    const fusion_stats &amp;fusion_stats) = 0;
+
+  virtual void exercise_block_started() = 0;
+}
+
+class sax_classifier {
+public:
+    bool classify(const raw_sensor_data &amp;data) const;
+};
+
+            </code></pre>
+          </section>
+
         </section>
 
         <section data-background="images/angrymob.jpg">
