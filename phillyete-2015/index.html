@@ -997,6 +997,10 @@ getEligibleUsers(events, sessionEndedBefore)
           </section>
 
           <section>
+            <img src="images/dsp.png" height="550em"/>
+          </section>
+
+          <section>
             <pre><code data-trim class="matlab small">
 function [freq, period, power] = sigfft(xs)
     Y = fft(relNums);
@@ -1023,6 +1027,41 @@ hold off;
           </section>
 
           <section>
+            <pre><code data-trim class="cpp xsmall">
+exercise_decider::freq_powers exercise_decider::fft(const Mat &amp;source) const {
+  Mat filtered;
+  Mat tmp;
+  kalman_smooth(source, filtered);
+  filtered.convertTo(filtered, CV_32FC1);
+  dft(filtered, tmp, DFT_COMPLEX_OUTPUT);
+  exercise_decider::freq_powers result(10);
+  for (int i = 1; i &lt; tmp.rows / 2; ++i) {
+    Complexf v = tmp.at&lt;Complexf&gt;(i, 0);
+    exercise_decider::freq_power x { .frequency = tmp.rows / i, .power = pow(abs(v), 2) };
+    result.push_back(x);
+  }
+  return result;
+}
+
+exercise_decider::exercise_result exercise_decider::has_exercise(
+  const raw_sensor_data &amp;source, exercise_context &amp;context) const {
+
+  auto pfx = fft(source.data.col(0));
+  auto pfy = fft(source.data.col(1));
+  auto pfz = fft(source.data.col(2));
+
+  if (!pfx.is_distinct() || !pfy.is_distinct() || !pfz.is_distinct()) return no;
+  if (!pfx.is_roughly_equal(pfy) || !pfy.is_roughly_equal(pfz)) return no;
+
+  if (context.diverges(pfx, pfy, pfz)) return no;
+  context.update(pfx, pfy, pfz);
+
+  return yes;
+}
+            </code></pre>
+          </section>
+
+          <section>
             <pre><code data-trim class="cpp small">
 raw_sensor_data decode_single_packet(const uint8_t *buffer);
 
@@ -1045,6 +1084,68 @@ public:
     bool classify(const raw_sensor_data &amp;data) const;
 };
 
+            </code></pre>
+          </section>
+
+          <section data-background="images/johnny.jpg">
+            <h2>We didn't mean to scare you...</h2>
+          </section>
+
+          <section data-background="images/johnny.jpg">
+            <img src="images/xcode.png" height="550em"/>            
+          </section>
+
+          <section data-background="images/johnny.jpg">
+            <pre><code data-trim class="obj-c small">
+#import &lt;Foundation/Foundation.h&gt;
+
+@interface Preclassification : NSObject
+
++ (void)pushBack:(NSData *)data atLocation:(int)location;
+
+@end
+            </code></pre>
+            <pre><code data-trim class="obj-c small">
+#import "Preclassification.h"
+#import "MuvrPreclassification/include/device_data_decoder.h"
+
+@implementation Preclassification
+
+using namespace muvr;
+
++ (void)pushBack:(NSData *)data atLocation:(int)location {
+  const uint8_t *buf = reinterpret_cast&lt;const uint8_t*&gt;(data.bytes);
+  auto res = decode_single_packet(buf);
+  ...
+}
+
+@end
+            </code></pre>
+          </section>
+
+          <section data-background="images/johnny.jpg">
+            <pre><code data-trim class="swift small">
+class PebbleDeviceSession : DeviceSession {
+  private var updateHandler: AnyObject?
+  private let adKey   = NSNumber(uint32: 0xface0fb0)
+  private let deadKey = NSNumber(uint32: 0x0000dead)
+  
+  required init(deviceId: NSUUID, watch: PBWatch!) {
+    super.init()
+    self.updateHandler = watch.appMessagesAddReceiveUpdateHandler(
+      appMessagesReceiveUpdateHandler)
+  }
+
+  private func appMessagesReceiveUpdateHandler(watch: PBWatch!, 
+    data: [NSObject : AnyObject]!) -> Bool {    
+    if let x = data[adKey] as? NSData {  
+      Preclassification.pushBack(x, atLocation: Wrist)
+    } else if data[deadKey] != nil {
+      stop()
+    }
+    return true
+  }
+}
             </code></pre>
           </section>
 
