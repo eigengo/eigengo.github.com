@@ -779,10 +779,129 @@ def exercising(id: SessionId,
         </section>
 
         <section>
+
           <section>
-            <h2>Spark</h2>
-            <img src="images/spark.png" height="550em" />
+              <h2>Apache Spark</h2>
+              
+              TODO: Some intro what is Spark?
+              TODO: Spark Cluster!
+              TODO: Distributed, fault tolerant, scalable ML!
+              <br/>
+              <img src="images/spark.png"  height="550em">
           </section>
+
+
+          <section>
+            <img src="images/lift-spark.png">
+
+          </section>
+
+          <section>
+            <pre><code data-trim class="scala">
+class JobManager(
+    override val master: String,
+    override val config: Config)
+  extends Actor 
+  with Driver 
+  with ActorLogging 
+  with PipeToSupport {
+
+  override def receive: Receive = {
+    case BatchJobSubmit('Suggestions) ⇒
+      submit(Job[SuggestionsJob], ()).pipeTo(self)
+  }
+}
+            </code></pre>
+          </section>
+
+          <section>
+              <img src="images/spark-pipeline.png"></img>
+            <aside class="notes">
+              <p>Spark job suggesting exercises based on various parameters. It reads history from the journal, uses trainer's (human, no less!) hints and recommended exercise programmes.</p>
+              <p>The OSS version uses a linear regression classifier for muscle groups as well as for intensities.</p>
+              <p>We can run resource intesive pipelines on a different cluster without affecting the main application.</p>
+              <p>Often iterative algorithms, multiple runs and model evaluation to find the best model and parameters TODO: terminology.</p>
+              <p>TODO: Usages of ML in the app (training models, data mining about customers as a whole or individuals, individual exercise plans, ...</p>
+            </aside>
+          </section>  
+
+          <section>
+            <pre><code data-trim class="scala">
+
+val userFilter = new UserFilter()
+val normalizer = new ZScoreNormalizer()
+val intensityFeatureExtractor = new IntensityFeatureExtractor()
+val intensityPredictor = new LinearRegression()
+    .setLabelCol("label")
+    .setFeaturesCol("features")
+   .setPredictionCol("predictions")
+            </code></pre>
+            <aside class="notes">
+              Possible to build complex machine learning pipelines similar to data science languages such as Matlab, R
+            </aside>
+          </section>  
+
+
+          <section>
+            <pre><code data-trim class="scala small">
+              class IntensityFeatureExtractor extends Transformer {
+  import IntensityFeatureExtractor._
+
+  override def transform(dataset: DataFrame, paramMap: ParamMap): DataFrame = {
+    import dataset.sqlContext.implicits._
+
+    val useHistory = paramMap.get(useHistoryParam).get
+
+    val labelAndFeatures = dataset
+      .select("sessionProps.intendedIntensity")
+      .rdd
+      .map(_.getDouble(0))
+      .sliding(useHistory + 1)
+      .map(x => (x.head, Vectors.dense(x.tail)))
+      .toDF("intensityLabel", "intensityFeatures")
+
+    labelAndFeatures
+  }
+  
+  override def transformSchema(schema: StructType, paramMap: ParamMap): StructType =
+    StructType(Array(StructField("intensityLabel", DoubleType, true), StructField("intensityFeatures", VectorType.VectorUDT, true)))
+}
+            </code></pre>
+          </section>
+
+          <section>
+            <img src="images/spark-pipeline-single.png">
+          </section>  
+
+          <section>
+            <pre><code data-trim class="scala small">
+implicit val sqlContext = new org.apache.spark.sql.SQLContext(sc)
+import sqlContext.implicits._
+
+val events = sc.eventTable().cache().toDF()
+
+val pipeline = new Pipeline().setStages(Array(
+ userFilter,
+ normalizer,
+ intensityFeatureExtractor,
+ intensityPredictor
+))
+
+getEligibleUsers(events, sessionEndedBefore)
+   .map { user => 
+     val model = pipeline.fit(
+       events, 
+       ParamMap(ParamPair(userIdParam, user)))
+     val testData = //prepare test data
+     val predictions = model.transform(testData)
+     submitResult(userId, predictions, config)
+   }
+            </code></pre>
+          </section>  
+        
+          <section>
+            <img src="images/intensity.png">
+          </section>  
 
         </section>
 
