@@ -809,13 +809,16 @@ def exercising(id: SessionId,
             <aside class="notes">
               <ul>
                 <li>
-                  Spark is a distributed, scalable, fault tolerant data processing framework.
+                  Distributed, scalable, fault tolerant data processing framework.
                 </li>
                 <li>
-                  External to the application, communication through some interface. To reduce load, allow more complex algorithms run asynchronously, separate scaling etc.
+                  External to the application, communication through some interface. To reduce load, allow more complex algorithms run asynchronously, without affecting the main app separate scaling etc.
                 </li>
                 <li>
-                  We use it for data analytics, such as suggestions/recommendations, classification of users, mining of interesting patterns. Another important use case is to prepare models for real time classification.
+                  Use for analytics - recommendations, classification of users, mining of interesting knowledge about individual customers or the whole system. Important use case is to prepare models for real time classification.
+                </li>
+                <li>
+                  Often iterative algorithms, multiple runs and model evaluation to find the best model and parameters.
                 </li>
               </ul>
             </aside>  
@@ -833,6 +836,9 @@ def exercising(id: SessionId,
                 </li>
                 <li>
                   Cassandra operational database. Can handle large loads, but can not handle complicated queries.
+                </li>
+                <li>
+                  Spark SQL queries.
                 </li>
               </ul>
             </aside>
@@ -858,13 +864,6 @@ class JobManager(
 
           <section>
               <img src="images/spark-pipeline.png"></img>
-            <aside class="notes">
-              <p>Spark job suggesting exercises based on various parameters. It reads history from the journal, uses trainer's (human, no less!) hints and recommended exercise programmes.</p>
-              <p>The OSS version uses a linear regression classifier for muscle groups as well as for intensities.</p>
-              <p>We can run resource intesive pipelines on a different cluster without affecting the main application.</p>
-              <p>Often iterative algorithms, multiple runs and model evaluation to find the best model and parameters TODO: terminology.</p>
-              <p>TODO: Usages of ML in the app (training models, data mining about customers as a whole or individuals, individual exercise plans, ...</p>
-            </aside>
           </section>  
 
           <section>
@@ -879,10 +878,13 @@ val intensityPredictor = new LinearRegression()
     .setPredictionCol("predictions")
             </code></pre>
             <aside class="notes">
-              Possible to build complex machine learning pipelines similar to data science languages such as Matlab, R
+              <ul>
+                <li>Complex machine learning pipelines similar Matlab, R, ...</li>
+                <li>Suggest exercise intensity based on various parames. Use history from journal, trainer's hints and recommended exercise programmes.</li>
+                <li>The OSS version uses a linear regression classifier.</li>
+              </ul>
             </aside>
           </section>  
-
 
           <section>
             <pre><code data-trim class="scala xsmall">
