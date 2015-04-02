@@ -1150,7 +1150,7 @@ exercise_decider::exercise_result exercise_decider::has_exercise(
           </section>
 
           <section>
-            <pre><code data-trim class="cpp small">
+            <pre><code data-trim class="cpp xsmall">
 raw_sensor_data decode_single_packet(const uint8_t *buffer);
 
 class sensor_data_fuser {
@@ -1169,7 +1169,11 @@ public:
 
 class sax_classifier {
 public:
-    bool classify(const raw_sensor_data &amp;data) const;
+    classification_result classify(const raw_sensor_data &amp;data) const;
+    std::vector&lt;char&gt; symbolic_aggregate_approximation(const std::vector&lt;double&gt; &source,
+                                                       int symbols_size);
+    std::vector&lt;double&gt; piecewise_aggregate_approximation(const std::vector&lt;double&gt; &source,
+                                                          int size)
 };
 
             </code></pre>
