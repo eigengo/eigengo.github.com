@@ -104,11 +104,11 @@
           </section>
 
           <section>
-            <img src="images/pebble-components-l.png" />
+            <img src="images/components-pebble.png" height="550em"/>
           </section>
 
           <section>
-            <img src="images/components-pebble.png" height="550em"/>
+            <img src="images/pebble-components-l.png" />
           </section>
 
           <section>
@@ -139,7 +139,7 @@ extern "C" {
 
     int ad_start(sample_callback_t callback, uint8_t frequency);
     int ad_stop();
-    void ad_update_padding(void* header, uint8_t padding);
+    void ad_update_time_offset(void* header, uint8_t time_offset);
 
 #ifdef __cplusplus
 }
@@ -160,7 +160,7 @@ void accel_data_handler(AccelRawData *data, uint32_t num_samples,
 
 int ad_start(sample_callback_t callback, uint8_t frequency) {
     context.callback = callback;
-    context.samples_per_second = (uint8_t) frequency;
+    context.samples_per_second = frequency;
     context.buffer = malloc(BUFFER_SIZE);
     if (context.buffer == NULL) return E_MEM;
 
@@ -453,18 +453,18 @@ public enum Result&lt;V&gt; {
   case Error(NSError)
   case Value(Box&lt;V&gt;)
 
-  func cata&lt;B>(l: NSError -> B, r: V -> B) -> B {
+  func cata&lt;U&gt;(l: NSError -&gt; U, r: V -&gt; U) -&gt; U {
     switch self {
       case let Error(e): return l(e)
       case let Value(v): return r(v.value)
     }
   }
 
-  func flatMap&lt;S&gt;(f: V -> Result&lt;S&gt;) -> Result&lt;S&gt; { ... }
+  func flatMap&lt;U&gt;(f: V -&gt; Result&lt;U&gt;) -&gt; Result&lt;U&gt; { ... }
 
-  static func error(e: NSError) -> Result&lt;V&gt; { ... }
+  static func error(e: NSError) -&gt; Result&lt;V&gt; { ... }
 
-  static func value(v: V) -> Result&lt;V&gt; { ... }
+  static func value(v: V) -&gt; Result&lt;V&gt; { ... }
 }
 
             </code></pre>
@@ -566,13 +566,18 @@ void decode_threed_data(const void* buffer,
             <pre><code data-trim class="swift xsmall">
 class MultiDeviceSession : DeviceSession, 
   DeviceSessionDelegate, DeviceDelegate, SensorDataGroupBufferDelegate {
-  // the stats are combined for all devices
   private let combinedStats = DeviceSessionStats&lt;DeviceSessionStatsTypes.KeyWithLocation&gt;()
-  // our special deviceId is all 0s
   private let multiDeviceId = DeviceId(UUIDString: "00000000-0000-0000-0000-000000000000")!
-
-  private var deviceInfos: [DeviceId : ConnectedDeviceInfo] = [:]
+  private let sensorDataGroupBuffer: SensorDataGroupBuffer!
   private var devices: [ConnectedDevice] = []
+
+  required init(...) {
+    super.init()
+    self.sensorDataGroupBuffer = SensorDataGroupBuffer(...)
+    for device in Devices.devices {
+      device.connect(onDone: { d in self.devices += [d] })
+    }
+  }
 
   func start() -> Void { for d in devices { d.start() } }
 
