@@ -973,10 +973,10 @@ getEligibleUsers(events, sessionEndedBefore)
           <section>
             <h1>It's all wrong</h1>
             <ul>
+              <li>Data loss from sensors, naïve padding</li>
               <li>Network inherently unreliable</li>
               <li>Large amounts of data sent on network</li>
               <li>Usability problems</li>
-              <li>Device battery drain</li>
               <li>Insufficient feedback on machine learning results</li>
             </ul>
           </section>
@@ -984,8 +984,12 @@ getEligibleUsers(events, sessionEndedBefore)
 
         <section data-background="images/facepalm.jpg">
           <section>
-            <h1>What to do instead?</h1>
-            <h3>Distributed lambda architecture with feedback</h3> 
+            <h1>What now?</h1>
+            <ul>
+              <li>Better sensor and signal processing</li>
+              <li>Shorter experiment cycle</li>
+              <li>Distributed lambda architecture with feedback</li>
+            </ul> 
           </section>
 
           <section>
@@ -1062,11 +1066,60 @@ hold off;
           </section>
 
           <section>
+            <img src="images/dsp-e.png" height="550em"/>
+          </section>
+
+          <section>
+            <img src="images/phys-falling.png"/>
+            <!--
+\ddot{y}(t)=-g\\
+\dot{y}(t)=\dot{y}({t}_{0})-g(t-{t}_{0})\\ 
+y(t)=y({t}_{0})+\dot{y}({t}_{0})(t-{t}_{0})-\frac{g}{2}{(}t-{t}_{0})^{2}\\
+\\
+y(k+1)=y(k)+\dot{y}(k)-\frac{g}{2} 
+            -->
+          </section>
+
+          <section>
+            <img src="images/kalman-filter.png"/>
+          </section>
+
+          <section>
+            <pre><code data-trim class="cpp xsmall">
+Mat result(0, source.cols, source.type(), Scalar(0));
+KalmanFilter KF(2, 1, 0);
+KF.transitionMatrix = (Mat_&lt;float&gt;(2, 2) &lt;&lt; 1, 1, 0, 1);
+Mat_&lt;float&gt; measurement(1, 1); measurement.setTo(Scalar(0));
+
+int16_t zero = source.at&lt;int16_t&gt;(0, 0);
+KF.statePre.at&lt;float&gt;(0) = 0;
+KF.statePre.at&lt;float&gt;(1) = 0;
+
+setIdentity(KF.measurementMatrix);
+setIdentity(KF.processNoiseCov, Scalar::all(1));
+setIdentity(KF.measurementNoiseCov, Scalar::all(1));
+setIdentity(KF.errorCovPost, Scalar::all(2));
+
+Mat col = source.col(0);
+for (int j = 0; j &lt; col.rows; ++j) {
+  // First predict, to update the internal statePre variable
+  KF.predict();
+
+  // The update phase
+  measurement(0) = col.at&lt;int16_t&gt;(j);
+  float estimate = KF.correct(measurement).at&lt;float&gt;(0);
+
+  ...
+}
+            </code></pre>
+          </section>
+
+          <section>
             <pre><code data-trim class="cpp xsmall">
 exercise_decider::freq_powers exercise_decider::fft(const Mat &amp;source) const {
   Mat filtered;
   Mat tmp;
-  kalman_smooth(source, filtered);
+  smooth(source, filtered);
   filtered.convertTo(filtered, CV_32FC1);
   dft(filtered, tmp, DFT_COMPLEX_OUTPUT);
   exercise_decider::freq_powers result(10);
@@ -1187,6 +1240,10 @@ class PebbleDeviceSession : DeviceSession {
           <section>
             <img src="images/components-right2.png">
           </section>            
+        </section>
+
+        <section data-background="images/blueprint.jpg">
+          <img src="images/components.png"/>
         </section>
 
         <section data-background="images/qa.jpg">
