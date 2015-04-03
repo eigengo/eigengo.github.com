@@ -243,19 +243,20 @@ extern "C" {
           <pre><code data-trim class="c xsmall">
 void _am_outbox_sent(DictionaryIterator *it, void *ctx) { ... }
 
-void _am_outbox_failed(DictionaryIterator *it, AppMessageResult r, void* ctx) { ... }
+void _am_outbox_failed(DictionaryIterator *it, AppMessageResult r, void *ctx) { ... }
 
-void _am_sample_callback(uint8_t* buffer, uint16_t size) {
+void _am_sample_callback(uint8_t *buffer, uint16_t size) {
     queue_add(_am_message_queue, buffer, size);
     _send_next_message();
 }
 
 void _send_next_message() {
-    uint8_t* buffer; uint16_t size;
+    uint8_t *buffer; 
+    uint16_t size;
     queue_peek(_am_message_queue, &amp;buffer, &amp;size);
     int queueLength = queue_length(_am_message_queue);
     
-    DictionaryIterator* message;
+    DictionaryIterator *message;
     app_message_outbox_begin(&amp;message);
     dict_write_data(message, 0xface0fb0, buffer, size);
     dict_write_end(message);
@@ -530,10 +531,10 @@ typedef struct __attribute__((__packed__)) {
     uint8_t valid : 1;
 } threed_data;
 
-void encode_threed_data(int16_t x, int16_t y, int16_t z, void* data);
+void encode_threed_data(int16_t x, int16_t y, int16_t z, void *data);
 
-void decode_threed_data(const void* buffer, 
-                        int16_t* x, int16_t* y, int16_t* z);
+void decode_threed_data(const void *buffer, 
+                        int16_t *x, int16_t *y, int16_t *z);
 
             </code></pre>
           </section>
@@ -545,15 +546,15 @@ void decode_threed_data(const void* buffer,
 #define SIGNED_12_MAX(x) \
   (int16_t)((x) > 4095 ? 4095 : ((x) &lt; -4095 ? -4095 : (x)))
 
-void encode_threed_data(int16_t x, int16_t y, int16_t z, void* data) {
+void encode_threed_data(int16_t x, int16_t y, int16_t z, void *data) {
     threed_data *tdd = (threed_data *)data;
     tdd->x_val = SIGNED_12_MAX(x);
     tdd->y_val = SIGNED_12_MAX(y);
     tdd->z_val = SIGNED_12_MAX(z);
 }
 
-void decode_threed_data(const void* buffer, 
-                        int16_t* x, int16_t* y, int16_t* z) {
+void decode_threed_data(const void *buffer, 
+                        int16_t *x, int16_t *y, int16_t *z) {
     threed_data *data = (threed_data *)buffer;
     (*x) = data->x_val;
     (*y) = data->y_val;
@@ -1049,7 +1050,7 @@ getEligibleUsers(events, sessionEndedBefore)
           <section>
             <pre><code data-trim class="matlab small">
 function [freq, period, power] = sigfft(xs)
-    Y = fft(relNums);
+    Y = fft(xs);
     Y(1) = [];
     n = length(Y);
     power = abs(Y(1:floor(n/2))).^2;
@@ -1168,7 +1169,7 @@ public:
     const sensor_time_t received_at);
 
   virtual void exercise_block_ended(
-    const std::vector&lt;fused_sensor_data&gt; data, 
+    const std::vector&lt;fused_sensor_data&gt; &amp;data, 
     const fusion_stats &amp;fusion_stats) = 0;
 
   virtual void exercise_block_started() = 0;
@@ -1177,10 +1178,10 @@ public:
 class sax_classifier {
 public:
     classification_result classify(const raw_sensor_data &amp;data) const;
-    std::vector&lt;char&gt; symbolic_aggregate_approximation(const std::vector&lt;double&gt; &source,
-                                                       int symbols_size);
-    std::vector&lt;double&gt; piecewise_aggregate_approximation(const std::vector&lt;double&gt; &source,
-                                                          int size)
+    std::vector&lt;char&gt; symbolic_aggregate_approximation(const std::vector&lt;double&gt; &amp;source,
+                                                       const size_t symbols_size) const;
+    std::vector&lt;double&gt; piecewise_aggregate_approximation(const std::vector&lt;double&gt; &amp;source,
+                                                          const size_t size) const;
 };
 
             </code></pre>
@@ -1310,6 +1311,7 @@ class PebbleDeviceSession : DeviceSession {
         progress: true,
         history: false,
         center: false,
+        hideAddressBar: true,
 
         theme: Reveal.getQueryHash().theme, // available themes are in /css/theme
         transition: Reveal.getQueryHash().transition || 'fade', // default/cube/page/concave/zoom/linear/fade/none
