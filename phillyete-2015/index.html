@@ -789,10 +789,10 @@ def exercising(id: SessionId,
             <img src="images/lift-uec3-1.png"/>
           </section>
           <section>
-            <img src="images/lift-uec3-2.png"/>
+            <img src="images/lift-uec3-3.png"/>
           </section>
           <section>
-            <img src="images/lift-uec3-3.png"/>
+            <img src="images/lift-uec3-2.png"/>
           </section>
 
           <section>
@@ -877,7 +877,8 @@ class JobManager(
 
 val userFilter = new UserFilter()
 val normalizer = new ZScoreNormalizer()
-val intensityFeatureExtractor = new IntensityFeatureExtractor()
+val intensityFeatureExtractor = 
+                 new IntensityFeatureExtractor()
 val intensityPredictor = new LinearRegression()
     .setLabelCol("label")
     .setFeaturesCol("features")
@@ -980,13 +981,22 @@ getEligibleUsers(events, sessionEndedBefore)
         <section data-background="images/facepalm.jpg">
           <section>
             <h1>It's all wrong</h1>
+            <p>
             <ul>
               <li>Data loss from sensors, naïve padding</li>
-              <li>Network inherently unreliable</li>
-              <li>Large amounts of data sent on network</li>
-              <li>Usability problems</li>
+              <li>Strict network quality requirements</li>
+              <li>Large amounts of (unnecessary) data sent on network</li>
               <li>Insufficient feedback on machine learning results</li>
             </ul>
+            </p>
+            <hr/>
+            <p>
+            <ul>
+              <li>No timely feedback to the users</li>
+              <li>One failing request resulted in offline session</li>
+              <li>User experience simply not <em>slick</em> enough</li>
+            </ul>
+            </p>
           </section>
         </section>
 
