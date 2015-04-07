@@ -131,7 +131,7 @@ struct __attribute__((__packed__)) threed_data {
         </section>
         <section>
           <pre><code data-trim class="c small">
-typedef void (*sample_callback_t)(uint8_t* buf, uint16_t size);
+typedef void (*sample_callback_t)(uint8_t *buf, uint16_t size);
 
 #ifdef __cplusplus
 extern "C" {
@@ -139,7 +139,7 @@ extern "C" {
 
     int ad_start(sample_callback_t callback, uint8_t frequency);
     int ad_stop();
-    void ad_update_time_offset(void* header, uint8_t time_offset);
+    void ad_update_time_offset(void *header, uint8_t time_offset);
 
 #ifdef __cplusplus
 }
@@ -1183,7 +1183,7 @@ public:
     const fusion_stats &amp;fusion_stats) = 0;
 
   virtual void exercise_block_started() = 0;
-}
+};
 
 class sax_classifier {
 public:
