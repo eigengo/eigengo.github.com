@@ -1,0 +1,815 @@
+<!doctype html>
+<html lang="en">
+
+  <head>
+    <meta charset="utf-8">
+    <title>Exercise analysis system</title>
+    <meta name="description" content="Exercise in exercise analysis">
+    <meta name="author" content="Jan Machacek, Martin Zapletal">
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Ubuntu%20Mono:regular,bold&subset=Latin">
+    <link rel="stylesheet" href="../reveal.js/css/reveal.css">
+    <link rel="stylesheet" href="../reveal.js/css/theme/default.css" id="theme">
+
+    <!-- For syntax highlighting -->
+    <link rel="stylesheet" href="../reveal.js/lib/css/zenburn.css">
+
+    <!-- If the query includes 'print-pdf', include the PDF print sheet -->
+    <script>
+      if( window.location.search.match( /print-pdf/gi ) ) {
+        var link = document.createElement( 'link' );
+        link.rel = 'stylesheet';
+        link.type = 'text/css';
+        link.href = '../reveal.js/css/print/pdf.css';
+        document.getElementsByTagName( 'head' )[0].appendChild( link );
+      }
+    </script>
+
+    <style>
+    ul.tiny {
+    font-size: 0.55em;
+    line-height: 1.3em;
+    }
+
+    img.transparent {
+      background: rgba(0,0,0,0);
+    }
+    </style>
+
+    <!--[if lt IE 9]>
+    <script src="lib/js/html5shiv.js"></script>
+    <![endif]-->
+  </head>
+
+  <body>
+
+    <div class="reveal">
+
+      <!-- Any section element inside of this container is displayed as a slide -->
+      <div class="slides">
+        <section data-background="images/intro.jpg">
+          <h1>Exercise analysis</h1>
+          <p>&nbsp;</p>
+          <p>Jan Macháček <a href="https://twitter.com/honzam399">@honzam399</a></p>
+        </section>
+
+        <section data-background="images/blueprint.jpg">
+          <img src="images/components.png"/>
+        </section>
+
+        <section data-background="images/blueprint.jpg">
+          <img src="images/openmuvr.png"/>
+          <img src="images/components.png" width="550em"/>
+        </section>
+
+        <section data-background="images/angrymob.jpg">
+          <video data-autoplay src="videos/lift-app.mp4"></video>
+        </section>
+
+        <section data-background="images/everythingfine.jpg">
+          <h2>So, tell me again</h2>
+          <h2>&nbsp;</h2>
+          <h2>&nbsp;</h2>
+          <h2>&nbsp;</h2>
+          <h2>&nbsp;</h2>
+          <h2>&nbsp;</h2>
+          <h2>how everything's fine in production!</h2>
+        </section>
+        <section data-background="images/fail1.jpg"></section>
+        <section data-background="images/fail2.jpg"></section>
+        <section data-background="images/fail3.jpg"></section>
+        <section data-background="images/fail4.jpg"></section>
+        <section data-background="images/fail5.jpg"></section>
+        <section data-background="images/fail6.jpg"></section>
+        <section data-background="images/fail7.jpg"></section>
+        <section data-background="images/fail8.jpg"></section>
+        <section data-background="images/fail9.jpg"></section>
+        <section data-background="images/faila.jpg"></section>
+
+        <section data-background="images/facepalm.jpg">
+          <section>
+            <h1>It's all wrong</h1>
+            <p>
+            <ul>
+              <li>Data loss from sensors, naïve padding</li>
+              <li>Strict network quality requirements</li>
+              <li>Large amounts of (unnecessary) data sent on network</li>
+              <li>Insufficient feedback on machine learning results</li>
+            </ul>
+            </p>
+            <hr/>
+            <p>
+            <ul>
+              <li>No timely feedback to the users</li>
+              <li>One failing request resulted in offline session</li>
+              <li>User experience simply not <em>slick</em> enough</li>
+            </ul>
+            </p>
+          </section>
+
+          <section>
+            <h1>What now?</h1>
+            <ul>
+              <li>Better sensor and signal processing</li>
+              <li>Shorter experiment cycle</li>
+              <li>Distributed lambda architecture with feedback</li>
+            </ul> 
+          </section>
+
+          <section>
+            <img src="images/components-lambda.png" height="550em">
+          </section>            
+
+          <section>
+            <img src="images/components-first.png">
+          </section>            
+
+          <section>
+              <img src="images/components-wrong.png">
+          </section>            
+
+          <section>
+            <img src="images/components-right2.png">
+            <aside class="notes">
+              <ul>
+                <li>Three changes </li>
+                <li>1) Mobile device now used as part of speed layer for obvious advantages</li>
+                <li>2) Batch layer now updates model and sends updates not only to akka but also to the device </li>
+                <li>3) We use classification in both mobile, akka on different levels and use it to improve model in batch layer later </li>
+              </ul>
+            </aside>
+          </section>            
+
+          <section>
+            <h2>More on the phone</h2>
+            <p>
+            <ul>
+              <li>Responsive</li>
+              <li>Resilient</li>
+            </ul>
+            </p>
+            <hr/>
+            <p>
+            <ul>
+              <li>Core components in C++</li>
+              <li><em>Multi-platform</em>: buildable &amp; testable independently</li>
+              <li>Smallest possible device-only code</li>
+              <li>Sane development tools (e.g. AppCode, CLion, emacs)</li>
+            </ul>
+            </p>
+          </section>
+
+          <section>
+            <img src="images/dsp.png" height="550em"/>
+          </section>
+
+          <section>
+            <pre><code data-trim class="matlab small">
+function [freq, period, power] = sigfft(xs)
+    Y = fft(xs);
+    Y(1) = [];
+    n = length(Y);
+    power = abs(Y(1:floor(n/2))).^2;
+    nyquist = 1/2;
+    freq = (1:n/2)/(n/2)*nyquist;
+    period = 1./freq;
+    index = power == max(power);
+    freq = period(index);
+end
+
+M = readtable('all_4.csv');
+ads  = table2array(FM);
+time = 1:height(FM);
+[freq, period, power] = sigfft(ads);
+
+hold on;
+plot(time, ads);
+plot(period, power);
+hold off;
+            </code></pre>
+          </section>
+
+          <section>
+            <img src="images/dsp-e.png" height="550em"/>
+          </section>
+
+          <section>
+            <img src="images/phys-falling.png"/>
+            <!--
+\ddot{y}(t)=-g\\
+\dot{y}(t)=\dot{y}({t}_{0})-g(t-{t}_{0})\\ 
+y(t)=y({t}_{0})+\dot{y}({t}_{0})(t-{t}_{0})-\frac{g}{2}{(}t-{t}_{0})^{2}\\
+\\
+y(k+1)=y(k)+\dot{y}(k)-\frac{g}{2} 
+            -->
+          </section>
+
+          <section>
+            <img src="images/kalman-filter.png"/>
+          </section>
+
+          <section>
+            <pre><code data-trim class="cpp xsmall">
+Mat result(0, source.cols, source.type(), Scalar(0));
+KalmanFilter KF(2, 1, 0);
+KF.transitionMatrix = (Mat_&lt;float&gt;(2, 2) &lt;&lt; 1, 1, 0, 1);
+Mat_&lt;float&gt; measurement(1, 1); measurement.setTo(Scalar(0));
+
+int16_t zero = source.at&lt;int16_t&gt;(0, 0);
+KF.statePre.at&lt;float&gt;(0) = 0;
+KF.statePre.at&lt;float&gt;(1) = 0;
+
+setIdentity(KF.measurementMatrix);
+setIdentity(KF.processNoiseCov, Scalar::all(1));
+setIdentity(KF.measurementNoiseCov, Scalar::all(1));
+setIdentity(KF.errorCovPost, Scalar::all(2));
+
+Mat col = source.col(0);
+for (int j = 0; j &lt; col.rows; ++j) {
+  // First predict, to update the internal statePre variable
+  KF.predict();
+
+  // The update phase
+  measurement(0) = col.at&lt;int16_t&gt;(j);
+  float estimate = KF.correct(measurement).at&lt;float&gt;(0);
+
+  ...
+}
+            </code></pre>
+          </section>
+
+          <section>
+            <pre><code data-trim class="cpp xsmall">
+exercise_decider::freq_powers exercise_decider::fft(const Mat &amp;source) const {
+  Mat filtered;
+  Mat tmp;
+  smooth(source, filtered); // convolve with [.006, .061, .242, .383, .242, .061, .006]
+  filtered.convertTo(filtered, CV_32FC1);
+  dft(filtered, tmp, DFT_COMPLEX_OUTPUT);
+  exercise_decider::freq_powers result(10);
+  for (int i = 1; i &lt; tmp.rows / 2; ++i) {
+    Complexf v = tmp.at&lt;Complexf&gt;(i, 0);
+    exercise_decider::freq_power x { .frequency = tmp.rows / i, .power = pow(abs(v), 2) };
+    result.push_back(x);
+  }
+  return result;
+}
+
+exercise_decider::exercise_result exercise_decider::has_exercise(
+  const raw_sensor_data &amp;source, state &amp;state) {
+  std::vector&lt;freq_powers&gt; fps = { fft(source.data().col(0)), ... };
+  const double min_peakiness = 1e+8;
+
+  auto &amp;curr_fp = fps[state.m_axis];
+  auto last_fp = state.m_freq_powers[state.m_axis];
+  state.m_freq_powers = fps;
+  const double frequency_epsilon = curr_fp.peak_frequency() * 0.2; // 20% drift of frequency OK
+  bool frequency_drifted = ...
+  bool peakiness_drifted = ...
+        
+  if (peakiness_drifted || frequency_drifted) { return no; }
+  return yes;
+}
+            </code></pre>
+          </section>
+
+          <section>
+            <img src="images/sax20.png">
+            <img src="images/sax180.png">
+          </section>
+
+          <section>
+            <pre><code data-trim class="cpp xsmall">
+raw_sensor_data decode_single_packet(const uint8_t *buffer);
+
+class sensor_data_fuser {
+public:
+  fusion_result push_back(const raw_sensor_data &amp;decoded, 
+                          const sensor_location_t location, 
+                          const sensor_time_t wall_time);
+
+  void exercise_block_start(const sensor_time_t now);
+  void exercise_block_end(const sensor_time_t now);
+};
+
+class ensemble_classifier {
+private:
+  std::vector&lt;svm_classifier&gt; m_classifiers;
+public:
+  ensemble_classifier(const std::vector&lt;svm_classifier&gt; classifiers);
+
+  classification_result classify(const std::vector&lt;fused_sensor_data&gt;&amp; data);
+};
+
+            </code></pre>
+          </section>
+
+          <section data-background="images/johnny.jpg">
+            <h2>I didn't mean to scare you...</h2>
+          </section>
+
+          <section data-background="images/johnny.jpg">
+            <img src="images/xcode.png" height="550em"/>            
+          </section>
+
+          <section data-background="images/johnny.jpg">
+            <pre><code data-trim class="obj-c small">
+#import &lt;Foundation/Foundation.h&gt;
+
+@interface MRPreclassification : NSObject
+- (void)pushBack:(NSData *)data 
+            from:(uint8_t)location 
+        withHint:(MRResistanceExercise *)plannedExercise;
+
+@property id&lt;MRExerciseBlockDelegate&gt; 
+                exerciseBlockDelegate;
+
+@property id&lt;MRDeviceDataDelegate&gt; 
+                deviceDataDelegate;
+
+@property id&lt;MRClassificationPipelineDelegate&gt; 
+                classificationPipelineDelegate;
+@end
+            </code></pre>
+          </section>
+
+          <section data-background="images/johnny.jpg">
+            <pre><code data-trim class="obj-c xsmall">
+#import &lt;Foundation/Foundation.h&gt;
+#import "MuvrPreclassification/include/..."
+
+using namespace muvr;
+
+@implementation MRPreclassification {
+  std::unique_ptr&lt;sensor_data_fuser&gt; m_fuser;
+  std::unique_ptr&lt;ensemble_classifier&gt; m_classifier;
+}
+
+- (instancetype)init {
+  self = [super init];
+  m_fuser = new sensor_data_fuser();
+  NSString *fn = [[NSBundle mainBundle] pathForResource:@"features" ofType:@"libsvm"];
+  std::string libsvm([fn stringByDeletingLastPathComponent].UTF8String);
+  auto classifiers = classifier_loader().load(libsvm);
+  m_classifier = new ensemble_classifier::ensemble_classifier(classifiers);
+  return self;
+}
+
+- (void)pushBack:(NSData *)data 
+            from:(uint8_t)location 
+        withHint:(MRResistanceExercise *)plannedExercise {
+  const uint8_t *buf = reinterpret_cast&lt;const uint8_t*&gt;(data.bytes);
+  raw_sensor_data decoded = decode_single_packet(buf);
+  if (_deviceDataDelegate != nil) [_deviceDataDelegate ...];
+  auto fusionResult = m_fuser-&gt;push_back(decoded, sensor_location_t::wrist, 0);
+  if (_exerciseBlockDelegate != nil) [_exerciseBlockDelegate ...];
+  auto result = m_classifier-&gt;classify(fusionResult.fused_exercise_data());
+  if (_classificationPipelineDelegate != nil) [_classificationPipelineDelegate ...];
+}
+@end
+            </code></pre>
+          </section>
+
+          <section data-background="images/johnny.jpg">
+            <pre><code data-trim class="swift xsmall">
+class MRExerciseSessionViewController : UIPageViewController, 
+  MRDeviceSessionDelegate, 
+  MRDeviceDataDelegate, 
+  MRExerciseBlockDelegate, 
+  MRClassificationPipelineDelegate, 
+  MRExercisePlanDelegate {
+
+  func deviceSession(session: DeviceSession, sensorDataReceivedFrom deviceId: DeviceId, 
+                     atDeviceTime time: CFAbsoluteTime, data: NSData) {
+    preclassification!.pushBack(data, from: 0, withHint: nil)
+  }
+
+  func classificationCompleted(result: [AnyObject]!, fromData data: NSData!) {
+    userClassification = MRExerciseSessionUserClassification(...)
+    classificationCompletedViewController?.
+      presentClassificationResult(..., onComplete: logExerciseExample)
+  }       
+
+  private func logExerciseExample(example: MRResistanceExerciseSetExample) {
+    self.state!.postResistanceExample(example)
+    if let x = example.correct {
+      x.sets.forEach { self.plan!.exercise($0 as! MRResistanceExercise) }
+    }
+  }
+
+}
+            </code></pre>
+          </section>
+
+          <section>
+            <img src="images/components-right2.png">
+          </section>            
+        </section>
+
+        <section data-background="images/blueprint.jpg">
+          <img src="images/components.png"/>
+        </section>
+
+        <section data-background="images/blueprint.jpg">
+          <section>
+            <h2>Akka</h2>
+            <img src="images/akka.png" height="500px" />
+          </section>
+
+          <section>
+            <img src="images/components-akka.png"/>
+          </section>
+          <section>
+            <img src="images/lift-architecture.png" height="550em"/>
+          </section>
+          <section>
+            <img src="images/lift-actors.png"/>
+          </section>
+
+          <section>
+            <pre><code data-trim class="scala">
+trait ProfileService extends Directives 
+  with CommonMarshallers with CommonPathDirectives {
+
+  def userProfileRoute(userProfile: ActorRef, 
+                       userProfileProcessor: ActorRef)
+                      (implicit _: ExecutionContext) =
+    path("user") ~ 
+    path("user" / UserIdValue) ~ 
+    path("user" / UserIdValue / "check") ~
+    path("user" / UserIdValue / "image") ~
+    path("user" / UserIdValue / "device" / "ios") ~
+    path("user" / UserIdValue / "device" / "android") 
+
+}
+            </code></pre> 
+          </section>
+
+          <section>
+            <pre><code data-trim class="scala">
+class UserProfileProcessor(userProfile: ActorRef) 
+  extends PersistentActor with ActorLogging {
+
+  override def receiveRecover: Receive = ...
+
+  override def receiveCommand: Receive = ...
+
+}
+            </code></pre>
+          </section>
+
+          <section>
+          <pre><code data-trim class="scala">
+var accounts: KnownAccounts = KnownAccounts.empty
+
+override def receiveCommand: Receive = {
+  case UserRegister(email, _) 
+  if accounts.contains(email) ⇒
+    sender() ! \/.left("Username already taken")  
+}
+          </code></pre>
+          </section>
+
+          <section>
+          <pre><code data-trim class="scala">
+var accounts: KnownAccounts = KnownAccounts.empty
+
+override def receiveCommand: Receive = {
+  ...
+  case UserRegister(email, password) ⇒
+    persist(UserRegistered(UserId.randomId(), ...)) { 
+      userRegistered ⇒
+      userProfile ! userRegistered
+      accounts = accounts.withNewAccount(...)
+      saveSnapshot(accounts)
+
+      sender() ! \/.right(userRegistered.userId)
+    }
+}
+          </code></pre>
+          </section>
+
+          <section>
+          <pre><code data-trim class="scala">
+class UserProfile extends PersistentActor {
+  private var profile: Profile = _
+  override val persistenceId: String = 
+    s"user-profile-${self.path.name}"
+
+  override def receiveCommand: Receive = notRegistered
+
+  private def notRegistered: Receive = ...
+
+  private def registered: Receive = ...
+
+}
+          </code></pre>
+          </section>
+
+          <section>
+          <pre><code data-trim class="scala">
+private var profile: Profile = _
+
+private def notRegistered: Receive = {
+  case cmd: Account ⇒
+    persist(cmd) { acc ⇒
+      profile = Profile(acc, Devices.empty, None, None)
+      saveSnapshot(profile)
+      context.become(registered)
+    }
+}
+private def registered: Receive = {
+  case GetAccount ⇒ sender() ! profile.account
+  ...
+}
+          </code></pre>
+          </section>
+
+          <section>
+          <pre><code data-trim class="scala">
+class UserExercisesProcessor(notification: ActorRef, 
+  userProfile: ActorRef) extends PersistentActor {
+
+  override def receiveRecover: Receive = ...
+  override def receiveCommand: Receive = notExercising
+
+  def replaying(oldId: SessionId, newId: SessionId, 
+        sessionProps: SessionProperties): Receive = ...
+
+  def exercising(id: SessionId, 
+        sessionProps: SessionProperties): Receive = ...
+
+  def notExercising: Receive = ...
+}
+          </code></pre>
+          </section>
+
+          <section>
+          <pre><code data-trim class="scala">
+def exercising(id: SessionId, 
+  sessionProps: SessionProperties): Receive = {
+  case ExerciseDataProcessMultiPacket(`id`, packet) ⇒
+    classifier ! Classify(packet)
+
+  case ClassifiedExercise(md, _, exercise) ⇒
+    persist(ExerciseEvt(id, md, exercise))(unit)
+
+  case NoMovement ⇒
+    persist(NoMovement(id))(unit)
+
+  case NoExercise(metadata) ⇒
+    persist(NoExerciseEvt(id, metadata))(unit)
+}
+          </code></pre>
+          </section>
+
+          <section>
+            <img src="images/lift-uec3-0.png"/>
+          </section>
+          <section>
+            <img src="images/lift-uec3-1.png"/>
+          </section>
+          <section>
+            <img src="images/lift-uec3-3.png"/>
+          </section>
+          <section>
+            <img src="images/lift-uec3-2.png"/>
+          </section>
+
+          <section>
+            <img src="images/components-akka.png"/>
+          </section>
+
+        </section>
+
+        <section data-background="images/blueprint.jpg">
+
+          <section>
+              <h2>Apache Spark</h2>
+              <br/>
+              <img src="images/spark.png"  height="500em">
+          </section>
+
+
+          <section>
+            <img src="images/lift-spark.png">
+            <aside class="notes">
+              <ul>
+                <li>
+                  Distributed, scalable, fault tolerant data processing framework.
+                </li>
+                <li>
+                  External to the application, communication through some interface. To reduce load, allow more complex algorithms run asynchronously, without affecting the main app separate scaling etc.
+                </li>
+                <li>
+                  Use for analytics - recommendations, classification of users, mining of interesting knowledge about individual customers or the whole system. Important use case is to prepare models for real time classification.
+                </li>
+                <li>
+                  Often iterative algorithms, multiple runs and model evaluation to find the best model and parameters.
+                </li>
+              </ul>
+            </aside>  
+          </section>
+
+          <section>
+            <img src="images/sparkcassandra.png">
+            <aside class="notes">
+              <ul>
+                <li>
+                  Spark runs in a cluster that may be separate from the akka/ cassandra cluster.
+                </li>
+                <li>
+                  Depends on the query patterns and use cases.
+                </li>
+                <li>
+                  Cassandra operational database. Can handle large loads, but can not handle complicated queries.
+                </li>
+                <li>
+                  Spark SQL queries.
+                </li>
+              </ul>
+            </aside>
+          </section>
+
+          <section>
+            <pre><code data-trim class="scala">
+class JobManager(
+    override val master: String,
+    override val config: Config)
+  extends Actor 
+  with Driver 
+  with ActorLogging 
+  with PipeToSupport {
+
+  override def receive: Receive = {
+    case BatchJobSubmit('Suggestions) ⇒
+      submit(Job[SuggestionsJob], ()).pipeTo(self)
+  }
+}
+            </code></pre>
+          </section>
+
+          <section>
+              <img src="images/spark-pipeline.png"></img>
+          </section>  
+
+          <section>
+            <pre><code data-trim class="scala">
+
+val userFilter = new UserFilter()
+val normalizer = new ZScoreNormalizer()
+val intensityFeatureExtractor = 
+                 new IntensityFeatureExtractor()
+val intensityPredictor = new LinearRegression()
+    .setLabelCol("label")
+    .setFeaturesCol("features")
+    .setPredictionCol("predictions")
+            </code></pre>
+            <aside class="notes">
+              <ul>
+                <li>Complex machine learning pipelines similar Matlab, R, ...</li>
+                <li>Suggest exercise intensity based on various parames. Use history from journal, trainer's hints and recommended exercise programmes.</li>
+                <li>The OSS version uses a linear regression classifier.</li>
+              </ul>
+            </aside>
+          </section>  
+
+          <section>
+            <pre><code data-trim class="scala small">
+class IntensityFeatureExtractor extends Transformer {
+
+  override def transform(dataset: DataFrame, 
+                         paramMap: ParamMap): DataFrame = {
+    val useHistory = paramMap.get(useHistoryParam).get
+    dataset
+      .select("sessionProps.intendedIntensity")
+      .rdd
+      .map(_.getDouble(0))
+      .sliding(useHistory + 1)
+      .map(x => (x.head, Vectors.dense(x.tail)))
+      .toDF("intensityLabel", "intensityFeatures")
+  }
+  
+  override def transformSchema(schema: StructType, 
+    paramMap: ParamMap): StructType =
+    StructType(Array(
+      StructField("intensityLabel", DoubleType, true), 
+      StructField("intensityFeatures", VectorType.VectorUDT, true)))
+}
+            </code></pre>
+          </section>
+
+          <section>
+            <img src="images/spark-pipeline-single.png">
+          </section>  
+
+          <section>
+            <pre><code data-trim class="scala small">
+implicit val sqlContext = new org.apache.spark.sql.SQLContext(sc)
+import sqlContext.implicits._
+
+val events = sc.eventTable().cache().toDF()
+
+val pipeline = new Pipeline().setStages(Array(
+  userFilter,
+  normalizer,
+  intensityFeatureExtractor,
+  intensityPredictor
+))
+
+getEligibleUsers(events, sessionEndedBefore)
+   .map { user => 
+     val model = pipeline.fit(
+       events, 
+       ParamMap(ParamPair(userIdParam, user)))
+     val testData = //prepare test data
+     val predictions = model.transform(testData)
+     submitResult(userId, predictions, config)
+   }
+            </code></pre>
+          </section>  
+        
+          <section>
+            <img src="images/intensity.png">
+          </section>  
+
+        </section>
+
+        <section data-background="images/facepalm.jpg">
+        </section>
+
+        <section data-background="images/qa.jpg">
+          <h2>Q&amp;A</h2>
+        </section>
+          
+        <section data-background="images/devops.jpg">
+          <h2>Thank you!</h2>
+          <ul>
+            <li>☞ Jobs at <a href="http://www.cakesolutions.net/careers">www.cakesolutions.net/careers</a>&nbsp;&nbsp;☜</li>
+            <li>Slides at <a href="http://www.eigengo.com/scaladays-sf-2015">www.eigengo.com/phillyete-2015</a></li>
+            <li><em>All</em> code at <a href="http://github.com/muvr/open-muvr">github.com/muvr/open-muvr</a></li>
+            <li>Tweets at <a href="https://twitter.com/honzam399">@honzam399</a>, <a href="https://twitter.com/zapletal_martin">@zapletal_martin</a></li>
+          </ul>
+          </ul>
+        </section>
+
+        <section data-background="images/goodlife.jpg">
+          <h2>References</h2>
+          <ul class="tiny">
+            <li><em>LTLf and LDLf Monitoring</em>. Giuseppe De Giacomo, Riccardo De Masellis, Marco Grasso, Fabrizio Maria Maggi and Marco Montali, 2014</li>
+            <li><em>User Exercise Pattern Prediction through Mobile Sensing</em>. Georgi Kotsev, Le T. Nguyen, Ming Zeng, and Joy Zhang, 2014</li>
+            <li><em>Convolutional Neural Networks for Human Activity Recognition using Mobile Sensors</em>. Ming Zeng, Le T. Nguyen, Bo Yu, Ole J. Mengshoel, Jiang Zhu, Pang Wu and Joy Zhang, 2014</li>
+            <li><em>Fast Prediction with SVM Models Containing RBF Kernels</em>. Marc Claesen, Frank De Smet, Johan A.K. Suykens and Bart De Moor, 2014</li>
+            <li><em>Adaptive Activity Recognition with Dynamic Heterogeneous Sensor Fusion</em>. Ming Zeng, Xiao Wang, Le T. Nguyen, Pang Wu, Ole J. Mengshoel and Joy Zhang, 2014</li>
+            <li><em>Parametric Linear Dynamic Logic</em>. Peter Faymonville and Martin Zimmermann, 2014</li>
+
+            <li><em>Time-Series Classification Through Histograms of Symbolic Polynomials</em>. Josif Grabocka, Martin Wistuba and Lars Schmidt-Thieme, 2013</li>
+            <li><em>Accelerometer-based Energy Expenditure Estimation Methods and Performance Comparison</em>. Fang-Chen Chuang, Ya-Ting C. Yang and Jeen-Shing Wang, 2013</li>
+            <li><em>Linear Temporal Logic and Linear Dynamic Logic on Finite Traces</em>. Giuseppe De Giacomo and Moshe Y. Vardi, 2013</li>
+            <li><em>Visualizing Variable-Length Time Series Motifs</em>. Yuan Li, Jessica Lin and Tim Oates, 2012</li>
+            <li><em>Segmenting Time Series: A Survey and Novel Approach</em>. Eamonn Keogh, Selina Chu, David Hart and Michael Pazzani, 2011</li>
+            <li><em>Finding Motifs in Time Series</em>. Jessica Lin, Eamonn Keogh, Stefano Lonardi and Pranav Patel, 2002</li>
+          </ul>
+        </section>
+
+      </div>
+
+    </div>
+
+    <script src="../reveal.js/lib/js/head.min.js"></script>
+    <script src="../reveal.js/js/reveal.min.js"></script>
+
+    <script>
+
+      Reveal.initialize({
+        controls: false,
+        progress: true,
+        history: false,
+        center: false,
+        hideAddressBar: true,
+
+        theme: Reveal.getQueryHash().theme, // available themes are in /css/theme
+        transition: Reveal.getQueryHash().transition || 'fade', // default/cube/page/concave/zoom/linear/fade/none
+
+        // Parallax scrolling
+        // parallaxBackgroundImage: 'https://s3.amazonaws.com/hakim-static/reveal-js/reveal-parallax-1.jpg',
+        // parallaxBackgroundSize: '2100px 900px',
+
+        // Optional libraries used to extend on reveal.js
+        dependencies: [
+          { src: '../reveal.js/lib/js/classList.js', condition: function() { return !document.body.classList; } },
+          { src: '../reveal.js/plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+          { src: '../reveal.js/plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+          { src: '../reveal.js/plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
+          { src: '../reveal.js/plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } },
+          { src: '../reveal.js/plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } }
+        ]
+      });
+
+    </script>
+
+  </body>
+</html>
