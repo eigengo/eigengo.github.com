@@ -431,7 +431,7 @@ class MRExerciseSessionViewController : UIPageViewController,
 
           <section>
             <pre><code data-trim class="scala">
-trait ProfileService extends Directives 
+object ProfileService extends Directives 
   with CommonMarshallers with CommonPathDirectives {
 
   def userProfileRoute(userProfile: ActorRef, 
@@ -530,53 +530,39 @@ private def registered: Receive = {
 
           <section>
           <pre><code data-trim class="scala">
-class UserExercisesProcessor(notification: ActorRef, 
-  userProfile: ActorRef) extends PersistentActor {
+class UserExerciseProcessor extends PersistentActor with ActorLogging {
+  // user reference and notifier
+  private val userId = UserId(self.path.name)
 
-  override def receiveRecover: Receive = ...
-  override def receiveCommand: Receive = notExercising
+  // per-user actor
+  override val persistenceId: String = s"user-exercises-${userId.toString}"
 
-  def replaying(oldId: SessionId, newId: SessionId, 
-        sessionProps: SessionProperties): Receive = ...
+  // no recovery behaviour just yet
+  override def receiveRecover: Receive = {
+    ...
+  }
 
-  def exercising(id: SessionId, 
-        sessionProps: SessionProperties): Receive = ...
+  // only deal with sessions
+  override def receiveCommand: Receive = {
+    ...
+  }
 
-  def notExercising: Receive = ...
 }
+
           </code></pre>
           </section>
 
           <section>
           <pre><code data-trim class="scala">
-def exercising(id: SessionId, 
-  sessionProps: SessionProperties): Receive = {
-  case ExerciseDataProcessMultiPacket(`id`, packet) ⇒
-    classifier ! Classify(packet)
+override def receiveCommand: Receive = {
+  case eres@EntireResistanceExerciseSession(
+    id, session, sets, examples, deviations) ⇒
 
-  case ClassifiedExercise(md, _, exercise) ⇒
-    persist(ExerciseEvt(id, md, exercise))(unit)
-
-  case NoMovement ⇒
-    persist(NoMovement(id))(unit)
-
-  case NoExercise(metadata) ⇒
-    persist(NoExerciseEvt(id, metadata))(unit)
+    persist(eres) { _ ⇒
+      sender() ! \/.right(id)
+    }
 }
           </code></pre>
-          </section>
-
-          <section>
-            <img src="images/lift-uec3-0.png"/>
-          </section>
-          <section>
-            <img src="images/lift-uec3-1.png"/>
-          </section>
-          <section>
-            <img src="images/lift-uec3-3.png"/>
-          </section>
-          <section>
-            <img src="images/lift-uec3-2.png"/>
           </section>
 
           <section>
