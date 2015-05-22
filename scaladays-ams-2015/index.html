@@ -493,6 +493,32 @@ override def receiveCommand: Receive = {
           </section>
 
           <section>
+            <img src="images/lift-upp-pubsub.png"/>
+          </section>
+          <section>
+            <img src="images/lift-upp-pubsub2.png"/>
+          </section>
+
+          <section>
+            <pre><code data-trim class="scala">
+val mediator = DistributedPubSubExtension(...)
+val topic = "UserProfileProcessor.knownAccounts"
+mediator ! Subscribe(topic, self)
+
+override def receiveCommand: Receive = {
+  case UserRegister(email, password) ⇒
+    persist(UserRegistered(UserId.randomId(), ...)) { 
+      ...
+      mediator ! Publish(topic, KnownAccountAdded(...))
+    }
+  case KnownAccountAdded(email, userId) 
+  if sender() != self ⇒
+    accounts = accounts.withNewAccount(email, userId)
+}
+            </code></pre>
+          </section>
+
+          <section>
           <pre><code data-trim class="scala">
 class UserProfile extends PersistentActor {
   private var profile: Profile = _
@@ -530,23 +556,17 @@ private def registered: Receive = {
 
           <section>
           <pre><code data-trim class="scala">
-class UserExerciseProcessor extends PersistentActor with ActorLogging {
-  // user reference and notifier
+class UserExerciseProcessor 
+  extends PersistentActor with ActorLogging {
+
   private val userId = UserId(self.path.name)
 
-  // per-user actor
-  override val persistenceId: String = s"user-exercises-${userId.toString}"
+  override val persistenceId: String = 
+    s"user-exercises-${userId.toString}"
 
-  // no recovery behaviour just yet
-  override def receiveRecover: Receive = {
-    ...
-  }
+  override def receiveRecover: Receive = ...
 
-  // only deal with sessions
-  override def receiveCommand: Receive = {
-    ...
-  }
-
+  override def receiveCommand: Receive = ...
 }
 
           </code></pre>
@@ -724,7 +744,8 @@ getEligibleUsers(events, sessionEndedBefore)
 
         </section>
 
-        <section data-background="images/facepalm.jpg">
+        <section data-background="images/angrymob.jpg">
+          <h1>Demo</h1>
         </section>
 
         <section data-background="images/qa.jpg">
@@ -735,9 +756,9 @@ getEligibleUsers(events, sessionEndedBefore)
           <h2>Thank you!</h2>
           <ul>
             <li>☞ Jobs at <a href="http://www.cakesolutions.net/careers">www.cakesolutions.net/careers</a>&nbsp;&nbsp;☜</li>
-            <li>Slides at <a href="http://www.eigengo.com/scaladays-sf-2015">www.eigengo.com/phillyete-2015</a></li>
-            <li><em>All</em> code at <a href="http://github.com/muvr/open-muvr">github.com/muvr/open-muvr</a></li>
-            <li>Tweets at <a href="https://twitter.com/honzam399">@honzam399</a>, <a href="https://twitter.com/zapletal_martin">@zapletal_martin</a></li>
+            <li>Slides at <a href="http://www.eigengo.com/scaladays-ams-2015">www.eigengo.com/scaladays-ams-2015</a></li>
+            <li><em>All</em> code at <a href="http://github.com/muvr">github.com/muvr</a></li>
+            <li>Tweets at <a href="https://twitter.com/honzam399">@honzam399</a></li>
           </ul>
           </ul>
         </section>
