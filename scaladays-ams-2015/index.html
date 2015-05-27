@@ -246,7 +246,7 @@ for (int j = 0; j &lt; col.rows; ++j) {
 exercise_decider::freq_powers exercise_decider::fft(const Mat &amp;source) const {
   Mat filtered;
   Mat tmp;
-  smooth(source, filtered); // convolve with [.006, .061, .242, .383, .242, .061, .006]
+  smooth(source, filtered);
   filtered.convertTo(filtered, CV_32FC1);
   dft(filtered, tmp, DFT_COMPLEX_OUTPUT);
   exercise_decider::freq_powers result(10);
@@ -260,17 +260,19 @@ exercise_decider::freq_powers exercise_decider::fft(const Mat &amp;source) const
 
 exercise_decider::exercise_result exercise_decider::has_exercise(
   const raw_sensor_data &amp;source, state &amp;state) {
-  std::vector&lt;freq_powers&gt; fps = { fft(source.data().col(0)), ... };
-  const double min_peakiness = 1e+8;
+  const std::vector&lt;freq_powers&gt; fps = { fft(source.data().col(0)), ... };
+  const double axis_fitness_decay = 0.4;
+  const double peakiness_decay = 0.3;
+  const double min_fitness_threshold = 0.3;
 
-  auto &amp;curr_fp = fps[state.m_axis];
-  auto last_fp = state.m_freq_powers[state.m_axis];
-  state.m_freq_powers = fps;
-  const double frequency_epsilon = curr_fp.peak_frequency() * 0.2; // 20% drift of frequency OK
-  bool frequency_drifted = ...
-  bool peakiness_drifted = ...
-        
-  if (peakiness_drifted || frequency_drifted) { return no; }
+  const auto&amp; peak = max_peak(source.samples_per_second(), fps);
+  if (peak) {
+    if (peak-&gt;first != state.m_axis) state.m_fitness -= axis_fitness_decay;
+  } else {
+    state.m_fitness -= peakiness_decay;
+  }
+  
+  if (state.m_fitness &lt; min_fitness_threshold) return no;
   return yes;
 }
             </code></pre>
@@ -406,7 +408,32 @@ class MRExerciseSessionViewController : UIPageViewController,
 
           <section>
             <img src="images/components-right2.png">
-          </section>            
+          </section>
+
+          <section>
+            <img src="images/ex-2-deltoid-cable-cross-overs.png" height="600px">
+            <p>Deltoid cable cross-overs</p>
+          </section>
+          <section>
+            <img src="images/ex-17-rope-triceps-extension.png" height="600px">
+            <p>Rope triceps extensions</p>
+          </section>
+          <section>
+            <img src="images/ex-18-barbell-biceps-curl.png" height="600px">
+            <p>Barbell biceps curl</p>
+          </section>
+          <section>
+            <img src="images/ex-32-dumbbell-row.png" height="600px">
+            <p>Dumbbell row</p>
+          </section>
+          <section>
+            <img src="images/ex-44-dumbbell-alt-curl.png" height="600px">
+            <p>Dumbbell biceps alt curl</p>
+          </section>
+          <section>
+            <img src="images/ex-back.png" height="600px">
+            <p>Back session</p>
+          </section>
         </section>
 
         <section data-background="images/blueprint.jpg">
@@ -599,7 +626,7 @@ override def receiveCommand: Receive = {
               <img src="images/spark.png"  height="500em">
           </section>
 
-
+<!--
           <section>
             <img src="images/lift-spark.png">
             <aside class="notes">
@@ -741,6 +768,7 @@ getEligibleUsers(events, sessionEndedBefore)
           <section>
             <img src="images/intensity.png">
           </section>  
+        -->
 
         </section>
 
