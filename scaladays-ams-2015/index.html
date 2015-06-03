@@ -599,6 +599,8 @@ override def receiveCommand: Receive = {
     persist(eres) { _ ⇒
       sender() ! \/.right(id)
     }
+
+  ...
 }
           </code></pre>
           </section>
@@ -615,6 +617,93 @@ override def receiveCommand: Receive = {
               <h2>Apache Spark</h2>
               <br/>
               <img src="images/spark.png"  height="500em">
+          </section>
+
+          <section>
+            <img src="images/components-right2.png">
+          </section>
+
+          <section>
+            <img src="images/components-spark-1.png" height="500em">
+          </section>
+
+          <section>
+            <img src="images/components-spark-2.png" height="500em">
+          </section>
+
+          <section>
+            <h2>Serialization</h2>
+            <ul>
+              <li>Fast</li>
+              <li>Stable</li>
+              <li><em>Compatible</em></li>
+            </ul>
+          </section>
+
+          <section>
+            <h2>Kryo &amp; Chill</h2>
+            <pre><code data-trim class="hocon small">
+akka.actor.serialization-bindings {
+  "io.muvr.exercise.ExercisePlanDeviation" = kryo,
+  "io.muvr.exercise.ResistanceExercise" = kryo,
+  "io.muvr.exercise.ResistanceExerciseSet" = kryo,
+  "io.muvr.exercise.ResistanceExerciseSetExample" = kryo,
+  "io.muvr.exercise.EntireResistanceExerciseSession" = kryo,
+  "io.muvr.exercise.ResistanceExerciseSession" = kryo,
+  "io.muvr.exercise.Rest" = kryo,
+  "io.muvr.exercise.SessionId" = kryo
+}
+
+akka.actor.serializers {
+  kryo = "com.twitter.chill.akka.AkkaSerializer"
+}
+
+            </code></pre>
+          </section>
+
+          <section>
+            <img src="images/components-spark-1.png" height="500em">
+          </section>
+
+          <section>
+            <pre><code data-trim class="scala small">
+import org.apache.spark.{SparkConf, SparkContext}
+
+object SimpleMain {
+
+  private def sparkConf(): SparkConf = {
+    new SparkConf()
+      .setAppName("Muvr Analytics")
+      .set("spark.cassandra.connection.host", "127.0.0.1")
+      .set("spark.cassandra.query.retry.count", "0")
+      .set("spark.cassandra.connection.timeout_ms", "1000")
+  }
+
+  def main(args: Array[String]) {
+    import cassandra._
+    import akka.analytics.cassandra
+
+    val sc = new SparkContext(sparkConf())
+    sc.eventTable().cache().foreach(println)
+  }
+}
+            </code></pre>
+          </section>
+
+          <section>
+            <pre><code data-trim class="shell small">
+#!/bin/sh
+
+spark-submit \
+  --class "io.muvr.analytics.basic.SimpleMain" \
+  --master local[4] \
+  --driver-class-path basic/target/basic-assembly-1.0.0-SNAPSHOT.jar \
+  basic/target/basic-assembly-1.0.0-SNAPSHOT.jar
+            </code></pre>
+          </section>
+
+          <section data-background="images/mad-scientist.jpeg">
+            
           </section>
 
           <section>
@@ -655,6 +744,10 @@ override def receiveCommand: Receive = {
                 </li>
               </ul>
             </aside>
+          </section>
+
+          <section>
+
           </section>
 
           <section>
