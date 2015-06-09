@@ -600,6 +600,9 @@ override def receiveCommand: Receive = {
       sender() ! \/.right(id)
     }
 
+  case Suggestions(suggestions) ⇒
+    ...
+
   ...
 }
           </code></pre>
@@ -703,155 +706,83 @@ spark-submit \
           </section>
 
           <section data-background="images/mad-scientist.jpeg">
-            
+            <img src="images/intensities.png" height="500px"/>
           </section>
 
-          <section>
-            <img src="images/lift-spark.png">
-            <aside class="notes">
-              <ul>
-                <li>
-                  Distributed, scalable, fault tolerant data processing framework.
-                </li>
-                <li>
-                  External to the application, communication through some interface. To reduce load, allow more complex algorithms run asynchronously, without affecting the main app separate scaling etc.
-                </li>
-                <li>
-                  Use for analytics - recommendations, classification of users, mining of interesting knowledge about individual customers or the whole system. Important use case is to prepare models for real time classification.
-                </li>
-                <li>
-                  Often iterative algorithms, multiple runs and model evaluation to find the best model and parameters.
-                </li>
-              </ul>
-            </aside>  
-          </section>
+          <section data-background="images/mad-scientist.jpeg">
+            <pre><code data-trim class="scala small">
+def main(args: Array[String]) {
+  import cassandra._
 
-          <section>
-            <img src="images/sparkcassandra.png">
-            <aside class="notes">
-              <ul>
-                <li>
-                  Spark runs in a cluster that may be separate from the akka/ cassandra cluster.
-                </li>
-                <li>
-                  Depends on the query patterns and use cases.
-                </li>
-                <li>
-                  Cassandra operational database. Can handle large loads, but can not handle complicated queries.
-                </li>
-                <li>
-                  Spark SQL queries.
-                </li>
-              </ul>
-            </aside>
-          </section>
+  val sc = new SparkContext(sparkConf)
+  val et = sc.eventTable().cache()
+  val preparedIntensityPipeline = intensityPipeline(et, 50, 10)
 
-          <section>
-
-          </section>
-
-          <section>
-            <pre><code data-trim class="scala">
-class JobManager(
-    override val master: String,
-    override val config: Config)
-  extends Actor 
-  with Driver 
-  with ActorLogging 
-  with PipeToSupport {
-
-  override def receive: Receive = {
-    case BatchJobSubmit('Suggestions) ⇒
-      submit(Job[SuggestionsJob], ()).pipeTo(self)
-  }
+  getUsers(et)
+    .collect()
+    .map(userId ⇒ userId → preparedIntensityPipeline(userId))
+    .foreach { 
+       case (id, s) ⇒ request(uri ⇒ Post(...), s)) 
+     }
 }
             </code></pre>
           </section>
 
-          <section>
-              <img src="images/spark-pipeline.png"></img>
-          </section>  
-
-          <section>
-            <pre><code data-trim class="scala">
-
-val userFilter = new UserFilter()
-val normalizer = new ZScoreNormalizer()
-val intensityFeatureExtractor = 
-                 new IntensityFeatureExtractor()
-val intensityPredictor = new LinearRegression()
-    .setLabelCol("label")
-    .setFeaturesCol("features")
-    .setPredictionCol("predictions")
-            </code></pre>
-            <aside class="notes">
-              <ul>
-                <li>Complex machine learning pipelines similar Matlab, R, ...</li>
-                <li>Suggest exercise intensity based on various parames. Use history from journal, trainer's hints and recommended exercise programmes.</li>
-                <li>The OSS version uses a linear regression classifier.</li>
-              </ul>
-            </aside>
-          </section>  
-
-          <section>
+          <section data-background="images/mad-scientist.jpeg">
             <pre><code data-trim class="scala small">
-class IntensityFeatureExtractor extends Transformer {
+object IntensityPipeline {
+  type RawInputData = RDD[(JournalKey, Any)]
 
-  override def transform(dataset: DataFrame, 
-                         paramMap: ParamMap): DataFrame = {
-    val useHistory = paramMap.get(useHistoryParam).get
-    dataset
-      .select("sessionProps.intendedIntensity")
-      .rdd
-      .map(_.getDouble(0))
-      .sliding(useHistory + 1)
-      .map(x => (x.head, Vectors.dense(x.tail)))
-      .toDF("intensityLabel", "intensityFeatures")
-  }
-  
-  override def transformSchema(schema: StructType, 
-    paramMap: ParamMap): StructType =
-    StructType(Array(
-      StructField("intensityLabel", DoubleType, true), 
-      StructField("intensityFeatures", VectorType.VectorUDT, true)))
+  def getUsers(input: RawInputData): RDD[UserId] = input.flatMap {
+    case (JournalKey(UserExerciseProcessorPersistenceId(userId),
+                     _, _), x) ⇒ Some(userId)
+    case _ ⇒ None
+  }.distinct()
+
+  ...
 }
             </code></pre>
           </section>
 
-          <section>
-            <img src="images/spark-pipeline-single.png">
-          </section>  
+          <section data-background="images/mad-scientist.jpeg">
+            <pre><code data-trim class="scala xsmall">
+// for each muscle group id ``mgid``:
+val inputData = allInputData.filter(_.session.muscleGroupIds.contains(mgid))
+val inputDataSize = inputData.count()
+val normalizedUseHistory = Math.min(useHistory, inputDataSize.toInt - 1)
+var intensityPredictions: List[Suggestion.Intensity] = Nil
+val now = new Date().midnight
 
-          <section>
-            <pre><code data-trim class="scala small">
-implicit val sqlContext = new org.apache.spark.sql.SQLContext(sc)
-import sqlContext.implicits._
+val intensityTrainingData = inputData
+  .map(_.session.intendedIntensity)
+  .sliding(normalizedUseHistory + 1)
+  .map(exercises => LabeledPoint(exercises.head, Vectors.dense(exercises.tail)))
 
-val events = sc.eventTable().cache().toDF()
+val intensityModel = LinearRegressionWithSGD.train(intensityTrainingData, 100, 0.01, 1.0)
+val indexedInputData = inputData.zipWithIndex().cache()
+for (i ← 0 to predictDays - 1) {
+  val historyTestData = indexedInputData.filter(x => x._2 > inputDataSize - normalizedUseHistory - 1 + i)
+  val padWithPredictions = normalizedUseHistory - historyTestData.count().toInt
+  val paddedTestData: Array[Double] = if (padWithPredictions > 0) {
+    historyTestData.map(_._1.session.intendedIntensity).collect() ++
+      intensityPredictions.take(Math.min(intensityPredictions.size, padWithPredictions)).map(_.intensity) ++
+      Array.fill(Math.min(0, padWithPredictions - intensityPredictions.size))(0.5)
+  } else historyTestData.map(_._1.session.intendedIntensity).collect()
 
-val pipeline = new Pipeline().setStages(Array(
-  userFilter,
-  normalizer,
-  intensityFeatureExtractor,
-  intensityPredictor
-))
+  require(paddedTestData.length == normalizedUseHistory)
 
-getEligibleUsers(events, sessionEndedBefore)
-   .map { user => 
-     val model = pipeline.fit(
-       events, 
-       ParamMap(ParamPair(userIdParam, user)))
-     val testData = //prepare test data
-     val predictions = model.transform(testData)
-     submitResult(userId, predictions, config)
-   }
+  val predictedIntensity = intensityModel.predict(Vectors.dense(paddedTestData))
+
+  intensityPredictions = intensityPredictions :+ Suggestion.Intensity(now.addDays(i + 1), SuggestionSource.History, mgid, predictedIntensity)
+}
+
+intensityPredictions
             </code></pre>
-          </section>  
-        
-          <section>
-            <img src="images/intensity.png">
-          </section>  
+          </section>
 
+          <section data-background="images/mad-scientist.jpeg">
+            <h2>You know what?</h2>
+          </section>
         </section>
 
         <section data-background="images/angrymob.jpg">
