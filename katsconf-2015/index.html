@@ -1,0 +1,711 @@
+<!doctype html>
+<html lang="en">
+
+  <head>
+    <meta charset="utf-8">
+    <title>Exercise analysis system</title>
+    <meta name="description" content="Exercise in exercise analysis">
+    <meta name="author" content="Jan Machacek, Martin Zapletal">
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Ubuntu%20Mono:regular,bold&subset=Latin">
+    <link rel="stylesheet" href="../reveal.js/css/reveal.css">
+    <link rel="stylesheet" href="../reveal.js/css/theme/default.css" id="theme">
+
+    <!-- For syntax highlighting -->
+    <link rel="stylesheet" href="../reveal.js/lib/css/zenburn.css">
+
+    <!-- If the query includes 'print-pdf', include the PDF print sheet -->
+    <script>
+      if( window.location.search.match( /print-pdf/gi ) ) {
+        var link = document.createElement( 'link' );
+        link.rel = 'stylesheet';
+        link.type = 'text/css';
+        link.href = '../reveal.js/css/print/pdf.css';
+        document.getElementsByTagName( 'head' )[0].appendChild( link );
+      }
+    </script>
+
+    <style>
+    ul.tiny {
+    font-size: 0.55em;
+    line-height: 1.3em;
+    }
+
+    img.transparent {
+      background: rgba(0,0,0,0);
+    }
+    </style>
+
+    <!--[if lt IE 9]>
+    <script src="lib/js/html5shiv.js"></script>
+    <![endif]-->
+  </head>
+
+  <body>
+
+    <div class="reveal">
+
+      <!-- Any section element inside of this container is displayed as a slide -->
+      <div class="slides">
+        <section data-background="images/intro.jpg">
+          <h1>Exercise analysis</h1>
+          <p>&nbsp;</p>
+          <p>Jan Macháček <a href="https://twitter.com/honzam399">@honzam399</a></p>
+        </section>
+
+        <section data-background="images/blueprint.jpg">
+          <img src="images/components.png"/>
+        </section>
+
+        <section data-background="images/everythingfine.jpg">
+          <h2>So, tell me again</h2>
+          <h2>&nbsp;</h2>
+          <h2>&nbsp;</h2>
+          <h2>&nbsp;</h2>
+          <h2>&nbsp;</h2>
+          <h2>&nbsp;</h2>
+          <h2>how everything's fine in production!</h2>
+        </section>
+        <section data-background="images/fail1.jpg"></section>
+        <section data-background="images/fail2.jpg"></section>
+        <section data-background="images/fail3.jpg"></section>
+        <section data-background="images/fail4.jpg"></section>
+        <section data-background="images/fail5.jpg"></section>
+        <section data-background="images/fail6.jpg"></section>
+        <section data-background="images/fail7.jpg"></section>
+        <section data-background="images/fail8.jpg"></section>
+        <section data-background="images/fail9.jpg"></section>
+        <section data-background="images/faila.jpg"></section>
+
+        <section data-background="images/facepalm.jpg">
+          <section>
+            <h1>It's all wrong</h1>
+            <p>
+            <ul>
+              <li>Data loss from sensors, naïve padding</li>
+              <li>Strict network quality requirements</li>
+              <li>Large amounts of (unnecessary) data sent on network</li>
+              <li>Insufficient feedback on machine learning results</li>
+            </ul>
+            </p>
+            <hr/>
+            <p>
+            <ul>
+              <li>No timely feedback to the users</li>
+              <li>One failing request resulted in offline session</li>
+              <li>User experience simply not <em>slick</em> enough</li>
+            </ul>
+            </p>
+          </section>
+
+          <section>
+            <h1>What now?</h1>
+            <ul>
+              <li>Better sensor and signal processing</li>
+              <li>Shorter experiment cycle</li>
+              <li>Distributed lambda architecture with feedback</li>
+            </ul> 
+          </section>
+
+          <section>
+            <img src="images/components-lambda.png" height="550em">
+          </section>            
+
+          <section>
+            <img src="images/components-first.png">
+          </section>            
+
+          <section>
+              <img src="images/components-wrong.png">
+          </section>            
+
+          <section>
+            <img src="images/components-right2.png">
+            <aside class="notes">
+              <ul>
+                <li>Three changes </li>
+                <li>1) Mobile device now used as part of speed layer for obvious advantages</li>
+                <li>2) Batch layer now updates model and sends updates not only to akka but also to the device </li>
+                <li>3) We use classification in both mobile, akka on different levels and use it to improve model in batch layer later </li>
+              </ul>
+            </aside>
+          </section>            
+
+          <section>
+            <h2>More on the phone</h2>
+            <p>
+            <ul>
+              <li>Responsive</li>
+              <li>Resilient</li>
+            </ul>
+            </p>
+            <hr/>
+            <p>
+            <ul>
+              <li>Core components in C++</li>
+              <li><em>Multi-platform</em>: buildable &amp; testable independently</li>
+              <li>Smallest possible device-only code</li>
+              <li>Sane development tools (e.g. AppCode, CLion, emacs)</li>
+            </ul>
+            </p>
+          </section>
+
+          <section>
+            <img src="images/dsp.png" height="550em"/>
+          </section>
+
+          <section>
+            <img src="images/dsp-e.png" height="550em"/>
+          </section>
+
+          <section>
+            <h2>Human expert</h2>
+          </section>
+
+          <section>
+            <pre><code data-trim class="cpp xsmall">
+std::pair&lt;raw_sensor_data, size_t&gt; decode_single_packet(const uint8_t *buffer);
+
+class sensor_data_fuser {
+public:
+  fusion_result push_back(const raw_sensor_data &amp;decoded, 
+                          const sensor_location_t location, 
+                          const sensor_time_t wall_time);
+};
+            </code></pre>
+            <pre><code data-trim class="objc xsmall">
+@interface MRMultilayerPerceptron : NSObject
+
+- (instancetype)initWithModel:(MRModelParameters *)model;
+
+- (MRClassifiedResistanceExercise *)classify:(const std::vector&lt;fused_sensor_data&gt; &amp;)data;
+
+@property uint windowStepSize;
+
+@end
+            </code></pre>
+
+          </section>
+
+          <section data-background="images/johnny.jpg">
+            <pre><code data-trim class="obj-c small">
+#import &lt;Foundation/Foundation.h&gt;
+
+@interface MRPreclassification : NSObject
+- (void)pushBack:(NSData *)data from:(uint8_t)location;
+
+@property id&lt;MRExerciseBlockDelegate&gt; 
+                exerciseBlockDelegate;
+
+@property id&lt;MRDeviceDataDelegate&gt; 
+                deviceDataDelegate;
+
+@property id&lt;MRClassificationPipelineDelegate&gt; 
+                classificationPipelineDelegate;
+@end
+            </code></pre>
+          </section>
+
+          <section data-background="images/johnny.jpg">
+            <pre><code data-trim class="swift xsmall">
+class MRExerciseSessionViewController : UIPageViewController, 
+  MRDeviceSessionDelegate, 
+  MRDeviceDataDelegate, 
+  MRExerciseBlockDelegate, 
+  MRClassificationPipelineDelegate, 
+  MRExercisePlanDelegate {
+
+  func deviceSession(session: DeviceSession, sensorDataReceivedFrom deviceId: DeviceId, 
+                     atDeviceTime time: CFAbsoluteTime, data: NSData) {
+    preclassification!.pushBack(data, from: 0)
+  }
+
+  func classificationCompleted(result: [AnyObject]!, fromData data: NSData!) {
+    userClassification = MRExerciseSessionUserClassification(...)
+    classificationCompletedViewController?.
+      presentClassificationResult(..., onComplete: logExerciseExample)
+  }       
+
+  private func logExerciseExample(example: MRResistanceExerciseExample) {
+    self.state!.postResistanceExample(example)
+  }
+
+}
+            </code></pre>
+          </section>
+
+          <section data-background="images/johnny.jpg">
+            <h2>I didn't mean to scare you...</h2>
+          </section>
+
+          <section data-background="images/johnny.jpg">
+            <img src="images/xcode.png" height="550em"/>            
+          </section>
+
+          <section>
+            <img src="images/components-right2.png">
+          </section>
+
+          <section>
+            <img src="images/ex-2-deltoid-cable-cross-overs.png" height="600px">
+            <p>Deltoid cable cross-overs</p>
+          </section>
+          <section>
+            <img src="images/ex-17-rope-triceps-extension.png" height="600px">
+            <p>Rope triceps extensions</p>
+          </section>
+          <section>
+            <img src="images/ex-18-barbell-biceps-curl.png" height="600px">
+            <p>Barbell biceps curls</p>
+          </section>
+          <section>
+            <img src="images/ex-32-dumbbell-row.png" height="600px">
+            <p>Dumbbell rows</p>
+          </section>
+          <section>
+            <img src="images/ex-44-dumbbell-alt-curl.png" height="600px">
+            <p>Alternating dumbbell biceps curls</p>
+          </section>
+          <section>
+            <img src="images/ex-back.png" height="600px">
+            <p>Back session</p>
+          </section>
+        </section>
+
+        <section data-background="images/blueprint.jpg">
+          <img src="images/components.png"/>
+        </section>
+
+        <section data-background="images/blueprint.jpg">
+          <section>
+            <h2>Akka</h2>
+            <img src="images/akka.png" height="500px" />
+          </section>
+
+          <section>
+            <img src="images/components-akka.png"/>
+          </section>
+          <section>
+            <img src="images/lift-architecture.png" height="550em"/>
+          </section>
+          <section>
+            <img src="images/lift-actors.png"/>
+          </section>
+
+          <section>
+            <pre><code data-trim class="scala">
+object ProfileService extends Directives 
+  with CommonMarshallers with CommonPathDirectives {
+
+  def userProfileRoute(userProfile: ActorRef, 
+                       userProfileProcessor: ActorRef)
+                      (implicit _: ExecutionContext) =
+    path("user") ~ 
+    path("user" / UserIdValue) ~ 
+    path("user" / UserIdValue / "check") ~
+    path("user" / UserIdValue / "image") ~
+    path("user" / UserIdValue / "device" / "ios") ~
+    path("user" / UserIdValue / "device" / "android") 
+
+}
+            </code></pre> 
+          </section>
+
+          <section>
+            <pre><code data-trim class="scala">
+class UserProfileProcessor(userProfile: ActorRef) 
+  extends PersistentActor with ActorLogging {
+
+  override def receiveRecover: Receive = ...
+
+  override def receiveCommand: Receive = ...
+
+}
+            </code></pre>
+          </section>
+
+          <section>
+          <pre><code data-trim class="scala">
+var accounts: KnownAccounts = KnownAccounts.empty
+
+override def receiveCommand: Receive = {
+  case UserRegister(email, _) 
+  if accounts.contains(email) ⇒
+    sender() ! \/.left("Username already taken")  
+}
+          </code></pre>
+          </section>
+
+          <section>
+          <pre><code data-trim class="scala">
+var accounts: KnownAccounts = KnownAccounts.empty
+
+override def receiveCommand: Receive = {
+  ...
+  case UserRegister(email, password) ⇒
+    persist(UserRegistered(UserId.randomId(), ...)) { 
+      userRegistered ⇒
+      userProfile ! userRegistered
+      accounts = accounts.withNewAccount(...)
+      saveSnapshot(accounts)
+
+      sender() ! \/.right(userRegistered.userId)
+    }
+}
+          </code></pre>
+          </section>
+
+          <section>
+            <img src="images/lift-upp-pubsub.png"/>
+          </section>
+          <section>
+            <img src="images/lift-upp-pubsub2.png"/>
+          </section>
+
+          <section>
+            <pre><code data-trim class="scala">
+val mediator = DistributedPubSubExtension(...)
+val topic = "UserProfileProcessor.knownAccounts"
+mediator ! Subscribe(topic, self)
+
+override def receiveCommand: Receive = {
+  case UserRegister(email, password) ⇒
+    persist(UserRegistered(UserId.randomId(), ...)) { 
+      ...
+      mediator ! Publish(topic, KnownAccountAdded(...))
+    }
+  case KnownAccountAdded(email, userId) 
+  if sender() != self ⇒
+    accounts = accounts.withNewAccount(email, userId)
+}
+            </code></pre>
+          </section>
+
+          <section>
+          <pre><code data-trim class="scala">
+class UserProfile extends PersistentActor {
+  private var profile: Profile = _
+  override val persistenceId: String = 
+    s"user-profile-${self.path.name}"
+
+  override def receiveCommand: Receive = notRegistered
+
+  private def notRegistered: Receive = ...
+
+  private def registered: Receive = ...
+
+}
+          </code></pre>
+          </section>
+
+          <section>
+          <pre><code data-trim class="scala">
+private var profile: Profile = _
+
+private def notRegistered: Receive = {
+  case cmd: Account ⇒
+    persist(cmd) { acc ⇒
+      profile = Profile(acc, Devices.empty, None, None)
+      saveSnapshot(profile)
+      context.become(registered)
+    }
+}
+private def registered: Receive = {
+  case GetAccount ⇒ sender() ! profile.account
+  ...
+}
+          </code></pre>
+          </section>
+
+          <section>
+          <pre><code data-trim class="scala">
+class UserExerciseProcessor 
+  extends PersistentActor with ActorLogging {
+
+  private val userId = UserId(self.path.name)
+
+  override val persistenceId: String = 
+    s"user-exercises-${userId.toString}"
+
+  override def receiveRecover: Receive = ...
+
+  override def receiveCommand: Receive = ...
+}
+
+          </code></pre>
+          </section>
+
+          <section>
+          <pre><code data-trim class="scala">
+override def receiveCommand: Receive = {
+  case eres@EntireResistanceExerciseSession(
+    id, session, sets, examples, deviations) ⇒
+
+    persist(eres) { _ ⇒
+      sender() ! \/.right(id)
+    }
+
+  case Suggestions(suggestions) ⇒
+    ...
+
+  ...
+}
+          </code></pre>
+          </section>
+
+          <section>
+            <img src="images/components-akka.png"/>
+          </section>
+
+        </section>
+
+        <section data-background="images/blueprint.jpg">
+
+          <section>
+              <h2>Apache Spark</h2>
+              <br/>
+              <img src="images/spark.png"  height="500em">
+          </section>
+
+          <section>
+            <img src="images/components-right2.png">
+          </section>
+
+          <section>
+            <img src="images/components-spark-1.png" height="500em">
+          </section>
+
+          <section>
+            <img src="images/components-spark-2.png" height="500em">
+          </section>
+
+          <section>
+            <h2>Serialization</h2>
+            <ul>
+              <li>Fast</li>
+              <li>Stable</li>
+              <li><em>Compatible</em></li>
+            </ul>
+          </section>
+
+          <section>
+            <h2>Kryo &amp; Chill</h2>
+            <pre><code data-trim class="hocon small">
+akka.actor.serialization-bindings {
+  "io.muvr.exercise.ExercisePlanDeviation" = kryo,
+  "io.muvr.exercise.ResistanceExercise" = kryo,
+  "io.muvr.exercise.ResistanceExerciseSet" = kryo,
+  "io.muvr.exercise.ResistanceExerciseSetExample" = kryo,
+  "io.muvr.exercise.EntireResistanceExerciseSession" = kryo,
+  "io.muvr.exercise.ResistanceExerciseSession" = kryo,
+  "io.muvr.exercise.Rest" = kryo,
+  "io.muvr.exercise.SessionId" = kryo
+}
+
+akka.actor.serializers {
+  kryo = "com.twitter.chill.akka.AkkaSerializer"
+}
+
+            </code></pre>
+          </section>
+
+          <section>
+            <img src="images/components-spark-1.png" height="500em">
+          </section>
+
+          <section>
+            <pre><code data-trim class="scala small">
+import org.apache.spark.{SparkConf, SparkContext}
+
+object SimpleMain {
+
+  private def sparkConf(): SparkConf = {
+    new SparkConf()
+      .setAppName("Muvr Analytics")
+      .set("spark.cassandra.connection.host", "127.0.0.1")
+      .set("spark.cassandra.query.retry.count", "0")
+      .set("spark.cassandra.connection.timeout_ms", "1000")
+  }
+
+  def main(args: Array[String]) {
+    import cassandra._
+    import akka.analytics.cassandra
+
+    val sc = new SparkContext(sparkConf())
+    sc.eventTable().cache().foreach(println)
+  }
+}
+            </code></pre>
+          </section>
+
+          <section>
+            <pre><code data-trim class="shell small">
+#!/bin/sh
+
+spark-submit \
+  --class "io.muvr.analytics.basic.SimpleMain" \
+  --master local[4] \
+  --driver-class-path basic/target/basic-assembly-1.0.0-SNAPSHOT.jar \
+  basic/target/basic-assembly-1.0.0-SNAPSHOT.jar
+            </code></pre>
+          </section>
+
+          <section data-background="images/mad-scientist.jpeg">
+            <img src="images/intensities.png" height="500px"/>
+          </section>
+
+          <section data-background="images/mad-scientist.jpeg">
+            <pre><code data-trim class="scala small">
+def main(args: Array[String]) {
+  import cassandra._
+
+  val sc = new SparkContext(sparkConf)
+  val et = sc.eventTable().cache()
+  val preparedIntensityPipeline = intensityPipeline(et, 50, 10)
+
+  getUsers(et)
+    .collect()
+    .map(userId ⇒ userId → preparedIntensityPipeline(userId))
+    .foreach { 
+       case (id, s) ⇒ request(uri ⇒ Post(...), s)) 
+     }
+}
+            </code></pre>
+          </section>
+
+          <section data-background="images/mad-scientist.jpeg">
+            <pre><code data-trim class="scala small">
+object IntensityPipeline {
+  type RawInputData = RDD[(JournalKey, Any)]
+
+  def getUsers(input: RawInputData): RDD[UserId] = input.flatMap {
+    case (JournalKey(UserExerciseProcessorPersistenceId(userId),
+                     _, _), x) ⇒ Some(userId)
+    case _ ⇒ None
+  }.distinct()
+
+  ...
+}
+            </code></pre>
+          </section>
+
+          <section data-background="images/mad-scientist.jpeg">
+            <pre><code data-trim class="scala xsmall">
+// for each muscle group id ``mgid``:
+val inputData = allInputData.filter(_.session.muscleGroupIds.contains(mgid))
+val inputDataSize = inputData.count()
+val normalizedUseHistory = Math.min(useHistory, inputDataSize.toInt - 1)
+var intensityPredictions: List[Suggestion.Intensity] = Nil
+val now = new Date().midnight
+
+val intensityTrainingData = inputData
+  .map(_.session.intendedIntensity)
+  .sliding(normalizedUseHistory + 1)
+  .map(exercises => LabeledPoint(exercises.head, Vectors.dense(exercises.tail)))
+
+val intensityModel = LinearRegressionWithSGD.train(intensityTrainingData, 100, 0.01, 1.0)
+val indexedInputData = inputData.zipWithIndex().cache()
+for (i ← 0 to predictDays - 1) {
+  val historyTestData = indexedInputData.filter(x => x._2 > inputDataSize - normalizedUseHistory - 1 + i)
+  val padWithPredictions = normalizedUseHistory - historyTestData.count().toInt
+  val paddedTestData: Array[Double] = if (padWithPredictions > 0) {
+    historyTestData.map(_._1.session.intendedIntensity).collect() ++
+      intensityPredictions.take(Math.min(intensityPredictions.size, padWithPredictions)).map(_.intensity) ++
+      Array.fill(Math.min(0, padWithPredictions - intensityPredictions.size))(0.5)
+  } else historyTestData.map(_._1.session.intendedIntensity).collect()
+
+  require(paddedTestData.length == normalizedUseHistory)
+
+  val predictedIntensity = intensityModel.predict(Vectors.dense(paddedTestData))
+
+  intensityPredictions = intensityPredictions :+ Suggestion.Intensity(now.addDays(i + 1), SuggestionSource.History, mgid, predictedIntensity)
+}
+
+intensityPredictions
+            </code></pre>
+          </section>
+
+          <section data-background="images/mad-scientist.jpeg">
+            <h2>You know what?</h2>
+          </section>
+        </section>
+
+        <section data-background="images/angrymob.jpg">
+          <h1>Demo</h1>
+        </section>
+
+        <section data-background="images/qa.jpg">
+          <h2>Q&amp;A</h2>
+        </section>
+          
+        <section data-background="images/devops.jpg">
+          <h2>Thank you!</h2>
+          <ul>
+            <li>☞ Jobs at <a href="http://www.cakesolutions.net/careers">www.cakesolutions.net/careers</a>&nbsp;&nbsp;☜</li>
+            <li>Slides at <a href="http://www.eigengo.com/katsconf-2015">www.eigengo.com/katsconf-2015</a></li>
+            <li><em>All</em> code at <a href="http://github.com/muvr">github.com/muvr</a></li>
+            <li>Tweets at <a href="https://twitter.com/honzam399">@honzam399</a></li>
+          </ul>
+          </ul>
+        </section>
+
+        <section data-background="images/goodlife.jpg">
+          <h2>References</h2>
+          <ul class="tiny">
+            <li><em>LTLf and LDLf Monitoring</em>. Giuseppe De Giacomo, Riccardo De Masellis, Marco Grasso, Fabrizio Maria Maggi and Marco Montali, 2014</li>
+            <li><em>User Exercise Pattern Prediction through Mobile Sensing</em>. Georgi Kotsev, Le T. Nguyen, Ming Zeng, and Joy Zhang, 2014</li>
+            <li><em>Convolutional Neural Networks for Human Activity Recognition using Mobile Sensors</em>. Ming Zeng, Le T. Nguyen, Bo Yu, Ole J. Mengshoel, Jiang Zhu, Pang Wu and Joy Zhang, 2014</li>
+            <li><em>Fast Prediction with SVM Models Containing RBF Kernels</em>. Marc Claesen, Frank De Smet, Johan A.K. Suykens and Bart De Moor, 2014</li>
+            <li><em>Adaptive Activity Recognition with Dynamic Heterogeneous Sensor Fusion</em>. Ming Zeng, Xiao Wang, Le T. Nguyen, Pang Wu, Ole J. Mengshoel and Joy Zhang, 2014</li>
+            <li><em>Parametric Linear Dynamic Logic</em>. Peter Faymonville and Martin Zimmermann, 2014</li>
+
+            <li><em>Time-Series Classification Through Histograms of Symbolic Polynomials</em>. Josif Grabocka, Martin Wistuba and Lars Schmidt-Thieme, 2013</li>
+            <li><em>Accelerometer-based Energy Expenditure Estimation Methods and Performance Comparison</em>. Fang-Chen Chuang, Ya-Ting C. Yang and Jeen-Shing Wang, 2013</li>
+            <li><em>Linear Temporal Logic and Linear Dynamic Logic on Finite Traces</em>. Giuseppe De Giacomo and Moshe Y. Vardi, 2013</li>
+            <li><em>Visualizing Variable-Length Time Series Motifs</em>. Yuan Li, Jessica Lin and Tim Oates, 2012</li>
+            <li><em>Segmenting Time Series: A Survey and Novel Approach</em>. Eamonn Keogh, Selina Chu, David Hart and Michael Pazzani, 2011</li>
+            <li><em>Finding Motifs in Time Series</em>. Jessica Lin, Eamonn Keogh, Stefano Lonardi and Pranav Patel, 2002</li>
+          </ul>
+        </section>
+
+      </div>
+
+    </div>
+
+    <script src="../reveal.js/lib/js/head.min.js"></script>
+    <script src="../reveal.js/js/reveal.min.js"></script>
+
+    <script>
+
+      Reveal.initialize({
+        controls: false,
+        progress: true,
+        history: false,
+        center: false,
+        hideAddressBar: true,
+
+        theme: Reveal.getQueryHash().theme, // available themes are in /css/theme
+        transition: Reveal.getQueryHash().transition || 'fade', // default/cube/page/concave/zoom/linear/fade/none
+
+        // Parallax scrolling
+        // parallaxBackgroundImage: 'https://s3.amazonaws.com/hakim-static/reveal-js/reveal-parallax-1.jpg',
+        // parallaxBackgroundSize: '2100px 900px',
+
+        // Optional libraries used to extend on reveal.js
+        dependencies: [
+          { src: '../reveal.js/lib/js/classList.js', condition: function() { return !document.body.classList; } },
+          { src: '../reveal.js/plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+          { src: '../reveal.js/plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+          { src: '../reveal.js/plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
+          { src: '../reveal.js/plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } },
+          { src: '../reveal.js/plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } }
+        ]
+      });
+
+    </script>
+
+  </body>
+</html>
