@@ -442,7 +442,7 @@ class UserExerciseProcessor
           <pre><code data-trim class="scala">
 override def receiveCommand: Receive = {
   case eres@EntireResistanceExerciseSession(
-    id, session, sets, examples, deviations) ⇒
+    id, session, examples) ⇒
 
     persist(eres) { _ ⇒
       sender() ! \/.right(id)
@@ -495,10 +495,9 @@ override def receiveCommand: Receive = {
             <h2>Kryo &amp; Chill</h2>
             <pre><code data-trim class="hocon small">
 akka.actor.serialization-bindings {
-  "io.muvr.exercise.ExercisePlanDeviation" = kryo,
   "io.muvr.exercise.ResistanceExercise" = kryo,
-  "io.muvr.exercise.ResistanceExerciseSet" = kryo,
-  "io.muvr.exercise.ResistanceExerciseSetExample" = kryo,
+  "io.muvr.exercise.ResistanceExercise" = kryo,
+  "io.muvr.exercise.ResistanceExerciseExample" = kryo,
   "io.muvr.exercise.EntireResistanceExerciseSession" = kryo,
   "io.muvr.exercise.ResistanceExerciseSession" = kryo,
   "io.muvr.exercise.Rest" = kryo,
@@ -525,9 +524,7 @@ object SimpleMain {
   private def sparkConf(): SparkConf = {
     new SparkConf()
       .setAppName("Muvr Analytics")
-      .set("spark.cassandra.connection.host", "127.0.0.1")
-      .set("spark.cassandra.query.retry.count", "0")
-      .set("spark.cassandra.connection.timeout_ms", "1000")
+      .set("spark.cassandra.connection.host", "...")
   }
 
   def main(args: Array[String]) {
@@ -554,78 +551,46 @@ spark-submit \
           </section>
 
           <section data-background="images/mad-scientist.jpeg">
-            <img src="images/intensities.png" height="500px"/>
-          </section>
-
-          <section data-background="images/mad-scientist.jpeg">
-            <pre><code data-trim class="scala small">
+            <pre><code data-trim class="scala xsmall">
 def main(args: Array[String]) {
   import cassandra._
 
   val sc = new SparkContext(sparkConf)
   val et = sc.eventTable().cache()
-  val preparedIntensityPipeline = intensityPipeline(et, 50, 10)
+  
+  val eu = et.flatMap { 
+    case (JournalKey(UserExerciseProcessorPersistenceId(userId), _, _), 
+                     EntireResistanceExerciseSession(id, _, examples)) ⇒
+      examples.map(e ⇒ userId → e)
+    }.flatMap { case (userId, ex) ⇒
+      example.correct.map(corr ⇒ (userId, corr.resistanceExercise, ex.fusedSensorData))
+    }.groupBy { case (userId, exercise, data) ⇒
+      userId
+    }
 
-  getUsers(et)
-    .collect()
-    .map(userId ⇒ userId → preparedIntensityPipeline(userId))
-    .foreach { 
-       case (id, s) ⇒ request(uri ⇒ Post(...), s)) 
-     }
+    eu.foreach { case (userId, exercises) ⇒ 
+      exercises.foreach { case (_, exercise, data) ⇒
+        csvWriter.writeExample(exercise.id, data)
+      }
+    }
 }
             </code></pre>
           </section>
 
           <section data-background="images/mad-scientist.jpeg">
-            <pre><code data-trim class="scala small">
-object IntensityPipeline {
-  type RawInputData = RDD[(JournalKey, Any)]
-
-  def getUsers(input: RawInputData): RDD[UserId] = input.flatMap {
-    case (JournalKey(UserExerciseProcessorPersistenceId(userId),
-                     _, _), x) ⇒ Some(userId)
-    case _ ⇒ None
-  }.distinct()
-
-  ...
-}
-            </code></pre>
+            <img src="images/ex-xyz.png"/>
+          </section>
+          <section data-background="images/mad-scientist.jpeg">
+            <img src="images/ex-train.png" height="400pt" /><br/>
+            <img src="images/ex-cm.png" height="100pt" />
           </section>
 
           <section data-background="images/mad-scientist.jpeg">
-            <pre><code data-trim class="scala xsmall">
-// for each muscle group id ``mgid``:
-val inputData = allInputData.filter(_.session.muscleGroupIds.contains(mgid))
-val inputDataSize = inputData.count()
-val normalizedUseHistory = Math.min(useHistory, inputDataSize.toInt - 1)
-var intensityPredictions: List[Suggestion.Intensity] = Nil
-val now = new Date().midnight
-
-val intensityTrainingData = inputData
-  .map(_.session.intendedIntensity)
-  .sliding(normalizedUseHistory + 1)
-  .map(exercises => LabeledPoint(exercises.head, Vectors.dense(exercises.tail)))
-
-val intensityModel = LinearRegressionWithSGD.train(intensityTrainingData, 100, 0.01, 1.0)
-val indexedInputData = inputData.zipWithIndex().cache()
-for (i ← 0 to predictDays - 1) {
-  val historyTestData = indexedInputData.filter(x => x._2 > inputDataSize - normalizedUseHistory - 1 + i)
-  val padWithPredictions = normalizedUseHistory - historyTestData.count().toInt
-  val paddedTestData: Array[Double] = if (padWithPredictions > 0) {
-    historyTestData.map(_._1.session.intendedIntensity).collect() ++
-      intensityPredictions.take(Math.min(intensityPredictions.size, padWithPredictions)).map(_.intensity) ++
-      Array.fill(Math.min(0, padWithPredictions - intensityPredictions.size))(0.5)
-  } else historyTestData.map(_._1.session.intendedIntensity).collect()
-
-  require(paddedTestData.length == normalizedUseHistory)
-
-  val predictedIntensity = intensityModel.predict(Vectors.dense(paddedTestData))
-
-  intensityPredictions = intensityPredictions :+ Suggestion.Intensity(now.addDays(i + 1), SuggestionSource.History, mgid, predictedIntensity)
-}
-
-intensityPredictions
-            </code></pre>
+            <img src="images/se-xyz.png"/>
+          </section>
+          <section data-background="images/mad-scientist.jpeg">
+            <img src="images/se-train.png" height="400pt" /><br/>
+            <img src="images/se-cm.png" height="100pt" />
           </section>
 
           <section data-background="images/mad-scientist.jpeg">
