@@ -243,6 +243,34 @@ class MRAppDelegate: UIResponder, UIApplicationDelegate,
           </section>
 
           <section data-background="images/johnny.jpg">
+            <pre><code data-trim class="swift small">
+var one: Float = 1.0
+var minusOne: Float = -1.0
+let inputPointer: UnsafeMutablePointer&lt;Float&gt; = 
+    UnsafeMutablePointer(input).advancedBy(offset)
+
+vDSP_vneg(inputPointer, vDSP_Stride(1), 
+          inputPointer, vDSP_Stride(1), vDSP_Length(length))
+vvexpf(inputPointer, inputPointer, [Int32(length)])
+vDSP_vsadd(inputPointer, vDSP_Stride(1), &amp;one, 
+           inputPointer, vDSP_Stride(1), vDSP_Length(length))
+vvpowsf(inputPointer, &amp;minusOne, inputPointer, [Int32(length)])
+          	</pre></code>
+
+            <pre><code data-trim class="swift small">
+let inputPointer: UnsafeMutablePointer&lt;Float&gt; = 
+    UnsafeMutablePointer(input).advancedBy(offset)
+
+vvtanhf(inputPointer, inputPointer, [Int32(length)])
+          	</pre></code>
+
+            <pre><code data-trim class="swift small">
+vDSP_vthres(&amp;input + offset, vDSP_Stride(1), &amp;threshold, 
+			&amp;input + offset, vDSP_Stride(1), vDSP_Length(length))
+          	</pre></code>
+          </section>
+
+          <section data-background="images/johnny.jpg">
             <h2>I didn't mean to scare you...</h2>
           </section>
 
