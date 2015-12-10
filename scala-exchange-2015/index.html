@@ -108,6 +108,9 @@
         <section data-background="images/intro.jpg">
           <img src="images/se-xyz.png" height="500px">
           <p>We took samples from another training data set...</p>
+          <aside class="notes">
+            <h1>1050</h1>
+          </aside>
         </section>
         <section data-background="images/intro.jpg">
           <img src="images/se-train.png" height="600px">
@@ -124,6 +127,9 @@
 
         <section data-background="images/blueprint.jpg">
           <h2>So, this should all work!</h2>
+          <aside class="notes">
+            <h1>1052</h1>
+          </aside>
         </section>
         <section data-background="images/blueprint.jpg">
           <img src="images/components-right2.png"/>
@@ -140,6 +146,9 @@
             <li>How to build the infrastructure?</li>
             <li>Where to get good quality training data?</li>
           </ul>
+          <aside class="notes">
+            <h1>1053</h1>
+          </aside>
         </section>
 
         <section data-background="images/mad-scientist.jpeg">
@@ -155,6 +164,9 @@
         <section data-background="images/mad-scientist.jpeg">
           <h2>Artificial neural network</h2>
           <img src="images/xor-mlp-w.png"/>
+          <aside class="notes">
+            <h1>1056</h1>
+          </aside>
         </section>
 
         <section data-background="images/mad-scientist.jpeg">
@@ -172,6 +184,9 @@
         <section data-background="images/angrymob.jpg">
           <h2>Demonstration</h2>
           <p>(Forward propagation)</p>
+          <aside class="notes">
+            <h1>1059-1103</h1>
+          </aside>
         </section>
 
         <section data-background="images/mad-scientist.jpeg">
@@ -179,8 +194,20 @@
           <ul>
             <li>Many “nearly optimal” solutions</li>
             <li>Optimization and training techniques—LBFGS, back–propagation, batch and online gradient descent, downpour SGD, sandblaster LBFGS</li>
-            <li>New methods for large networks—deep learning</li>
           </ul>
+          <aside class="notes">
+            <h2>Back–propagation recipe</h2>
+            <ul>
+              <li>Use ReLU units</li>
+              <li>Use cross–entropy loss for classification</li>
+              <li>Use Stochastic gradient descent on mini–batches</li>
+              <li><strong>Shuffle training samples</strong></li>
+              <li>Normalize input (zero mean, unit variance)</li>
+              <li>Schedule to decrease the learning rate</li>
+              <li>Add a bit of L1 and L2 regularisation (after a few epochs)</li>
+              <li>Use drop–out for regularisation</li>
+            </ul>
+          </aside>
         </section>
 
         <section data-background="images/mad-scientist.jpeg">
@@ -190,6 +217,9 @@
             <li>Fit the model to the data</li>
             <li>Evaluate the model's performance on lablled test data</li>
           </ul>
+          <aside class="notes">
+            <h1>1105</h1>
+          </aside>
         </section>
 
         <section data-background="images/mad-scientist.jpeg">
@@ -202,21 +232,37 @@
             <li>Save the model's parameters, weihts and biases</li>
             <li>Pick the most suitable model</li>
           </ul>
+          <aside class="notes">
+            <h1>1106</h1>
+          </aside>
         </section>
 
         <section data-background="images/angrymob.jpg">
           <h2>Demonstration</h2>
           <p>(Pipeline)</p>
+          <aside class="notes">
+            <h1>1107-1113</h1>
+          </aside>
         </section>
 
         <section data-background="images/angrymob.jpg">
           <h2>Demonstration</h2>
           <p>(Training locally)</p>
+          <aside class="notes">
+            <h1>1113-1115</h1>
+            <code>./spark-local-submit.sh</code>
+            <code>killall -9 java</code>
+          </aside>
         </section>
 
         <section data-background="images/angrymob.jpg">
           <h2>Demonstration</h2>
           <p>(To the <strike>difference engine</strike><u>cloud</u>!)</p>
+          <aside class="notes">
+            <h1>1115-1118</h1>
+            <p><em>Expect 6m until SSH ready, 10m until ready</em></p>
+            <code>./spark-cluster-create.sh</code>
+          </aside>
         </section>
 
         <section data-background="images/mad-scientist.jpeg">
@@ -227,19 +273,53 @@
             <li>You have little time</li>
             <li>(You have a lot of money)</li>
           </ul>
+          <aside class="notes">
+            <h1>1118-1119</h1>
+            <a href="http://console.aws.amazon.com/s3/home?region=eu-west-1" target="_blank">console.aws.amazon.com/s3/home?region=eu-west-1</a>
+          </aside>
         </section>
 
         <section data-background="images/mad-scientist.jpeg">
           <img src="images/components-right2.png"/>
+          <aside class="notes">
+            <h1>1119-1121</h1>
+          </aside>
+        </section>
+
+        <section data-background="images/mad-scientist.jpeg">
+          <img src="images/components-prod.png"/>
+          <aside class="notes">
+            <h1>1111-1124 &rarr; 1125</h1>
+          </aside>
         </section>
 
         <section data-background="images/angrymob.jpg">
           <h2>Demonstration</h2>
           <p>(Distributed ML)</p>
+          <aside class="notes">
+            <h1>1125-1130</h1>
+            <code>./spark-cluster-submit.sh $HOST</code>
+            <ul>
+              <li>Ganglia</li>
+              <li>AWS console</li>
+            </ul>
+          </aside>
+        </section>
+
+        <section data-background="images/angrymob.jpg">
+          <h2>Demonstration</h2>
+          <p>(Profit!)</p>
+          <aside class="notes">
+            <h1>1130-1133</h1>
+            <code>./spark-cluster-destroy.sh</code>
+          </aside>
         </section>
 
         <section data-background="images/qa.jpg">
           <h2>Q&amp;A</h2>
+          <aside class="notes">
+            <h1>1133-1135</h1>
+          </aside>
         </section>
           
         <section data-background="images/devops.jpg">
@@ -249,6 +329,9 @@
             <li><em>All</em> code at <a href="http://github.com/muvr">github.com/muvr</a></li>
             <li>Tweets at <a href="https://twitter.com/honzam399">@honzam399</a></li>
           </ul>
+          <aside class="notes">
+            <h1>1135</h1>
+          </aside>
         </section>
 
 
